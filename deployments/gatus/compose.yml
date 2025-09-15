@@ -1,0 +1,42 @@
+version: "3.9"
+services:
+  postgres:
+    image: postgres
+    volumes:
+      - ${ROOT_FOLDER}/data/db:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=gatus
+      - POSTGRES_USER=${DATABASE_USER}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+    networks:
+      - database
+      
+  gatus:
+    image: twinproduction/gatus:latest
+    restart: always
+    environment:
+      - POSTGRES_USER=${DATABASE_USER}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+      - POSTGRES_DB=gatus
+    volumes:
+      - ${ROOT_FOLDER}/config:/config
+    networks:
+      - database
+      - traefik
+    depends_on:
+      - postgres
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.${STACK_NAME}.rule=Host(`etat.anneraud.fr`)
+      - traefik.http.routers.${STACK_NAME}.entrypoints=web-secure
+      - traefik.http.routers.${STACK_NAME}.tls=true
+      - traefik.http.routers.${STACK_NAME}.tls.certresolver=default
+      - traefik.http.services.${STACK_NAME}.loadbalancer.server.port=8080
+      - traefik.http.services.${STACK_NAME}.loadbalancer.server.scheme=http
+
+networks:
+  database:
+  traefik:
+    external: true
