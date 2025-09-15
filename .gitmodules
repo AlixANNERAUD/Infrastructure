@@ -1,0 +1,3 @@
+[submodule "deployments/matrix/matrix-docker-ansible-deploy"]
+	path = deployments/matrix/matrix-docker-ansible-deploy
+	url = https://github.com/spantaleev/matrix-docker-ansible-deploy.git
