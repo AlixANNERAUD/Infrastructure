@@ -1,0 +1,230 @@
+storage:
+  type: postgres
+  path: "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable"
+
+ui:
+  title: "Tableau de bord | Anneraud"
+  description: "Tableau de bord des services souverain de la famille Anneraud"
+  header: "Tableau de bord"
+  logo: ""
+  default-sort-by: group
+
+endpoints:
+  - name: Bitwarden (Nextcloud)
+    group: Services
+    url: "https://bitwarden.anneraud.fr/"
+    interval: 10m
+    conditions:
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
+
+  - name: Nuage (Nextcloud)
+    group: Services
+    url: "https://nuage.anneraud.fr/"
+    interval: 10m
+    conditions:
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
+
+  - name: Maison (Home Assistant)
+    group: Services
+    url: "https://maison.anneraud.fr/"
+    interval: 10m
+    conditions:
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
+
+  - name: Médiathèque (Jellyfin)
+    group: Services
+    url: "https://maison.anneraud.fr/"
+    interval: 10m
+    conditions:
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
+
+  - name: Archive (Paperless-ngx)
+    group: Services
+    url: "https://maison.anneraud.fr/"
+    interval: 10m
+    conditions:
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
+
+  - name: Proxy Bruxelles (Nginx Proxy Manager)
+    group: Infrastructure
+    url: "https://nginx.bruxelles.anneraud.fr/"
+    interval: 10m
+    conditions:
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
+
+  - name: DNS dynamique Bruxelles (DDNS updater)
+    group: Infrastructure
+    url: "https://ddns-updater.bruxelles.anneraud.fr/"
+    interval: 10m
+    conditions:
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
+
+  - name: VPN (Tailscale)
+    group: Infrastructure
+    url: "https://tailscale.anneraud.fr/"
+    interval: 10m
+    conditions:
+      - "[STATUS] == 404"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
+
+  - name: VPN console
+    group: Services
+    url: "https://tailscale.anneraud.fr/admin/"
+    interval: 10m
+    conditions:
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
+
+  - name: Statistiques (Umami)
+    group: Services
+    url: "https://s.anneraud.fr/"
+    interval: 10m
+    conditions:
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
+
+  - name: Notes (Docmost)
+    group: Services
+    url: "https://notes.anneraud.fr/"
+    interval: 10m
+    conditions:
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
+
+  - name: Arnaud (Odoo)
+    group: Services
+    url: "https://arnaud.anneraud.fr/"
+    interval: 10m
+    conditions:
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
+
+  - name: Git (Gitea)
+    group: Services
+    url: "https://git.anneraud.fr/"
+    interval: 10m
+    conditions:
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
+
+  - name: Finances (Firefly III)
+    group: Services
+    url: "https://finances.anneraud.fr/"
+    interval: 10m
+    conditions:
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
+
+  - name: Importateur finances (Firefly III importer)
+    group: Services
+    url: "https://importeur-finances.anneraud.fr/"
+    interval: 10m
+    conditions:
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
+
+  - name: Recettes (Mealie)
+    group: Services
+    url: "https://recettes.anneraud.fr/"
+    interval: 10m
+    conditions:
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
+
+  - name: Portefolio Alix (GitHub Pages)
+    group: Services
+    url: "https://alix.anneraud.fr/"
+    interval: 10m
+    conditions:
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
+
+
+  - name: Bruxelles console (TrueNAS)
+    group: Infrastructure
+    url: "https://bruxelles.anneraud.fr/"
+    interval: 10m
+    conditions:
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
+
+  - name: Radarr
+    group: Services
+    url: "https://radarr.anneraud.fr/"
+    interval: 10m
+    conditions:
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
+
+  - name: Sonarr
+    group: Services
+    url: "https://sonarr.anneraud.fr/"
+    interval: 10m
+    conditions:
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
+
+  - name: Prowlarr
+    group: Services
+    url: "https://prowlarr.anneraud.fr/"
+    interval: 10m
+    conditions:
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
+  
+  - name: Bazarr
+    group: Services
+    url: "https://bazarr.anneraud.fr/"
+    interval: 10m
+    conditions:
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
+
+  - name: Jellyseerr
+    group: Services
+    url: "https://jellyseerr.anneraud.fr/"
+    interval: 10m
+    conditions:
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
+  
+  - name: Conteneurs Bruxelles (Portainer)
+    group: Infrastructure
+    url: "https://conteneurs.bruxelles.anneraud.fr/"
+    interval: 10m
+    conditions:
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
+
+
+  - name: Bruxelles
+    url: "icmp://local.bruxelles.anneraud.fr"
+    group: Infrastructure
+    interval: 1m
+    conditions:
+      - "[CONNECTED] == true"
+
+  - name: Luxembourg
+    url: "icmp://local.luxembourg.anneraud.fr"
+    group: Infrastructure
+    interval: 1m
+    conditions:
+      - "[CONNECTED] == true"
+
+alerting:
+  email:
+    from: ${EMAIL_FROM}
+    username: ${EMAIL_USERNAME}
+    password: ${EMAIL_PASSWORD}
+    host: ${EMAIL_HOST}
+    port: ${EMAIL_PORT}
+    to: ${EMAIL_TO}
+    client:
+      insecure: false

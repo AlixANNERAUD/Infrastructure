@@ -20,6 +20,12 @@ services:
       - POSTGRES_USER=${DATABASE_USER}
       - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
       - POSTGRES_DB=gatus
+      - EMAIL_FROM=${EMAIL_FROM}
+      - EMAIL_USERNAME=${EMAIL_USERNAME}
+      - EMAIL_PASSWORD=${EMAIL_PASSWORD}
+      - EMAIL_HOST=${EMAIL_HOST}
+      - EMAIL_PORT=${EMAIL_PORT}
+      - EMAIL_TO=${EMAIL_TO}
     volumes:
       - ${ROOT_FOLDER}/config:/config
     networks:
