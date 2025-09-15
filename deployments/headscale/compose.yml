@@ -1,0 +1,52 @@
+services:
+  headscale:
+    image: headscale/headscale:latest
+    restart: unless-stopped
+    container_name: headscale
+    networks:
+      - traefik
+    ports:
+      - "8080:8080"
+      - "9090:9090"
+      - "3479:3479/udp"
+    volumes:
+      - ${ROOT_FOLDER}/configuration:/etc/headscale
+      - ${ROOT_FOLDER}/data:/var/lib/headscale
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.headscale.tls=true
+      - traefik.http.routers.headscale.tls.certResolver=true
+      - traefik.http.routers.headscale.rule=Host(`tailscale.anneraud.fr`) && PathPrefix(`/`)
+      - traefik.http.services.headscale.loadbalancer.server.port=8080
+      - traefik.http.routers.headscale.entrypoints=web-secure
+
+      - traefik.http.routers.headscale.middlewares=limit-headscale
+      - traefik.http.middlewares.limit-headscale.buffering.maxRequestBodyBytes=50000000 
+      - traefik.http.middlewares.limit-headscale.buffering.maxResponseBodyBytes=50000000 
+      - traefik.http.middlewares.limit-headscale.buffering.memRequestBodyBytes=50000000 
+      - traefik.http.middlewares.limit-headscale.buffering.memResponseBodyBytes=50000000 
+    command: serve
+
+  headplane:
+    container_name: headplane
+    image: ghcr.io/tale/headplane:latest
+    restart: unless-stopped
+    volumes:
+      - "${ROOT_FOLDER}/headplane:/etc/headplane"
+      - "${ROOT_FOLDER}/data:/var/lib/headscale"
+      - "${ROOT_FOLDER}/configuration:/etc/headscale"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    networks:
+      - traefik
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.headplane.rule=Host(`tailscale.anneraud.fr`) && PathPrefix(`/admin`)
+      - traefik.http.services.headplane.loadbalancer.server.port=3000
+      - traefik.http.services.headplane.loadbalancer.server.scheme=http
+      - traefik.http.routers.headplane.tls=true
+      - traefik.http.routers.headplane.tls.certResolver=true
+      - traefik.http.routers.headplane.entrypoints=web-secure
+
+networks:
+  traefik:
+    external: true
