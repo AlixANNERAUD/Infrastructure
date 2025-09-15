@@ -1,0 +1,38 @@
+services:
+  gluetun:
+    image: qmcgaw/gluetun
+    container_name: gluetun
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    ports:
+      - 8888:8888/tcp # HTTP proxy
+      - 8388:8388/tcp # Shadowsocks
+      - 8388:8388/udp # 
+      - 30096:30096/tcp # Transmission WebUI
+    volumes:
+      - ${VPN_PROFILE_PATH}:/gluetun/custom.ovpn:ro
+    environment:
+      - VPN_SERVICE_PROVIDER=custom
+      - VPN_TYPE=openvpn
+      - OPENVPN_CUSTOM_CONFIG=/gluetun/custom.ovpn
+      - OPENVPN_USER=${VPN_USER_NAME}
+      - OPENVPN_PASSWORD=${VPN_PASSWORD}
+  transmission:
+    image: lscr.io/linuxserver/transmission:latest
+    container_name: transmission
+    depends_on: 
+      - gluetun
+    network_mode: "service:gluetun"
+    environment:
+      - PUID=568
+      - PGID=3010
+      - TZ=Europe/Paris
+      - USER=${TRANSMISSION_USER} #optional
+      - PASS=${TRANSMISSION_PASSWORD} #optional
+    volumes:
+      - ${CONFIGURATION_PATH}:/config
+      - ${DOWNLOADS_PATH}/Complets:/downloads/complete #optional
+      - ${DOWNLOADS_PATH}/Incomplets:/downloads/incomplete #optional
+    restart: unless-stopped
