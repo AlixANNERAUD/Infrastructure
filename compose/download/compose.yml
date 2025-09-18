@@ -9,8 +9,10 @@ services:
     ports:
       - 8888:8888/tcp # HTTP proxy
       - 8388:8388/tcp # Shadowsocks
-      - 8388:8388/udp # 
+      - 8388:8388/udp #
       - 30096:30096/tcp # Transmission WebUI
+      - 6881:6881
+      - 6881:6881/udp
     volumes:
       - ${VPN_PROFILE_PATH}:/gluetun/custom.ovpn:ro
     environment:
@@ -19,20 +21,24 @@ services:
       - OPENVPN_CUSTOM_CONFIG=/gluetun/custom.ovpn
       - OPENVPN_USER=${VPN_USER_NAME}
       - OPENVPN_PASSWORD=${VPN_PASSWORD}
-  transmission:
-    image: lscr.io/linuxserver/transmission:latest
-    container_name: transmission
-    depends_on: 
+
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    depends_on:
       - gluetun
     network_mode: "service:gluetun"
     environment:
       - PUID=568
       - PGID=3010
-      - TZ=Europe/Paris
-      - USER=${TRANSMISSION_USER} #optional
-      - PASS=${TRANSMISSION_PASSWORD} #optional
+      - TZ=Etc/UTC
+      - WEBUI_PORT=30096
+      - TORRENTING_PORT=6881
     volumes:
       - ${CONFIGURATION_PATH}:/config
-      - ${DOWNLOADS_PATH}/Complets:/downloads/complete #optional
-      - ${DOWNLOADS_PATH}/Incomplets:/downloads/incomplete #optional
+      - ${DOWNLOADS_PATH}:/data/torrents #optional
+    #    ports:
+    #      - 8080:8080
+    #      - 6881:6881
+    #      - 6881:6881/udp
     restart: unless-stopped
