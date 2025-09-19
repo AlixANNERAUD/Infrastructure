@@ -1,5 +1,5 @@
 ---
-- name: Deploy Gatus
+- name: Deploy Homer
   hosts: bruxelles
   become: true
   vars:
