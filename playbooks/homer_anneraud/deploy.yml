@@ -1,0 +1,16 @@
+---
+- name: Deploy Gatus
+  hosts: bruxelles
+  become: true
+  vars:
+    configuration_file_source: ../../configurations/homer_anneraud/config.yml
+    configuration_file_destination: /mnt/Donnees/Applications/Homer/config.yml
+
+  tasks:
+    - name: Copy Homer configuration file
+      ansible.builtin.copy:
+        src: "{{ configuration_file_source }}"
+        dest: "{{ configuration_file_destination }}"
+        mode: "0644"
+        owner: apps
+        group: apps
