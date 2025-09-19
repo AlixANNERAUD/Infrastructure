@@ -7,8 +7,8 @@
 # externalConfig: https://example.com/server-luci/config.yaml
 
 title: "Acceuil - Anneraud"
-subtitle: "Infrastructure souveraine de la famille Anneraud"
-documentTitle: "Bienvenue sur l'infrastructure souveraine de la famille Anneraud" # Customize the browser tab text
+subtitle: "Services souverains de la famille Anneraud"
+documentTitle: "Bienvenue sur les services souverains de la famille Anneraud" # Customize the browser tab text
 
 #logo: "assets/logo.png"
 # Alternatively a fa icon can be provided:
@@ -80,23 +80,11 @@ colors:
 
 # Optional message
 message:
-  # url: "https://<my-api-endpoint>" # Can fetch information from an endpoint to override value below.
-  # mapping: # allows to map fields from the remote format to the one expected by Homer
-  #   title: 'id' # use value from field 'id' as title
-  #   content: 'value' # value from field 'value' as content
-  # refreshInterval: 10000 # Optional: time interval to refresh message
-  #
-  # Real example using chucknorris.io for showing Chuck Norris facts as messages:
-  # url: https://api.chucknorris.io/jokes/random
-  # mapping:
-  #   title: 'id'
-  #   content: 'value'
-  # refreshInterval: 10000
-  style: "is-info"
-  title: "Optional message!"
-  icon: "fa fa-exclamation-triangle"
+  style: "is-success"
+  title: "Bienvenue sur les services souverains de la famille Anneraud !"
+  icon: "fas fa-home"
   # The content also accepts HTML content, so you can add divs, images or whatever you want to make match your needs.
-  content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+  content: "Accédez à tous vos services hébergés localement. <strong>Services VPN</strong> nécessitent une connexion Tailscale. Consultez l'<a href='https://etat.anneraud.fr/' target='_blank'>état des services</a> pour vérifier leur disponibilité."
 
 # Optional navbar
 # links: [] # Allows for navbar (dark mode, layout, and search) without any links
@@ -106,9 +94,7 @@ links:
     url: "https://etat.anneraud.fr/"
     target: "_blank" 
 
-# Services
-# First level array represents a group.
-# Leave only a "items" key if not using group (group name, icon & tagstyle are optional, section separation will not be displayed).
+
 services:
   - name: "Services"
     icon: "fas fa-code-branch"
@@ -126,12 +112,6 @@ services:
         icon: "fas fa-home"
         subtitle: "Gérez la maison"
         url: "https://maison.anneraud.fr"
-      - name: "Médiathèque"
-        icon: "fas fa-film"
-        subtitle: "Films, séries et musique"
-        keywords: "self hosted media jellyfin"
-        url: "https://mediatheque.anneraud.fr"
-        target: "_blank"
       - name: "Bitwarden"
         icon: "fas fa-key"
         subtitle: "Gestionnaire de mots de passe"
@@ -149,22 +129,120 @@ services:
         icon: "fas fa-coins"
         subtitle: "Gérez vos finances"
         tag: "VPN"
-        # Optional tagstyle
-        tagstyle: "is-success"
         url: "https://finances.anneraud.fr"
+      - name: "Importateur finances"
+        icon: "fas fa-file-import"
+        subtitle: "Firefly III importer"
+        tag: "VPN"
+        url: "https://importeur-finances.anneraud.fr"
+        target: "_blank"
+      - name: "Statistiques"
+        icon: "fas fa-chart-bar"
+        subtitle: "Umami - Statistiques web"
+        url: "https://s.anneraud.fr"
+        target: "_blank"
+      - name: "Notes"
+        icon: "fas fa-sticky-note"
+        subtitle: "Docmost - Documentation"
+        tag: "VPN"
+        url: "https://notes.anneraud.fr"
+        target: "_blank"
+      - name: "Arnaud"
+        icon: "fas fa-building"
+        subtitle: "Odoo - ERP"
+        tag: "VPN"
+        url: "https://arnaud.anneraud.fr"
+        target: "_blank"
+      - name: "Git"
+        icon: "fas fa-code-branch"
+        subtitle: "Gitea - Dépôts Git"
+        tag: "VPN"
+        url: "https://git.anneraud.fr"
+        target: "_blank"
+      - name: "Recettes"
+        icon: "fas fa-utensils"
+        subtitle: "Mealie - Recettes de cuisine"
+        tag: "VPN"
+        url: "https://recettes.anneraud.fr"
+        target: "_blank"
+      - name: "Portefolio Alix"
+        icon: "fas fa-user"
+        subtitle: "GitHub Pages"
+        url: "https://alix.anneraud.fr"
+        target: "_blank"
+
+  - name: "Divertissement"
+    items:
+      - name: "Médiathèque"
+        icon: "fas fa-film"
+        subtitle: "Films, séries et musique"
+        keywords: "self hosted media jellyfin"
+        url: "https://mediatheque.anneraud.fr"
+        target: "_blank"
+      - name: "Radarr"
+        icon: "fas fa-film"
+        subtitle: "Gestionnaire de films"
+        tag: "VPN"
+        url: "https://radarr.anneraud.fr"
+        target: "_blank"
+      - name: "Sonarr"
+        icon: "fas fa-tv"
+        subtitle: "Gestionnaire de séries"
+        tag: "VPN"
+        url: "https://sonarr.anneraud.fr"
+        target: "_blank"
+      - name: "Prowlarr"
+        icon: "fas fa-search"
+        subtitle: "Indexeur de contenu"
+        tag: "VPN"
+        url: "https://prowlarr.anneraud.fr"
+        target: "_blank"
+      - name: "Bazarr"
+        icon: "fas fa-closed-captioning"
+        subtitle: "Gestionnaire de sous-titres"
+        tag: "VPN"
+        url: "https://bazarr.anneraud.fr"
+        target: "_blank"
+      - name: "Jellyseerr"
+        icon: "fas fa-plus-circle"
+        subtitle: "Demandes de contenu"
+        tag: "VPN"
+        url: "https://jellyseerr.anneraud.fr"
+        target: "_blank"
+    icon: "fas fa-masks-theater"
+    
   - name: "Infrastructure"
     icon: "fas fa-network-wired"
     items:
-      - name: "Bruxelles console"
-        #logo: "assets/tools/sample.png"
-        # subtitle: "Network-wide Ad Blocking" # optional, if no subtitle is defined, PiHole statistics will be shown
+      - name: "Console Bruxelles"
         icon: "fas fa-server"
-        tag: "vpn"
+        tag: "VPN"
         url: "https://bruxelles.anneraud.fr"
-        target: "_blank" # optional html a tag target attribute
-        # class: "green" # optional custom CSS class for card, useful with custom stylesheet
-        # background: red # optional color for card to set color directly without custom stylesheet
+        target: "_blank"
       - name: "Tailscale console"
         icon: "fas fa-shield-alt"
         url: "https://tailscale.anneraud.fr/admin"
+        target: "_blank"
+      - name: "Proxy Bruxelles"
+        icon: "fas fa-server"
+        subtitle: "Nginx Proxy Manager"
+        tag: "VPN"
+        url: "https://nginx.bruxelles.anneraud.fr"
+        target: "_blank"
+      - name: "DNS dynamique Bruxelles"
+        icon: "fas fa-globe"
+        subtitle: "DDNS updater"
+        tag: "VPN"
+        url: "https://ddns-updater.bruxelles.anneraud.fr"
+        target: "_blank"
+      - name: "VPN"
+        icon: "fas fa-shield-alt"
+        subtitle: "Tailscale - Réseau privé"
+        url: "https://tailscale.anneraud.fr"
+        target: "_blank"
+      - name: "Conteneurs Bruxelles"
+        icon: "fas fa-cube"
+        subtitle: "Portainer - Gestion Docker"
+        tag: "VPN"
+        url: "https://conteneurs.bruxelles.anneraud.fr"
         target: "_blank"
