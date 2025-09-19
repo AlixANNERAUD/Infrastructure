@@ -12,7 +12,7 @@ documentTitle: "Bienvenue sur les services souverains de la famille Anneraud" # 
 
 #logo: "assets/logo.png"
 # Alternatively a fa icon can be provided:
-icon: "fas fa-network-wired"
+#icon: "fas fa-network-wired"
 
 header: true # Set to false to hide the header
 # Optional: Different hotkey for search, defaults to "/"
@@ -34,7 +34,7 @@ proxy:
 
 # Set the default layout and color scheme
 defaults:
-  layout: columns # Either 'columns', or 'list'
+  layout: list # Either 'columns', or 'list'
   colorTheme: auto # One of 'auto', 'light', or 'dark'
 
 # Optional theming
