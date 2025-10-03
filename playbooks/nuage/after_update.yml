@@ -1,0 +1,19 @@
+---
+- name: After updating Nuage (Nextcloud)
+  hosts: bruxelles
+  become: true
+  vars:
+    container_name: ix-nextcloud-nextcloud-1
+
+  tasks:
+    - name: Migrate MIME types
+      community.docker.docker_container_exec:
+        container: "{{ container_name }}"
+        command: occ maintenance:repair --include-expensive
+        user: www-data
+
+    - name: Add missing indexes
+      community.docker.docker_container_exec:
+        container: "{{ container_name }}"
+        command: occ db:add-missing-indices
+        user: www-data
