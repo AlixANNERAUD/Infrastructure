@@ -10,8 +10,8 @@ services:
       - "9090:9090"
       - "3479:3479/udp"
     volumes:
-      - ${ROOT_FOLDER}/configuration:/etc/headscale
-      - ${ROOT_FOLDER}/data:/var/lib/headscale
+      - ./configuration:/etc/headscale
+      - ./data:/var/lib/headscale
     labels:
       - traefik.enable=true
       - traefik.http.routers.headscale.tls=true
@@ -32,9 +32,9 @@ services:
     image: ghcr.io/tale/headplane:latest
     restart: unless-stopped
     volumes:
-      - "${ROOT_FOLDER}/headplane:/etc/headplane"
-      - "${ROOT_FOLDER}/data:/var/lib/headscale"
-      - "${ROOT_FOLDER}/configuration:/etc/headscale"
+      - "./headplane:/etc/headplane"
+      - "./data:/var/lib/headscale"
+      - "./configuration:/etc/headscale"
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
     networks:
       - traefik
