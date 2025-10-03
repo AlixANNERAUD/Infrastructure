@@ -59,7 +59,7 @@ endpoints:
       - "[CERTIFICATE_EXPIRATION] > 48h"
 
   - name: NUC (Simon)
-    url: "icmp://local.bruxelles.anneraud.fr"
+    url: "icmp://simon1.dera.page"
     group: Infrastructure
     interval: 1m
     conditions:
@@ -67,11 +67,10 @@ endpoints:
 
   - name: Dimitri
     group: Infrastructure
-    url: "http://home.timoz.fr/"
+    url: "http://dimitri1.dera.page/"
     interval: 1m
     conditions:
-      - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[STATUS] == 404"
 
   - name: Bruxelles (Alix)
     url: "icmp://local.bruxelles.anneraud.fr"
