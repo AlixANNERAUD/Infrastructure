@@ -12,7 +12,7 @@ services:
       - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
     networks:
       - database
-      
+
   gatus:
     image: twinproduction/gatus:latest
     restart: always

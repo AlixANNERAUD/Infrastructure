@@ -26,6 +26,23 @@ endpoints:
       - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > 48h"
 
+  - name: Galerie (Immich)
+    group: Services
+    url: "https://galerie.anneraud.fr"
+    interval: 10m
+    conditions:
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
+
+  - name: Automatisation (n8n)
+    group: Services
+    url: "https://automatisation.anneraud.fr/healthz"
+    interval: 10m
+    conditions:
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[BODY].status == ok"
+
   - name: Maison (Home Assistant)
     group: Services
     url: "https://maison.anneraud.fr/"
@@ -146,7 +163,6 @@ endpoints:
       - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > 48h"
 
-
   - name: Bruxelles console (TrueNAS)
     group: Infrastructure
     url: "https://bruxelles.anneraud.fr/"
@@ -178,7 +194,7 @@ endpoints:
     conditions:
       - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > 48h"
-  
+
   - name: Bazarr
     group: Services
     url: "https://bazarr.anneraud.fr/"
@@ -194,7 +210,7 @@ endpoints:
     conditions:
       - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > 48h"
-  
+
   - name: Conteneurs Bruxelles (Portainer)
     group: Infrastructure
     url: "https://conteneurs.bruxelles.anneraud.fr/"
@@ -202,7 +218,6 @@ endpoints:
     conditions:
       - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > 48h"
-
 
   - name: Bruxelles
     url: "icmp://local.bruxelles.anneraud.fr"
