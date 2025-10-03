@@ -1,0 +1,44 @@
+---
+- name: Deploy Gatus
+  hosts: luxembourg
+  become: true
+  vars:
+    root_directory: /opt/gatus_derapage
+    compose_file_source: ../../compose/gatus/compose.yml
+    compose_file_destination: "{{ root_directory }}/docker-compose.yml"
+    environment_file_source: ../../configurations/gatus_derapage/.env
+    environment_file_destination: "{{ root_directory }}/.env"
+    configuration_file_source: ../../configurations/gatus_derapage/config.yml
+    configuration_file_destination: "{{ root_directory }}/config/config.yml"
+
+  tasks:
+    - name: Ensure application directory exists
+      ansible.builtin.file:
+        path: "{{ root_directory }}"
+        state: directory
+        mode: "0750"
+        owner: root
+        group: root
+
+    - name: Copy docker-compose.yml to remote
+      ansible.builtin.copy:
+        src: "{{ compose_file_source }}"
+        dest: "{{ compose_file_destination }}"
+        mode: "0640"
+
+    - name: Copy .env file if exists
+      ansible.builtin.copy:
+        src: "{{ environment_file_source }}"
+        dest: "{{ environment_file_destination }}"
+        mode: "0640"
+
+    - name: Deploy Gatus with Docker Compose
+      community.docker.docker_compose_v2:
+        project_src: "{{ root_directory }}"
+        state: present
+
+    - name: Copy Gatus configuration file
+      ansible.builtin.copy:
+        src: "{{ configuration_file_source }}"
+        dest: "{{ configuration_file_destination }}"
+        mode: "0640"

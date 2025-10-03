@@ -1,0 +1,104 @@
+storage:
+  type: postgres
+  path: "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable"
+
+ui:
+  title: "Tableau de bord | Dera.page"
+  description: "Tableau de bord des services souverain Dera.page"
+  header: "Tableau de bord"
+  logo: ""
+  default-sort-by: group
+
+endpoints:
+  - name: Stotra
+    group: Services
+    url: "https://stotra.dera.page/api/user/leaderboard"
+    interval: 1m
+    conditions:
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
+
+  - name: Element
+    group: Services
+    url: "https://element.insa.lol"
+    interval: 1m
+    conditions:
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
+
+  - name: Bible
+    group: Services
+    url: "https://yves.dera.page"
+    interval: 1m
+    conditions:
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
+
+  - name: Genda
+    group: Services
+    url: "https://genda.dera.page"
+    interval: 1m
+    conditions:
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
+
+  - name: Pixel war
+    group: Services
+    url: "https://pixelwar.insa.lol"
+    interval: 1m
+    conditions:
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
+
+  - name: Auth
+    group: Infrastructure
+    url: "https://auth.dera.page"
+    interval: 1m
+    conditions:
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
+
+  - name: NUC (Simon)
+    url: "icmp://local.bruxelles.anneraud.fr"
+    group: Infrastructure
+    interval: 1m
+    conditions:
+      - "[CONNECTED] == true"
+
+  - name: Dimitri
+    group: Infrastructure
+    url: "http://home.timoz.fr/"
+    interval: 1m
+    conditions:
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
+
+  - name: Bruxelles (Alix)
+    url: "icmp://local.bruxelles.anneraud.fr"
+    group: Infrastructure
+    interval: 1m
+    conditions:
+      - "[CONNECTED] == true"
+
+  - name: Luxembourg (Alix)
+    url: "icmp://local.luxembourg.anneraud.fr"
+    group: Infrastructure
+    interval: 1m
+    conditions:
+      - "[CONNECTED] == true"
+
+  - name: Partage
+    group: École
+    url: "https://partage.insa-rouen.fr"
+    interval: 1m
+    conditions:
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
+
+  - name: Moodle
+    group: École
+    url: "https://moodle.insa-rouen.fr"
+    interval: 1m
+    conditions:
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
