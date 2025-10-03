@@ -3,7 +3,7 @@ services:
   postgres:
     image: postgres
     volumes:
-      - ${ROOT_FOLDER}/data/db:/var/lib/postgresql/data
+      - ./data/db:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     environment:
@@ -27,7 +27,7 @@ services:
       - EMAIL_PORT=${EMAIL_PORT}
       - EMAIL_TO=${EMAIL_TO}
     volumes:
-      - ${ROOT_FOLDER}/config:/config
+      - ./config:/config
     networks:
       - database
       - traefik
