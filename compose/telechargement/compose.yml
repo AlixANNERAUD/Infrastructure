@@ -35,7 +35,7 @@ services:
       - WEBUI_PORT=30096
       - TORRENTING_PORT=6881
     volumes:
-      - ${CONFIGURATION_PATH}:/config
+      - .:/config
       - ${DOWNLOADS_PATH}:/data/torrents #optional
     #    ports:
     #      - 8080:8080
