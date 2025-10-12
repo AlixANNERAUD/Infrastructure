@@ -2,6 +2,7 @@ version: "3.9"
 services:
   postgres:
     image: postgres
+    restart: unless-stopped
     volumes:
       - ./data/db:/var/lib/postgresql/data
     environment:
@@ -13,7 +14,7 @@ services:
 
   gatus:
     image: twinproduction/gatus:latest
-    restart: always
+    restart: unless-stopped
     environment:
       - POSTGRES_USER=${DATABASE_USER}
       - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
