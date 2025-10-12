@@ -1,0 +1,27 @@
+services:
+  wakapi:
+    image: ghcr.io/muety/wakapi:latest
+    init: true
+    ports:
+      - ${WAKAPI_PORT}:3000
+    restart: unless-stopped
+    environment:
+      # See README.md and config.default.yml for all config options
+      WAKAPI_DB_TYPE: "postgres"
+      WAKAPI_DB_NAME: "wakapi"
+      WAKAPI_DB_USER: ${DATABASE_USER}
+      WAKAPI_DB_HOST: "database"
+      WAKAPI_DB_PORT: "5432"
+      WAKAPI_DB_PASSWORD: ${DATABASE_PASSWORD}
+      WAKAPI_PASSWORD_SALT: ${WAKAPI_PASSWORD_SALT}
+      WAKAPI_MAIL_SMTP_PASS: ${WAKAPI_MAIL_SMTP_PASS}
+
+  database:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: "wakapi"
+    volumes:
+      - ./Postgres_data:/var/lib/postgresql/data

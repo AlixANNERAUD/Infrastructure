@@ -219,6 +219,16 @@ endpoints:
       - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > 48h"
 
+  - name: Wakapi
+    group: Services
+    url: "https://wakapi.anneraud.fr/api/health"
+    interval: 10m
+    conditions:
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[BODY] == pat(*app=1*)"
+      - "[BODY] == pat(*db=1*)"
+
   - name: Bruxelles
     url: "icmp://local.bruxelles.anneraud.fr"
     group: Infrastructure

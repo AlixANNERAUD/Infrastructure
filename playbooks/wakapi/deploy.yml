@@ -1,0 +1,37 @@
+---
+- name: Deploy Wakapi
+  hosts: bruxelles
+  become: true
+  vars:
+    root_directory: /mnt/Donnees/Applications/Wakapi
+    compose_file_source: ../../compose/wakapi/compose.yml
+    compose_file_destination: "{{ root_directory }}/compose.yml"
+    environment_file_source: ../../configurations/wakapi/.env
+    environment_file_destination: "{{ root_directory }}/.env"
+    user_id: 568
+    group_id: 568
+
+  tasks:
+    - name: Copy compose file
+      ansible.builtin.copy:
+        src: "{{ compose_file_source }}"
+        dest: "{{ compose_file_destination }}"
+        mode: "0640"
+        owner: "{{ user_id }}"
+        group: "{{ group_id }}"
+
+    - name: Copy environment file
+      ansible.builtin.copy:
+        src: "{{ environment_file_source }}"
+        dest: "{{ environment_file_destination }}"
+        mode: "0640"
+        owner: "{{ user_id }}"
+        group: "{{ group_id }}"
+
+    - name: Deploy Wakapi with Docker Compose
+      community.docker.docker_compose_v2:
+        project_src: "{{ root_directory }}"
+        pull: always
+        recreate: always
+        remove_orphans: true
+        state: present

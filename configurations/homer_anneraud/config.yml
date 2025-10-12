@@ -182,6 +182,11 @@ services:
         subtitle: "GitHub Pages"
         url: "https://alix.anneraud.fr"
         target: "_blank"
+      - name: "Wakapi"
+        icon: "fas fa-clock"
+        subtitle: "Statistiques d'utilisation"
+        url: "https://wakapi.anneraud.fr"
+        target: "_blank"
 
   - name: "Divertissement"
     items:
