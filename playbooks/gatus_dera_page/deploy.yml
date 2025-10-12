@@ -35,6 +35,9 @@
     - name: Deploy Gatus with Docker Compose
       community.docker.docker_compose_v2:
         project_src: "{{ root_directory }}"
+        pull: always
+        recreate: always
+        remove_orphans: true
         state: present
 
     - name: Copy Gatus configuration file
