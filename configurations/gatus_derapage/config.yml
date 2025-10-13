@@ -58,6 +58,16 @@ endpoints:
       - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > 48h"
 
+  - name: Wakapi
+    group: Services
+    url: "https://wakapi.dera.page/api/health"
+    interval: 10m
+    conditions:
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[BODY] == pat(*app=1*)"
+      - "[BODY] == pat(*db=1*)"
+
   - name: NUC (Simon)
     url: "icmp://simon1.dera.page"
     group: Infrastructure
