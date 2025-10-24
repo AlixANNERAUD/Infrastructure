@@ -9,6 +9,16 @@ ui:
   logo: ""
   default-sort-by: group
 
+alerting:
+  homeassistant:
+    url: "${HOME_ASSISTANT_URL}" # URL of your HomeAssistant instance
+    token: "${HOME_ASSISTANT_TOKEN}" # Long-lived access token from HomeAssistant
+    default-alert:
+      enabled: true
+      send-on-resolved: true
+      failure-threshold: 1
+      success-threshold: 1
+
 endpoints:
   - name: Bitwarden (Nextcloud)
     group: Services
@@ -17,6 +27,8 @@ endpoints:
     conditions:
       - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > 48h"
+    alerts:
+      - type: homeassistant
 
   - name: Nuage (Nextcloud)
     group: Services
@@ -25,6 +37,8 @@ endpoints:
     conditions:
       - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > 48h"
+    alerts:
+      - type: homeassistant
 
   - name: Galerie (Immich)
     group: Services
@@ -33,6 +47,8 @@ endpoints:
     conditions:
       - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > 48h"
+    alerts:
+      - type: homeassistant
 
   - name: Automatisation (n8n)
     group: Services
@@ -42,6 +58,8 @@ endpoints:
       - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > 48h"
       - "[BODY].status == ok"
+    alerts:
+      - type: homeassistant
 
   - name: Maison (Home Assistant)
     group: Services
@@ -50,6 +68,8 @@ endpoints:
     conditions:
       - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > 48h"
+    alerts:
+      - type: homeassistant
 
   - name: Médiathèque (Jellyfin)
     group: Services
@@ -58,6 +78,8 @@ endpoints:
     conditions:
       - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > 48h"
+    alerts:
+      - type: homeassistant
 
   - name: Archive (Paperless-ngx)
     group: Services
@@ -66,6 +88,8 @@ endpoints:
     conditions:
       - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > 48h"
+    alerts:
+      - type: homeassistant
 
   - name: Proxy Bruxelles (Nginx Proxy Manager)
     group: Infrastructure
@@ -74,6 +98,8 @@ endpoints:
     conditions:
       - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > 48h"
+    alerts:
+      - type: homeassistant
 
   - name: DNS dynamique Bruxelles (DDNS updater)
     group: Infrastructure
@@ -82,6 +108,8 @@ endpoints:
     conditions:
       - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > 48h"
+    alerts:
+      - type: homeassistant
 
   - name: VPN (Tailscale)
     group: Infrastructure
@@ -90,6 +118,8 @@ endpoints:
     conditions:
       - "[STATUS] == 404"
       - "[CERTIFICATE_EXPIRATION] > 48h"
+    alerts:
+      - type: homeassistant
 
   - name: VPN console
     group: Services
@@ -98,6 +128,8 @@ endpoints:
     conditions:
       - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > 48h"
+    alerts:
+      - type: homeassistant
 
   - name: Statistiques (Umami)
     group: Services
@@ -106,6 +138,8 @@ endpoints:
     conditions:
       - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > 48h"
+    alerts:
+      - type: homeassistant
 
   - name: Notes (Docmost)
     group: Services
@@ -114,6 +148,8 @@ endpoints:
     conditions:
       - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > 48h"
+    alerts:
+      - type: homeassistant
 
   - name: Arnaud (Odoo)
     group: Services
@@ -122,6 +158,8 @@ endpoints:
     conditions:
       - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > 48h"
+    alerts:
+      - type: homeassistant
 
   - name: Git (Gitea)
     group: Services
@@ -130,6 +168,8 @@ endpoints:
     conditions:
       - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > 48h"
+    alerts:
+      - type: homeassistant
 
   - name: Finances (Firefly III)
     group: Services
@@ -138,6 +178,8 @@ endpoints:
     conditions:
       - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > 48h"
+    alerts:
+      - type: homeassistant
 
   - name: Importateur finances (Firefly III importer)
     group: Services
@@ -146,6 +188,8 @@ endpoints:
     conditions:
       - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > 48h"
+    alerts:
+      - type: homeassistant
 
   - name: Recettes (Mealie)
     group: Services
@@ -154,6 +198,8 @@ endpoints:
     conditions:
       - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > 48h"
+    alerts:
+      - type: homeassistant
 
   - name: Portefolio Alix (GitHub Pages)
     group: Services
@@ -162,6 +208,8 @@ endpoints:
     conditions:
       - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > 48h"
+    alerts:
+      - type: homeassistant
 
   - name: Bruxelles console (TrueNAS)
     group: Infrastructure
@@ -170,6 +218,8 @@ endpoints:
     conditions:
       - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > 48h"
+    alerts:
+      - type: homeassistant
 
   - name: Radarr
     group: Services
@@ -178,6 +228,8 @@ endpoints:
     conditions:
       - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > 48h"
+    alerts:
+      - type: homeassistant
 
   - name: Sonarr
     group: Services
@@ -186,6 +238,8 @@ endpoints:
     conditions:
       - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > 48h"
+    alerts:
+      - type: homeassistant
 
   - name: Prowlarr
     group: Services
@@ -194,6 +248,8 @@ endpoints:
     conditions:
       - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > 48h"
+    alerts:
+      - type: homeassistant
 
   - name: Bazarr
     group: Services
@@ -202,6 +258,8 @@ endpoints:
     conditions:
       - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > 48h"
+    alerts:
+      - type: homeassistant
 
   - name: Jellyseerr
     group: Services
@@ -210,6 +268,8 @@ endpoints:
     conditions:
       - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > 48h"
+    alerts:
+      - type: homeassistant
 
   - name: Conteneurs Bruxelles (Portainer)
     group: Infrastructure
@@ -218,6 +278,8 @@ endpoints:
     conditions:
       - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > 48h"
+    alerts:
+      - type: homeassistant
 
   - name: Wakapi
     group: Services
@@ -228,6 +290,8 @@ endpoints:
       - "[CERTIFICATE_EXPIRATION] > 48h"
       - "[BODY] == pat(*app=1*)"
       - "[BODY] == pat(*db=1*)"
+    alerts:
+      - type: homeassistant
 
   - name: Bruxelles
     url: "icmp://local.bruxelles.anneraud.fr"
@@ -235,6 +299,8 @@ endpoints:
     interval: 1m
     conditions:
       - "[CONNECTED] == true"
+    alerts:
+      - type: homeassistant
 
   - name: Luxembourg
     url: "icmp://local.luxembourg.anneraud.fr"
@@ -242,14 +308,5 @@ endpoints:
     interval: 1m
     conditions:
       - "[CONNECTED] == true"
-
-alerting:
-  email:
-    from: ${EMAIL_FROM}
-    username: ${EMAIL_USERNAME}
-    password: ${EMAIL_PASSWORD}
-    host: ${EMAIL_HOST}
-    port: ${EMAIL_PORT}
-    to: ${EMAIL_TO}
-    client:
-      insecure: false
+    alerts:
+      - type: homeassistant
