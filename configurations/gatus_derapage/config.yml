@@ -50,6 +50,15 @@ endpoints:
       - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > 48h"
 
+  - name: Umami
+    group: Services
+    url: "https://s.dera.page/api/heartbeat"
+    interval: 1m
+    conditions:
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[BODY] == pat(*ok*)"
+
   - name: Auth
     group: Infrastructure
     url: "https://auth.dera.page"
