@@ -2,10 +2,9 @@
 
 This repository contains the infrastructure code and documentation for deploying and managing my personnal services.
 
-## Servers
+## Inventory
 
-1. **Bruxelles** - Main and really sovereign server hosting most services.
-2. **Luxembourg** - Oracle VPS hosting specific services.
+See [documentation/inventory.md](documentation/inventory.md)
 
 ## Services
 
