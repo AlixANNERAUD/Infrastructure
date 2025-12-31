@@ -42,7 +42,7 @@ This repository contains the infrastructure code and documentation for deploying
 | [VPN](https://tailscale.anneraud.fr/)                                  | Virtual private network (Tailscale/Headscale) | Public  | Luxembourg | Ansible      |
 | [VPN console](https://tailscale.anneraud.fr/admin/)                    | VPN administration console                    | Public  | Luxembourg | Ansible      |
 | [Matrix](https://matrix.insa.lol/)                                     | Decentralized communication platform          | Public  | Luxembourg | Ansible      |
-| [Status (insa.lol)](https://status.insa.lol/)                          | Service status page                           | Public  | Luxembourg | Ansible      |
+| [Status (dera.page)](https://status.dera.page/)                        | Service status page                           | Public  | Luxembourg | Ansible      |
 
 ## Deployment
 
