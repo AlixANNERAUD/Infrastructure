@@ -18,22 +18,22 @@ This repository contains the infrastructure code and documentation for deploying
 | [Automatisation](https://automatisation.anneraud.fr)                   | Workflow automation (n8n)                     | Private | Bruxelles  | TrueNAS Apps |
 | [Maison](https://maison.anneraud.fr/)                                  | Home automation (Home Assistant)              | Public  | Bruxelles  | TrueNAS Apps |
 | [Médiathèque](https://mediatheque.anneraud.fr/)                        | Media server (Jellyfin)                       | Public  | Bruxelles  | TrueNAS Apps |
-| [Téléchargement](https://telechargement.anneraud.fr/)                  | Download manager (qBittorrent)                | Private | Bruxelles  | TrueNAS Apps |
+| [Téléchargement](https://telechargement.anneraud.fr/)                  | Download manager (qBittorrent)                | Private | Bruxelles  | Ansible      |
 | [Archive](https://archive.anneraud.fr/)                                | Document management (Paperless-ngx)           | Private | Bruxelles  | TrueNAS Apps |
 | [Statistiques](https://s.anneraud.fr/)                                 | Analytics (Umami)                             | Public  | Bruxelles  | TrueNAS Apps |
-| [Notes](https://notes.anneraud.fr/)                                    | Documentation (Docmost)                       | Private | Bruxelles  | TrueNAS Apps |
+| [Notes](https://notes.anneraud.fr/)                                    | Documentation (Docmost)                       | Private | Bruxelles  | Ansible      |
 | [Arnaud](https://arnaud.anneraud.fr/)                                  | Business management (Odoo)                    | Private | Bruxelles  | TrueNAS Apps |
 | [Git](https://git.anneraud.fr/)                                        | Git forge (Gitea)                             | Private | Bruxelles  | TrueNAS Apps |
 | [Finances](https://finances.anneraud.fr/)                              | Personal finance manager (Firefly III)        | Private | Bruxelles  | TrueNAS Apps |
 | [Importateur finances](https://importeur-finances.anneraud.fr/)        | Finance data importer (Firefly III importer)  | Private | Bruxelles  | TrueNAS Apps |
 | [Recettes](https://recettes.anneraud.fr/)                              | Recipe manager (Mealie)                       | Private | Bruxelles  | TrueNAS Apps |
-| [Portefolio Alix](https://alix.anneraud.fr/)                           | Personal portfolio (GitHub Pages)             | Public  | Bruxelles  | TrueNAS Apps |
+| [Portefolio Alix](https://alix.anneraud.fr/)                           | Personal portfolio (GitHub Pages)             | Public  | -          | -            |
 | [Radarr](https://radarr.anneraud.fr/)                                  | Movie collection manager                      | Private | Bruxelles  | TrueNAS Apps |
 | [Sonarr](https://sonarr.anneraud.fr/)                                  | TV show collection manager                    | Private | Bruxelles  | TrueNAS Apps |
 | [Prowlarr](https://prowlarr.anneraud.fr/)                              | Indexer manager                               | Private | Bruxelles  | TrueNAS Apps |
 | [Bazarr](https://bazarr.anneraud.fr/)                                  | Subtitle manager                              | Private | Bruxelles  | TrueNAS Apps |
 | [Jellyseerr](https://jellyseerr.anneraud.fr/)                          | Media request manager                         | Private | Bruxelles  | TrueNAS Apps |
-| [Wakapi](https://wakapi.anneraud.fr)                                   | Coding time tracker                           | Public  | Bruxelles  | TrueNAS Apps |
+| [Wakapi](https://wakapi.anneraud.fr)                                   | Coding time tracker                           | Public  | Bruxelles  | Ansible      |
 | [Proxy Bruxelles](https://nginx.bruxelles.anneraud.fr/)                | Reverse proxy (Nginx Proxy Manager)           | Private | Bruxelles  | TrueNAS Apps |
 | [DNS dynamique Bruxelles](https://ddns-updater.bruxelles.anneraud.fr/) | Dynamic DNS updater                           | Private | Bruxelles  | TrueNAS Apps |
 | [Bruxelles console](https://bruxelles.anneraud.fr/)                    | Server management (TrueNAS)                   | Private | Bruxelles  | TrueNAS Apps |
