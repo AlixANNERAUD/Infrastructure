@@ -6,6 +6,8 @@ This document provides an inventory of the infrastructure components, including 
 
 ### Bruxelles
 
+This server hosts the majority of my personal services using TrueNAS Apps and Ansible for deployment and management. It was built with energy efficiency (~20 W at idle) and reliability in mind.
+
 - Operating system: [TrueNAS Community Edition](https://www.truenas.com/truenas-community-edition/) (Debian based)
 - Motherboard: ASRock B550M-ITX/ac
 - CPU: AMD Ryzen 3 PRO 4350G with Radeon Graphics
@@ -18,6 +20,8 @@ This document provides an inventory of the infrastructure components, including 
   - Crucial C300 (SSD - 64 GB - SATA - TrueNAS system)
 
 ### Luxembourg
+
+This server is hosted on Oracle Cloud Infrastructure (OCI) and is used for services that require high availability and external access.
 
 - Operating system: Ubuntu 24.04 LTS
 - Model : Oracle cloud instance
