@@ -27,7 +27,9 @@
         content: |
           VPN_USER_NAME={{ vpn_user_name }}
           VPN_PASSWORD={{ vpn_password }}
-          VPN_PROFILE_PATH=/mnt/Donnees/Applications/Gluetun/udp/NCVPN-FR-Paris-UDP.ovpn
+          VPN_SERVICE_PROVIDER={{ vpn_service_provider }}
+          VPN_TYPE={{ vpn_type }}
+          SERVER_COUNTRIES={{ vpn_server_countries }}
           DOWNLOADS_PATH=/mnt/Donnees/Mediatheque/torrents
 
     - name: Deploy Téléchargement with Docker Compose

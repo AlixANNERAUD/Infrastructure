@@ -14,14 +14,20 @@ services:
       - 30096:30096/tcp # Transmission WebUI
       - 6881:6881
       - 6881:6881/udp
-    volumes:
-      - ${VPN_PROFILE_PATH}:/gluetun/custom.ovpn:ro
+#    volumes:
+#      - ${VPN_PROFILE_PATH}:/gluetun/custom.ovpn:ro
     environment:
-      - VPN_SERVICE_PROVIDER=custom
-      - VPN_TYPE=openvpn
-      - OPENVPN_CUSTOM_CONFIG=/gluetun/custom.ovpn
+      - UPDATER_PERIOD=24h
+      - BLOCK_MALICIOUS=off
+      - PORT_FORWARD_ONLY=on
+      - VPN_PORT_FORWARDING=on
+      - VPN_PORT_FORWARDING_UP_COMMAND=/bin/sh -c 'wget -O- --retry-connrefused --post-data "json={\"listen_port\":{{PORTS}}}" http://127.0.0.1:30096/api/v2/app/setPreferences 2>&1'
+      - VPN_TYPE=${VPN_TYPE}
+      - VPN_SERVICE_PROVIDER=${VPN_SERVICE_PROVIDER}
       - OPENVPN_USER=${VPN_USER_NAME}
       - OPENVPN_PASSWORD=${VPN_PASSWORD}
+      - OPENVPN_CIPHERS=AES-256-GCM
+      - SERVER_COUNTRIES=${SERVER_COUNTRIES}
 
   qbittorrent:
     image: lscr.io/linuxserver/qbittorrent:latest
@@ -35,7 +41,6 @@ services:
       - PGID=3010
       - TZ=Etc/UTC
       - WEBUI_PORT=30096
-      - TORRENTING_PORT=6881
     volumes:
       - .:/config
       - ${DOWNLOADS_PATH}:/data/torrents #optional
