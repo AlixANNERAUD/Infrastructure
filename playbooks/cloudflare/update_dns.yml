@@ -1,0 +1,194 @@
+---
+- name: Setup DNS records
+  hosts: localhost
+  gather_facts: false
+  vars:
+    a_records:
+      - record: global.luxembourg.anneraud.fr
+        type: A
+        value: 130.162.34.52
+      - record: kiev.anneraud.fr
+        type: A
+        value: 192.168.0.52
+      - record: local.bruxelles.anneraud.fr
+        type: A
+        value: 192.168.0.21
+      - record: local.luxembourg.anneraud.fr
+        type: A
+        value: 100.64.0.6
+      - record: local.nicosie.anneraud.fr
+        type: A
+        value: 192.168.0.41
+      - record: local.paris.anneraud.fr
+        type: A
+        value: 192.168.0.121
+      - record: local.pristina.anneraud.fr
+        type: A
+        value: 192.168.0.22
+      - record: luxembourg.anneraud.fr
+        type: A
+        value: 130.162.34.52
+      - record: madrid.anneraud.fr
+        type: A
+        value: 192.168.0.51
+      - record: simon.anneraud.fr
+        type: A
+        value: 176.132.67.30
+    aaaa_records:
+      - record: local.bruxelles.anneraud.fr
+        type: AAAA
+        value: fe80::9e6b:ff:fe2f:d8e5
+      - record: local.luxembourg.anneraud.fr
+        type: AAAA
+        value: fd7a:115c:a1e0::6
+    cname_records:
+      - record: alix.anneraud.fr
+        value: alixanneraud.github.io
+      - record: amsterdam.anneraud.fr
+        value: local.bruxelles.anneraud.fr
+      - record: anneraud.fr
+        value: www.anneraud.fr
+      - record: archive.anneraud.fr
+        value: local.bruxelles.anneraud.fr
+      - record: arnaud.anneraud.fr
+        value: global.bruxelles.anneraud.fr
+      - record: authentification.anneraud.fr
+        value: global.bruxelles.anneraud.fr
+      - record: autoconfig.anneraud.fr
+        value: infomaniak.com
+      - record: autodiscover.anneraud.fr
+        value: infomaniak.com
+      - record: automatisation.anneraud.fr
+        value: local.bruxelles.anneraud.fr
+      - record: bazarr.anneraud.fr
+        value: local.bruxelles.anneraud.fr
+      - record: berlin.anneraud.fr
+        value: local.bruxelles.anneraud.fr
+      - record: bitwarden.anneraud.fr
+        value: global.bruxelles.anneraud.fr
+      - record: bruxelles.anneraud.fr
+        value: local.bruxelles.anneraud.fr
+      - record: collabora.anneraud.fr
+        value: global.bruxelles.anneraud.fr
+      - record: conteneurs.bruxelles.anneraud.fr
+        value: local.bruxelles.anneraud.fr
+      - record: ddns-updater.bruxelles.anneraud.fr
+        value: local.bruxelles.anneraud.fr
+      - record: em1256750.anneraud.fr
+        value: return.smtp2go.net
+      - record: finances.anneraud.fr
+        value: local.bruxelles.anneraud.fr
+      - record: gacha.anneraud.fr
+        value: global.bruxelles.anneraud.fr
+      - record: galerie.anneraud.fr
+        value: global.bruxelles.anneraud.fr
+      - record: git.anneraud.fr
+        value: local.bruxelles.anneraud.fr
+      - record: importeur-finances.anneraud.fr
+        value: local.bruxelles.anneraud.fr
+      - record: jellyseerr.anneraud.fr
+        value: local.bruxelles.anneraud.fr
+      - record: lernzweige.anneraud.fr
+        value: alixanneraud.github.io
+      - record: link.anneraud.fr
+        value: track.smtp2go.net
+      - record: maison.anneraud.fr
+        value: global.bruxelles.anneraud.fr
+      - record: mediatheque.anneraud.fr
+        value: global.bruxelles.anneraud.fr
+      - record: nginx.bruxelles.anneraud.fr
+        value: local.bruxelles.anneraud.fr
+      - record: nicosie.anneraud.fr
+        value: local.bruxelles.anneraud.fr
+      - record: notes.anneraud.fr
+        value: global.bruxelles.anneraud.fr
+      - record: nuage.anneraud.fr
+        value: global.bruxelles.anneraud.fr
+      - record: prowlarr.anneraud.fr
+        value: local.bruxelles.anneraud.fr
+      - record: radarr.anneraud.fr
+        value: local.bruxelles.anneraud.fr
+      - record: recettes.anneraud.fr
+        value: local.bruxelles.anneraud.fr
+      - record: resume.alix.anneraud.fr
+        value: alixanneraud.github.io
+      - record: rustdesk.anneraud.fr
+        value: local.bruxelles.anneraud.fr
+      - record: s1256750._domainkey.anneraud.fr
+        value: dkim.smtp2go.net
+      - record: s.anneraud.fr
+        value: global.bruxelles.anneraud.fr
+      - record: skopje.anneraud.fr
+        value: local.bruxelles.anneraud.fr
+      - record: sonarr.anneraud.fr
+        value: local.bruxelles.anneraud.fr
+      - record: tailscale.anneraud.fr
+        value: global.luxembourg.anneraud.fr
+      - record: telechargement.anneraud.fr
+        value: local.bruxelles.anneraud.fr
+      - record: test.anneraud.fr
+        value: local.bruxelles.annneraud.fr
+      - record: traefik.luxembourg.anneraud.fr
+        value: luxembourg.anneraud.fr
+      - record: wakapi.anneraud.fr
+        value: global.bruxelles.anneraud.fr
+      - record: www.anneraud.fr
+        value: global.bruxelles.anneraud.fr
+    mx_records:
+      - record: anneraud.fr
+        priority: 5
+        value: mta-gw.infomaniak.ch
+    txt_records:
+      - record: 20241222._domainkey.anneraud.fr
+        value: "v=DKIM1; t=s; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuMEJm6DiNo3yVRVG989jS40rQmF18RHss/tvyR+JQijkRXdc4iGKvRYU3IvIUqdFXzmZezrUCaCGw4GP82esoFjZu9kS8uOGWlzvbFmh1n0nN1b+Oovfqyd31OC8eXCY+sPufWT18pWyh/ApIaCXPObKDySE9FlguxUZbohSoujr5h7riXsiGFSPeesNl+p50k/U+1jCZmnke78YIeID118xmy45KVGwXjSXrRwvYafaZAZ/1zG6NYh5Mrk/upnnBsXJcxIo7M4sKny8FQIdbq6kg8MQianhJ0z1wkHomIginm6I6596M1Ph1kmJR+Vt7a8sVjCpfACjUscQusK6HQIDAQAB"
+      - record: 20250513._domainkey.3341891.anneraud.fr
+        value: "v=DKIM1; t=s; p="
+      - record: anneraud.fr
+        value: "google-site-verification=yhgrTbgu1UJ8ulIsaUh_xv6XQf0BzErkf10lq2W6K84"
+      - record: anneraud.fr
+        value: "v=spf1 include:spf.infomaniak.ch -all"
+      - record: _dmarc.anneraud.fr
+        value: "v=DMARC1; p=reject; rua=mailto:5715c191ce054df6be0a31b9dbc29be5@dmarc-reports.cloudflare.net,mailto:alix@anneraud.fr; ruf=mailto:alix@anneraud.fr; fo=1; pct=100; adkim=s; aspf=s"
+  vars_files:
+    - ../../vault/cloudflare/vault.yml
+  module_defaults:
+    community.general.cloudflare_dns:
+      zone: anneraud.fr
+      account_email: "{{ cloudflare_email }}"
+      account_api_key: "{{ cloudflare_api_key }}"
+  tasks:
+    - name: Update A records for anneraud.fr
+      community.general.cloudflare_dns:
+        type: A
+        record: "{{ item.record }}"
+        value: "{{ item.value }}"
+      loop: "{{ a_records }}"
+
+    - name: Update AAAA records for anneraud.fr
+      community.general.cloudflare_dns:
+        type: AAAA
+        record: "{{ item.record }}"
+        value: "{{ item.value }}"
+      loop: "{{ aaaa_records }}"
+
+    - name: Update CNAME records for anneraud.fr
+      community.general.cloudflare_dns:
+        type: CNAME
+        record: "{{ item.record }}"
+        value: "{{ item.value }}"
+      loop: "{{ cname_records }}"
+
+    - name: Update MX records for anneraud.fr
+      community.general.cloudflare_dns:
+        type: MX
+        record: "{{ item.record }}"
+        priority: "{{ item.priority }}"
+        value: "{{ item.value }}"
+      loop: "{{ mx_records }}"
+
+    - name: Update TXT records for anneraud.fr
+      community.general.cloudflare_dns:
+        type: TXT
+        record: "{{ item.record }}"
+        value: "{{ item.value }}"
+      loop: "{{ txt_records }}"
