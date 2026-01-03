@@ -6,11 +6,10 @@
     root_directory: /opt/gatus_anneraud
     compose_file_source: ../../compose/gatus/compose.yml
     compose_file_destination: "{{ root_directory }}/docker-compose.yml"
-    environment_file_source: ../../configurations/gatus_anneraud/.env
-    environment_file_destination: "{{ root_directory }}/.env"
     configuration_file_source: ../../configurations/gatus_anneraud/config.yml
     configuration_file_destination: "{{ root_directory }}/config/config.yml"
-
+  vars_files:
+    - ../../vault/gatus_anneraud/vault.yml
   tasks:
     - name: Ensure application directory exists
       ansible.builtin.file:
@@ -26,17 +25,24 @@
         dest: "{{ compose_file_destination }}"
         mode: "0640"
 
-    - name: Copy .env file if exists
-      ansible.builtin.copy:
-        src: "{{ environment_file_source }}"
-        dest: "{{ environment_file_destination }}"
-        mode: "0640"
-
     - name: Copy Gatus configuration file
       ansible.builtin.copy:
         src: "{{ configuration_file_source }}"
         dest: "{{ configuration_file_destination }}"
         mode: "0640"
+
+    - name: Generate .env file for Gatus
+      ansible.builtin.copy:
+        dest: "{{ root_directory }}/.env"
+        mode: "0600"
+        content: |
+          HOME_ASSISTANT_URL=https://maison.anneraud.fr
+          PROXY_RULE=Host(`etat.anneraud.fr`)
+          STACK_NAME=gatus-anneraud
+          
+          DATABASE_USER={{ database_user }}
+          DATABASE_PASSWORD={{ database_password }}
+          HOME_ASSISTANT_TOKEN={{ home_assistant_token }}
 
     - name: Deploy Gatus with Docker Compose
       community.docker.docker_compose_v2:
