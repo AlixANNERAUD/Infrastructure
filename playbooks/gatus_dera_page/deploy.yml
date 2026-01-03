@@ -6,11 +6,10 @@
     root_directory: /opt/gatus_derapage
     compose_file_source: ../../compose/gatus/compose.yml
     compose_file_destination: "{{ root_directory }}/docker-compose.yml"
-    environment_file_source: ../../configurations/gatus_derapage/.env
-    environment_file_destination: "{{ root_directory }}/.env"
     configuration_file_source: ../../configurations/gatus_derapage/config.yml
     configuration_file_destination: "{{ root_directory }}/config/config.yml"
-
+  vars_files:
+    - ../../vault/gatus_dera_page/vault.yml
   tasks:
     - name: Ensure application directory exists
       ansible.builtin.file:
@@ -26,11 +25,22 @@
         dest: "{{ compose_file_destination }}"
         mode: "0640"
 
-    - name: Copy .env file if exists
+    - name: Copy Gatus configuration file
       ansible.builtin.copy:
-        src: "{{ environment_file_source }}"
-        dest: "{{ environment_file_destination }}"
+        src: "{{ configuration_file_source }}"
+        dest: "{{ configuration_file_destination }}"
         mode: "0640"
+
+    - name: Generate .env file for Gatus
+      ansible.builtin.copy:
+        dest: "{{ root_directory }}/.env"
+        mode: "0600"
+        content: |
+          PROXY_RULE=Host(`status.dera.page`)
+          STACK_NAME=gatus-derapage
+
+          DATABASE_USER={{ database_user }}
+          DATABASE_PASSWORD={{ database_password }}
 
     - name: Deploy Gatus with Docker Compose
       community.docker.docker_compose_v2:
@@ -39,9 +49,3 @@
         recreate: always
         remove_orphans: true
         state: present
-
-    - name: Copy Gatus configuration file
-      ansible.builtin.copy:
-        src: "{{ configuration_file_source }}"
-        dest: "{{ configuration_file_destination }}"
-        mode: "0640"
