@@ -6,11 +6,10 @@
     root_directory: /mnt/Donnees/Applications/Docmost
     compose_file_source: ../../compose/docmost/compose.yml
     compose_file_destination: "{{ root_directory }}/compose.yml"
-    environment_file_source: ../../configurations/notes/.env
-    environment_file_destination: "{{ root_directory }}/.env"
     user_id: 568
     group_id: 568
-
+  vars_files:
+    - ../../vault/notes/vault.yml
   tasks:
     - name: Copy compose file
       ansible.builtin.copy:
@@ -20,13 +19,15 @@
         owner: "{{ user_id }}"
         group: "{{ group_id }}"
 
-    - name: Copy environment file
+    - name: Generate .env file for Notes
       ansible.builtin.copy:
-        src: "{{ environment_file_source }}"
-        dest: "{{ environment_file_destination }}"
-        mode: "0640"
-        owner: "{{ user_id }}"
-        group: "{{ group_id }}"
+        dest: "{{ root_directory }}/.env"
+        mode: "0600"
+        content: |
+          POSTGRES_USER={{ database_user }}
+          POSTGRES_PASSWORD={{ database_password }}
+          APP_SECRET={{ app_secret }}
+          APP_URL=https://notes.anneraud.fr
 
     - name: Deploy Notes with Docker Compose
       community.docker.docker_compose_v2:
