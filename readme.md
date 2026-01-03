@@ -50,3 +50,18 @@ Deploy a playbook with Ansible:
 ```bash
 ansible-playbook -i inventory.ini --ask-become-pass playbooks/...
 ```
+
+## Vault
+
+Source the vault password file path:
+
+```bash
+source source.sh
+```
+
+Then edit or view vault files with:
+
+```bash
+ansible-vault edit vault/...
+ansible-vault view vault/...
+```
