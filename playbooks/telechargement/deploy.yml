@@ -19,7 +19,7 @@
         owner: "{{ user_id }}"
         group: "{{ group_id }}"
 
-    - name: Generate .env file for Notes
+    - name: Generate .env file for Téléchargement
       ansible.builtin.copy:
         dest: "{{ root_directory }}/.env"
         mode: "0600"
