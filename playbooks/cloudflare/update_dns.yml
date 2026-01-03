@@ -46,8 +46,6 @@
         value: alixanneraud.github.io
       - record: amsterdam.anneraud.fr
         value: local.bruxelles.anneraud.fr
-      - record: anneraud.fr
-        value: www.anneraud.fr
       - record: archive.anneraud.fr
         value: local.bruxelles.anneraud.fr
       - record: arnaud.anneraud.fr
@@ -100,8 +98,6 @@
         value: local.bruxelles.anneraud.fr
       - record: nicosie.anneraud.fr
         value: local.bruxelles.anneraud.fr
-      - record: notes.anneraud.fr
-        value: global.bruxelles.anneraud.fr
       - record: nuage.anneraud.fr
         value: global.bruxelles.anneraud.fr
       - record: prowlarr.anneraud.fr
@@ -122,18 +118,10 @@
         value: local.bruxelles.anneraud.fr
       - record: sonarr.anneraud.fr
         value: local.bruxelles.anneraud.fr
-      - record: tailscale.anneraud.fr
-        value: global.luxembourg.anneraud.fr
-      - record: telechargement.anneraud.fr
-        value: local.bruxelles.anneraud.fr
       - record: test.anneraud.fr
         value: local.bruxelles.annneraud.fr
       - record: traefik.luxembourg.anneraud.fr
         value: luxembourg.anneraud.fr
-      - record: wakapi.anneraud.fr
-        value: global.bruxelles.anneraud.fr
-      - record: www.anneraud.fr
-        value: global.bruxelles.anneraud.fr
     mx_records:
       - record: anneraud.fr
         priority: 5
