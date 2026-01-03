@@ -10,6 +10,7 @@
     configuration_file_destination: "{{ root_directory }}/config/config.yml"
   vars_files:
     - ../../vault/gatus_anneraud/vault.yml
+    - ../../vault/cloudflare/vault.yml
   tasks:
     - name: Ensure application directory exists
       ansible.builtin.file:
@@ -39,7 +40,7 @@
           HOME_ASSISTANT_URL=https://maison.anneraud.fr
           PROXY_RULE=Host(`etat.anneraud.fr`)
           STACK_NAME=gatus-anneraud
-          
+
           DATABASE_USER={{ database_user }}
           DATABASE_PASSWORD={{ database_password }}
           HOME_ASSISTANT_TOKEN={{ home_assistant_token }}
@@ -51,3 +52,12 @@
         recreate: always
         remove_orphans: true
         state: present
+
+    - name: Update DNS records for Gatus
+      community.general.cloudflare_dns:
+        zone: anneraud.fr
+        account_email: "{{ cloudflare_email }}"
+        account_api_key: "{{ cloudflare_api_key }}"
+        type: CNAME
+        record: etat.anneraud.fr
+        value: "{{ global_dns_host }}"

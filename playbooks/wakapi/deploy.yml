@@ -10,6 +10,7 @@
     group_id: 568
   vars_files:
     - ../../vault/wakapi/vault.yml
+    - ../../vault/cloudflare/vault.yml
   tasks:
     - name: Copy compose file
       ansible.builtin.copy:
@@ -42,3 +43,21 @@
         recreate: always
         remove_orphans: true
         state: present
+
+    - name: Update DNS records for Wakapi
+      community.general.cloudflare_dns:
+        zone: dera.page
+        account_email: "{{ cloudflare_email }}"
+        account_api_key: "{{ cloudflare_api_key }}"
+        type: CNAME
+        record: wakapi.dera.page
+        value: "{{ global_dns_host }}"
+
+    - name: Update DNS records for Wakapi
+      community.general.cloudflare_dns:
+        zone: anneraud.fr
+        account_email: "{{ cloudflare_email }}"
+        account_api_key: "{{ cloudflare_api_key }}"
+        type: CNAME
+        record: wakapi.anneraud.fr
+        value: "{{ global_dns_host }}"

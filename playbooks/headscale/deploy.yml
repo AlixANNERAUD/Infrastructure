@@ -6,7 +6,8 @@
     root_directory: /opt/headscale
     compose_file_source: ../../compose/headscale/compose.yml
     compose_file_destination: "{{ root_directory }}/compose.yml"
-
+  vars_files:
+    - ../../vault/cloudflare/vault.yml
   tasks:
     - name: Ensure Headscale directory exists
       ansible.builtin.file:
@@ -31,3 +32,12 @@
         recreate: always
         remove_orphans: true
         state: present
+
+    - name: Update DNS records for Headscale
+      community.general.cloudflare_dns:
+        zone: anneraud.fr
+        account_email: "{{ cloudflare_email }}"
+        account_api_key: "{{ cloudflare_api_key }}"
+        type: CNAME
+        record: tailscale.anneraud.fr
+        value: "{{ global_dns_host }}"

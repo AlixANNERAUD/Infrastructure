@@ -10,6 +10,7 @@
     configuration_file_destination: "{{ root_directory }}/config/config.yml"
   vars_files:
     - ../../vault/gatus_dera_page/vault.yml
+    - ../../vault/cloudflare/vault.yml
   tasks:
     - name: Ensure application directory exists
       ansible.builtin.file:
@@ -49,3 +50,12 @@
         recreate: always
         remove_orphans: true
         state: present
+
+    - name: Update DNS records for Gatus
+      community.general.cloudflare_dns:
+        zone: dera.page
+        account_email: "{{ cloudflare_email }}"
+        account_api_key: "{{ cloudflare_api_key }}"
+        type: CNAME
+        record: status.dera.page
+        value: "{{ global_dns_host }}"

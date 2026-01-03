@@ -10,6 +10,7 @@
     group_id: 568
   vars_files:
     - ../../vault/notes/vault.yml
+    - ../../vault/cloudflare/vault.yml
   tasks:
     - name: Copy compose file
       ansible.builtin.copy:
@@ -36,3 +37,12 @@
         recreate: always
         remove_orphans: true
         state: present
+
+    - name: Update DNS records for Notes
+      community.general.cloudflare_dns:
+        zone: anneraud.fr
+        account_email: "{{ cloudflare_email }}"
+        account_api_key: "{{ cloudflare_api_key }}"
+        type: CNAME
+        record: notes.anneraud.fr
+        value: "{{ global_dns_host }}"

@@ -5,7 +5,8 @@
   vars:
     configuration_file_source: ../../configurations/homer_anneraud/config.yml
     configuration_file_destination: /mnt/Donnees/Applications/Homer/config.yml
-
+  vars_files:
+    - ../../vault/cloudflare/vault.yml
   tasks:
     - name: Copy Homer configuration file
       ansible.builtin.copy:
@@ -14,3 +15,21 @@
         mode: "0644"
         owner: apps
         group: apps
+
+    - name: Update DNS records for Homer
+      community.general.cloudflare_dns:
+        zone: anneraud.fr
+        account_email: "{{ cloudflare_email }}"
+        account_api_key: "{{ cloudflare_api_key }}"
+        type: CNAME
+        record: www.anneraud.fr
+        value: "{{ global_dns_host }}"
+
+    - name: Update DNS records for Homer
+      community.general.cloudflare_dns:
+        zone: anneraud.fr
+        account_email: "{{ cloudflare_email }}"
+        account_api_key: "{{ cloudflare_api_key }}"
+        type: CNAME
+        record: anneraud.fr
+        value: www.anneraud.fr
