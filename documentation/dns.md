@@ -10,3 +10,5 @@ Most services use CNAME records pointing to the destination server which are:
 | local.luxembourg.anneraud.fr  | Luxembourg local network access  | Private | Luxembourg | Static  |
 | global.bruxelles.anneraud.fr  | Bruxelles global network access  | Public  | Bruxelles  | Dynamic |
 | global.luxembourg.anneraud.fr | Luxembourg global network access | Public  | Luxembourg | Static  |
+
+See [playbooks/cloudflare/update_dns.yml](../playbooks/cloudflare/update_dns.yml) or service deployment playbooks for the complete list of DNS records and their configurations.
