@@ -1,0 +1,10 @@
+all:
+  children:
+    serveurs:
+      hosts:
+        bruxelles:
+          ansible_host: local.bruxelles.anneraud.fr
+          ansible_ssh_user: alix_anneraud
+        luxembourg:
+          ansible_host: local.luxembourg.anneraud.fr
+          ansible_ssh_user: root
