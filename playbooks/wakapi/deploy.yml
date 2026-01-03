@@ -6,11 +6,10 @@
     root_directory: /mnt/Donnees/Applications/Wakapi
     compose_file_source: ../../compose/wakapi/compose.yml
     compose_file_destination: "{{ root_directory }}/compose.yml"
-    environment_file_source: ../../configurations/wakapi/.env
-    environment_file_destination: "{{ root_directory }}/.env"
     user_id: 568
     group_id: 568
-
+  vars_files:
+    - ../../vault/wakapi/vault.yml
   tasks:
     - name: Copy compose file
       ansible.builtin.copy:
@@ -20,13 +19,21 @@
         owner: "{{ user_id }}"
         group: "{{ group_id }}"
 
-    - name: Copy environment file
+    - name: Generate .env file for Wakapi
       ansible.builtin.copy:
-        src: "{{ environment_file_source }}"
-        dest: "{{ environment_file_destination }}"
-        mode: "0640"
-        owner: "{{ user_id }}"
-        group: "{{ group_id }}"
+        dest: "{{ root_directory }}/.env"
+        mode: "0600"
+        content: |
+          GROUP_ID={{ group_id }}
+          USER_ID={{ user_id }}
+          WAKAPI_PORT=30078
+          WAKAPI_TRUST_REVERSE_PROXY_IPS=172.16.0.0/16
+          WAKAPI_PUBLIC_URL=https://wakapi.dera.page
+
+          DATABASE_PASSWORD={{ database_password }}
+          DATABASE_USER={{ database_user }}
+          WAKAPI_PASSWORD_SALT={{ wakapi_password_salt }}
+          WAKAPI_MAIL_SMTP_PASS={{ wakapi_mail_smtp_pass }}
 
     - name: Deploy Wakapi with Docker Compose
       community.docker.docker_compose_v2:
