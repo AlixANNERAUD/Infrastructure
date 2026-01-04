@@ -293,6 +293,17 @@ endpoints:
     alerts:
       - type: homeassistant
 
+  - name: Matrix (Synapse)
+    group: Services
+    url: "https://matrix.anneraud.fr/health"
+    interval: 10m
+    conditions:
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[BODY] == pat(*OK*)"
+    alerts:
+      - type: homeassistant
+
   - name: Bruxelles
     url: "icmp://local.bruxelles.anneraud.fr"
     group: Infrastructure
