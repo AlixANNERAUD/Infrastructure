@@ -1,0 +1,35 @@
+---
+- name: Setup DNS records
+  hosts: localhost
+  gather_facts: false
+  vars:
+    a_records:
+    aaaa_records:
+    cname_records:
+      - record: minitrainstore.fr
+        value: global.bruxelles.anneraud.fr
+    mx_records:
+    txt_records:
+      - record: minitrainstore.fr
+        value: "google-site-verification=JPhIRC_uk9q4TDhe3VGgT1_RmejmTu1Lcxrj4wkRfR8"
+  vars_files:
+    - ../../vault/cloudflare/vault.yml
+  module_defaults:
+    community.general.cloudflare_dns:
+      zone: minitrainstore.fr
+      account_email: "{{ cloudflare_email }}"
+      account_api_key: "{{ cloudflare_api_key }}"
+  tasks:
+    - name: Update CNAME records for minitrainstore.fr 
+      community.general.cloudflare_dns:
+        type: CNAME
+        record: "{{ item.record }}"
+        value: "{{ item.value }}"
+      loop: "{{ cname_records }}"
+
+    - name: Update TXT records for minitrainstore.fr
+      community.general.cloudflare_dns:
+        type: TXT
+        record: "{{ item.record }}"
+        value: "{{ item.value }}"
+      loop: "{{ txt_records }}"

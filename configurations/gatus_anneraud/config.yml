@@ -151,9 +151,9 @@ endpoints:
     alerts:
       - type: homeassistant
 
-  - name: Arnaud (Odoo)
+  - name: Mini Train Store (Odoo)
     group: Services
-    url: "https://arnaud.anneraud.fr/"
+    url: "https://minitrainstore.fr/"
     interval: 10m
     conditions:
       - "[STATUS] == 200"
