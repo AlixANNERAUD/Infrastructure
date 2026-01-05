@@ -6,6 +6,8 @@
     a_records:
     aaaa_records:
     cname_records:
+      - record: www.minitrainstore.fr
+        value: global.bruxelles.anneraud.fr
       - record: minitrainstore.fr
         value: global.bruxelles.anneraud.fr
     mx_records:
