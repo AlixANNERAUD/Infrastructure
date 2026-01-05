@@ -4,7 +4,7 @@
   become: true
   vars:
     root_directory: /mnt/Donnees/Applications/Docmost
-    compose_file_source: ../../compose/docmost/compose.yml
+    compose_file_source: compose.yml
     compose_file_destination: "{{ root_directory }}/compose.yml"
     user_id: 568
     group_id: 568

@@ -4,7 +4,7 @@
   become: true
   vars:
     root_directory: /opt/headscale
-    compose_file_source: ../../compose/headscale/compose.yml
+    compose_file_source: compose.yml
     compose_file_destination: "{{ root_directory }}/compose.yml"
   vars_files:
     - ../../vault/cloudflare/vault.yml

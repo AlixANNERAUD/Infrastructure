@@ -46,10 +46,26 @@ See [documentation/inventory.md](documentation/inventory.md)
 
 ## Deployment
 
-Deploy a playbook with Ansible:
+Deploy a service playbook with Ansible:
 
 ```bash
-ansible-playbook -i inventory.ini --ask-become-pass playbooks/...
+ansible-playbook -i inventory.yml --ask-become-pass services/<service_name>/deploy.yml
+```
+
+## Structure
+
+The repository is organized by **service**, with each service containing all its related files:
+
+```
+services/
+  <service_name>/
+    deploy.yml          # Ansible playbook
+    compose.yml         # Docker Compose file
+    config.yml          # Service configuration
+    ...
+vault/                  # Private submodule with encrypted secrets
+deployments/            # Deployment-specific files
+documentation/          # Documentation
 ```
 
 ## Vault

@@ -1,0 +1,48 @@
+services:
+  postgres:
+    image: postgres:17
+    restart: unless-stopped
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=gatus
+      - POSTGRES_USER=${DATABASE_USER}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+    networks:
+      - database
+
+  gatus:
+    image: twinproduction/gatus:latest
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${DATABASE_USER}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+      - POSTGRES_DB=gatus
+      - HOME_ASSISTANT_URL=${HOME_ASSISTANT_URL}
+      - HOME_ASSISTANT_TOKEN=${HOME_ASSISTANT_TOKEN}
+      - EMAIL_FROM=${EMAIL_FROM}
+      - EMAIL_USERNAME=${EMAIL_USERNAME}
+      - EMAIL_PASSWORD=${EMAIL_PASSWORD}
+      - EMAIL_HOST=${EMAIL_HOST}
+      - EMAIL_PORT=${EMAIL_PORT}
+      - EMAIL_TO=${EMAIL_TO}
+    volumes:
+      - ./config:/config
+    networks:
+      - database
+      - traefik
+    depends_on:
+      - postgres
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.${STACK_NAME}.rule=${PROXY_RULE}
+      - traefik.http.routers.${STACK_NAME}.entrypoints=web-secure
+      - traefik.http.routers.${STACK_NAME}.tls=true
+      - traefik.http.routers.${STACK_NAME}.tls.certresolver=default
+      - traefik.http.services.${STACK_NAME}.loadbalancer.server.port=8080
+      - traefik.http.services.${STACK_NAME}.loadbalancer.server.scheme=http
+
+networks:
+  database:
+  traefik:
+    external: true
