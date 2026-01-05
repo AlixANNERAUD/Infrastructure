@@ -4,9 +4,9 @@
   become: true
   vars:
     root_directory: /opt/gatus_anneraud
-    compose_file_source: ../../compose/gatus/compose.yml
+    compose_file_source: compose.yml
     compose_file_destination: "{{ root_directory }}/docker-compose.yml"
-    configuration_file_source: ../../configurations/gatus_anneraud/config.yml
+    configuration_file_source: config.yml
     configuration_file_destination: "{{ root_directory }}/config/config.yml"
   vars_files:
     - ../../vault/gatus_anneraud/vault.yml

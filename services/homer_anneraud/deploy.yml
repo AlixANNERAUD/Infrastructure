@@ -3,7 +3,7 @@
   hosts: bruxelles
   become: true
   vars:
-    configuration_file_source: ../../configurations/homer_anneraud/config.yml
+    configuration_file_source: config.yml
     configuration_file_destination: /mnt/Donnees/Applications/Homer/config.yml
   vars_files:
     - ../../vault/cloudflare/vault.yml

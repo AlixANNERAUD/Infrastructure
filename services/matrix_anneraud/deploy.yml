@@ -4,9 +4,9 @@
   become: true
   vars:
     root_directory: /mnt/Donnees/Applications/Matrix_anneraud
-    compose_file_source: ../../compose/matrix/compose.yml
+    compose_file_source: compose.yml
     compose_file_destination: "{{ root_directory }}/compose.yml"
-    configuration_file_source: ../../configurations/matrix_anneraud/homeserver.yaml.j2
+    configuration_file_source: homeserver.yaml.j2
     configuration_file_destination: "{{ root_directory }}/Synapse_data/homeserver.yaml"
     user_id: 991
     group_id: 991
