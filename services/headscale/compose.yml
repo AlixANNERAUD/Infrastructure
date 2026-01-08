@@ -6,7 +6,7 @@ services:
     networks:
       - traefik
     ports:
-      - "8080:8080"
+#      - "8080:8080"
       - "9090:9090"
       - "3479:3479/udp"
     volumes:
@@ -15,7 +15,7 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.routers.headscale.tls=true
-      - traefik.http.routers.headscale.tls.certResolver=true
+      - traefik.http.routers.headscale.tls.certResolver=letsencrypt
       - traefik.http.routers.headscale.rule=Host(`tailscale.anneraud.fr`) && PathPrefix(`/`)
       - traefik.http.services.headscale.loadbalancer.server.port=8080
       - traefik.http.routers.headscale.entrypoints=web-secure
@@ -44,7 +44,7 @@ services:
       - traefik.http.services.headplane.loadbalancer.server.port=3000
       - traefik.http.services.headplane.loadbalancer.server.scheme=http
       - traefik.http.routers.headplane.tls=true
-      - traefik.http.routers.headplane.tls.certResolver=true
+      - traefik.http.routers.headplane.tls.certResolver=letsencrypt
       - traefik.http.routers.headplane.entrypoints=web-secure
 
 networks:

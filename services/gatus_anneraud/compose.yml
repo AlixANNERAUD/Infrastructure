@@ -38,7 +38,7 @@ services:
       - traefik.http.routers.${STACK_NAME}.rule=${PROXY_RULE}
       - traefik.http.routers.${STACK_NAME}.entrypoints=web-secure
       - traefik.http.routers.${STACK_NAME}.tls=true
-      - traefik.http.routers.${STACK_NAME}.tls.certresolver=default
+      - traefik.http.routers.${STACK_NAME}.tls.certresolver=letsencrypt
       - traefik.http.services.${STACK_NAME}.loadbalancer.server.port=8080
       - traefik.http.services.${STACK_NAME}.loadbalancer.server.scheme=http
 

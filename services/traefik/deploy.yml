@@ -1,0 +1,43 @@
+---
+- name: Deploy Traefik
+  hosts: luxembourg
+  become: true
+  vars:
+    root_directory: /opt/traefik
+    compose_file_source: compose.yml
+    compose_file_destination: "{{ root_directory }}/compose.yml"
+    configuration_file_source: config.yml
+    configuration_file_destination: "{{ root_directory }}/config/config.yml"
+  vars_files:
+    - ../../vault/cloudflare/vault.yml
+  tasks:
+    - name: Ensure application directory exists
+      ansible.builtin.file:
+        path: "{{ root_directory }}"
+        state: directory
+        mode: "0750"
+        owner: root
+        group: root
+
+    - name: Copy compose.yml to remote
+      ansible.builtin.copy:
+        src: "{{ compose_file_source }}"
+        dest: "{{ compose_file_destination }}"
+        mode: "0640"
+
+    - name: Deploy Traefik with Docker Compose
+      community.docker.docker_compose_v2:
+        project_src: "{{ root_directory }}"
+        pull: always
+        recreate: always
+        remove_orphans: true
+        state: present
+
+    - name: Update DNS records for Traefik
+      community.general.cloudflare_dns:
+        zone: anneraud.fr
+        account_email: "{{ cloudflare_email }}"
+        account_api_key: "{{ cloudflare_api_key }}"
+        type: CNAME
+        record: traefik.luxembourg.anneraud.fr
+        value: "{{ local_dns_host }}"
