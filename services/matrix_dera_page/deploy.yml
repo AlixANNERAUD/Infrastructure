@@ -1,0 +1,89 @@
+---
+- name: Deploy Matrix (Anneraud)
+  hosts: luxembourg
+  become: true
+  vars:
+    root_directory: /opt/matrix_dera_page
+    compose_file_source: compose.yml
+    compose_file_destination: "{{ root_directory }}/compose.yml"
+    configuration_file_source: homeserver.yaml.j2
+    configuration_file_destination: "{{ root_directory }}/synapse_data/homeserver.yaml"
+    user_id: 991
+    group_id: 991
+  vars_files:
+    - ../../vault/matrix_dera_page/vault.yml
+    - ../../vault/cloudflare/vault.yml
+  tasks:
+    - name: Ensure application directory exists
+      ansible.builtin.file:
+        path: "{{ root_directory }}/synapse_data"
+        state: directory
+        mode: "0750"
+        owner: "{{ user_id }}"
+        group: "{{ group_id }}"
+
+    - name: Ensure nginx config directory exists
+      ansible.builtin.file:
+        path: "{{ root_directory }}/nginx"
+        state: directory
+        mode: "0750"
+        owner: "{{ user_id }}"
+        group: "{{ group_id }}"
+
+    - name: Copy compose file
+      ansible.builtin.copy:
+        src: "{{ compose_file_source }}"
+        dest: "{{ compose_file_destination }}"
+        mode: "0640"
+        owner: "{{ user_id }}"
+        group: "{{ group_id }}"
+
+    - name: Copy Matrix configuration file
+      ansible.builtin.template:
+        src: "{{ configuration_file_source }}"
+        dest: "{{ configuration_file_destination }}"
+        mode: "0640"
+        owner: "{{ user_id }}"
+        group: "{{ group_id }}"
+
+    - name: Copy Nginx well-known configuration
+      ansible.builtin.copy:
+        src: nginx.conf
+        dest: "{{ root_directory }}/nginx/nginx.conf"
+        mode: "0640"
+        owner: "{{ user_id }}"
+        group: "{{ group_id }}"
+
+    - name: Generate .env file for Matrix
+      ansible.builtin.copy:
+        dest: "{{ root_directory }}/.env"
+        mode: "0600"
+        content: |
+          DATABASE_USER={{ database_user }}
+          DATABASE_PASSWORD={{ database_password }}
+
+    - name: Deploy Matrix with Docker Compose
+      community.docker.docker_compose_v2:
+        project_src: "{{ root_directory }}"
+        pull: always
+        recreate: always
+        remove_orphans: true
+        state: present
+
+    - name: Update DNS records for Matrix
+      community.general.cloudflare_dns:
+        zone: dera.page
+        account_email: "{{ cloudflare_email }}"
+        account_api_key: "{{ cloudflare_api_key }}"
+        type: CNAME
+        record: matrix.dera.page
+        value: "{{ global_dns_host }}"
+
+    - name: Update DNS records for Element
+      community.general.cloudflare_dns:
+        zone: dera.page
+        account_email: "{{ cloudflare_email }}"
+        account_api_key: "{{ cloudflare_api_key }}"
+        type: CNAME
+        record: element.dera.page
+        value: "{{ global_dns_host }}"

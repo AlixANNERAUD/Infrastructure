@@ -1,0 +1,62 @@
+services:
+  synapse:
+    image: docker.io/matrixdotorg/synapse:latest
+    # Since synapse does not retry to connect to the database, restart upon
+    # failure
+    restart: unless-stopped
+    # See the readme for a full documentation of the environment settings
+    # NOTE: You must edit homeserver.yaml to use postgres, it defaults to sqlite
+    volumes:
+      - ./synapse_data:/data
+    depends_on:
+      - database
+    networks:
+      - traefik
+      - internal
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.matrix-dera-page.rule=Host(`matrix.dera.page`)
+      - traefik.http.routers.matrix-dera-page.entrypoints=web-secure,web-secure-federation
+      - traefik.http.routers.matrix-dera-page.tls=true
+      - traefik.http.routers.matrix-dera-page.tls.certresolver=letsencrypt
+      - traefik.http.services.matrix-dera-page.loadbalancer.server.port=8008
+      - traefik.http.services.matrix-dera-page.loadbalancer.server.scheme=http
+
+  database:
+    image: docker.io/postgres:18
+    restart: unless-stopped
+    # Change that password, of course!
+    environment:
+      - POSTGRES_USER=${DATABASE_USER}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+      # ensure the database gets created correctly
+      # https://element-hq.github.io/synapse/latest/postgres.html#set-up-database
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
+    volumes:
+      # You may store the database tables in a local folder..
+      - ./postgres_data:/var/lib/postgresql
+      # .. or store them on some high performance storage for better results
+      # - /path/to/ssd/storage:/var/lib/postgresql/data
+    networks:
+      - internal
+
+  well-known:
+    image: nginx:alpine
+    restart: unless-stopped
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - traefik
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.wellknown.rule=Host(`matrix.dera.page`) && PathPrefix(`/.well-known/matrix/`)
+      - traefik.http.routers.wellknown.entrypoints=web-secure,web-secure-federation
+      - traefik.http.routers.wellknown.tls=true
+      - traefik.http.routers.wellknown.tls.certresolver=letsencrypt
+      - traefik.http.services.wellknown.loadbalancer.server.port=80
+      - traefik.http.services.wellknown.loadbalancer.server.scheme=http
+
+networks:
+  traefik:
+    external: true
+  internal:
