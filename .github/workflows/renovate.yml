@@ -1,0 +1,29 @@
+name: Renovate
+on:
+  # Runs every hour (adjust as needed)
+  schedule:
+    - cron: "0 * * * *"
+  # Allows you to trigger it manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  renovate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get token
+        id: get_token
+        uses: actions/create-github-app-token@v1
+        with:
+          private-key: ${{ secrets.private_key }}
+          app-id: ${{ secrets.app_id }}
+          owner: ${{ github.repository_owner }}
+          repositories: "Infrastructure"
+
+      - name: Checkout
+        uses: actions/checkout@v6.0.1
+
+      - name: Self-hosted Renovate
+        uses: renovatebot/github-action@v44.2.3
+        with:
+          configurationFile: renovate.json
+          token: "${{ steps.get_token.outputs.token }}"
