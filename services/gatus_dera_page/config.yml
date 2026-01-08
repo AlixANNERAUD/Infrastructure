@@ -18,13 +18,14 @@ endpoints:
       - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > 48h"
 
-  - name: Element
+  - name: Matrix
     group: Services
-    url: "https://element.insa.lol"
+    url: "https://matrix.dera.page/health"
     interval: 1m
     conditions:
       - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[BODY] == pat(*OK*)"
 
   - name: Bible
     group: Services
