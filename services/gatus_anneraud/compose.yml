@@ -12,7 +12,7 @@ services:
       - database
 
   gatus:
-    image: twinproduction/gatus:latest
+    image: twinproduction/gatus:v5.34.0
     restart: unless-stopped
     environment:
       - POSTGRES_USER=${DATABASE_USER}

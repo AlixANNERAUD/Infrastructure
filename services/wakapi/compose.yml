@@ -1,6 +1,6 @@
 services:
   wakapi:
-    image: ghcr.io/muety/wakapi:latest
+    image: ghcr.io/muety/wakapi:v2.17
     init: true
     ports:
       - ${WAKAPI_PORT}:3000
