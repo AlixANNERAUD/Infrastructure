@@ -1,6 +1,6 @@
 services:
   synapse:
-    image: docker.io/matrixdotorg/synapse:v1.144
+    image: docker.io/matrixdotorg/synapse:v1.144.0
     # Since synapse does not retry to connect to the database, restart upon
     # failure
     restart: unless-stopped
@@ -14,7 +14,7 @@ services:
     # instance expose the TLS port directly:
     ports:
       - 38448:8008/tcp
-      
+
   database:
     image: docker.io/postgres:18
     restart: unless-stopped
@@ -30,3 +30,27 @@ services:
       - ./Postgres_data:/var/lib/postgresql
       # .. or store them on some high performance storage for better results
       # - /path/to/ssd/storage:/var/lib/postgresql/data
+
+  pgbackups:
+    image: prodrigestivill/postgres-backup-local
+    restart: always
+    #user: postgres:postgres # Optional: see below
+    volumes:
+      - ./Postgres_backup:/backups
+    links:
+      - database
+    depends_on:
+      - database
+    environment:
+      - POSTGRES_HOST=database
+      - POSTGRES_DB=${DATABASE_NAME}
+      - POSTGRES_USER=${DATABASE_USER}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+      #  - POSTGRES_PASSWORD_FILE=/run/secrets/db_password <-- alternative for POSTGRES_PASSWORD (to use with docker secrets)
+      - POSTGRES_EXTRA_OPTS=-Z1 --schema=public --blobs
+      - SCHEDULE=@daily
+      - BACKUP_ON_START=TRUE
+      - BACKUP_KEEP_DAYS=7
+      - BACKUP_KEEP_WEEKS=4
+      - BACKUP_KEEP_MONTHS=6
+      - HEALTHCHECK_PORT=8080

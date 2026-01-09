@@ -25,7 +25,7 @@ database:
   args:
     user: "{{ database_user }}"
     password: "{{ database_password }}"
-    dbname: synapse
+    dbname: "{{ database_name }}"
     host: database
     port: 5432
     cp_min: 5

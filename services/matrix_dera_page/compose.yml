@@ -1,6 +1,6 @@
 services:
   synapse:
-    image: docker.io/matrixdotorg/synapse:v1.144
+    image: docker.io/matrixdotorg/synapse:v1.144.0
     # Since synapse does not retry to connect to the database, restart upon
     # failure
     restart: unless-stopped
@@ -55,6 +55,32 @@ services:
       - traefik.http.routers.wellknown.tls.certresolver=letsencrypt
       - traefik.http.services.wellknown.loadbalancer.server.port=80
       - traefik.http.services.wellknown.loadbalancer.server.scheme=http
+
+  pgbackups:
+    image: prodrigestivill/postgres-backup-local
+    restart: always
+    #user: postgres:postgres # Optional: see below
+    volumes:
+      - ./Postgres_backup:/backups
+    links:
+      - database
+    depends_on:
+      - database
+    networks:
+      - internal
+    environment:
+      - POSTGRES_HOST=database
+      - POSTGRES_DB=${DATABASE_NAME}
+      - POSTGRES_USER=${DATABASE_USER}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+      #  - POSTGRES_PASSWORD_FILE=/run/secrets/db_password <-- alternative for POSTGRES_PASSWORD (to use with docker secrets)
+      - POSTGRES_EXTRA_OPTS=-Z1 --schema=public --blobs
+      - SCHEDULE=@daily
+      - BACKUP_ON_START=TRUE
+      - BACKUP_KEEP_DAYS=7
+      - BACKUP_KEEP_WEEKS=4
+      - BACKUP_KEEP_MONTHS=6
+      - HEALTHCHECK_PORT=8080
 
 networks:
   traefik:

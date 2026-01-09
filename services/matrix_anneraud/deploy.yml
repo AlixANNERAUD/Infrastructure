@@ -10,6 +10,7 @@
     configuration_file_destination: "{{ root_directory }}/Synapse_data/homeserver.yaml"
     user_id: 991
     group_id: 991
+    database_name: synapse
   vars_files:
     - ../../vault/matrix_anneraud/vault.yml
     - ../../vault/cloudflare/vault.yml
@@ -37,6 +38,7 @@
         content: |
           DATABASE_USER={{ database_user }}
           DATABASE_PASSWORD={{ database_password }}
+          DATABASE_NAME={{ database_name }}
 
     - name: Deploy Matrix with Docker Compose
       community.docker.docker_compose_v2:
