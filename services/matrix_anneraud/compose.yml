@@ -37,8 +37,6 @@ services:
     #user: postgres:postgres # Optional: see below
     volumes:
       - ./Postgres_backup:/backups
-    links:
-      - database
     depends_on:
       - database
     environment:
