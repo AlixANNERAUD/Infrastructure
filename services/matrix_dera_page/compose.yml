@@ -61,9 +61,7 @@ services:
     restart: always
     #user: postgres:postgres # Optional: see below
     volumes:
-      - ./Postgres_backup:/backups
-    links:
-      - database
+      - ./postgres_backup:/backups
     depends_on:
       - database
     networks:
