@@ -14,9 +14,15 @@ services:
       - "--providers.docker.exposedbydefault=false"
       - "--providers.docker.network=traefik"
       - "--providers.file.directory=/etc/traefik/dynamic"
+
       - "--entryPoints.web.address=:80"
+      - "--entryPoints.web.http.redirections.entryPoint.to=web-secure"
+      - "--entryPoints.web.http.redirections.entryPoint.scheme=https"
+      - "--entryPoints.web.http.redirections.entryPoint.permanent=true"
+
       - "--entryPoints.web-secure.address=:443"
       - "--entryPoints.web-secure.http.tls=true"
+
       - "--entryPoints.web-secure-federation.address=:8448"
       - "--entryPoints.web-secure-federation.http.tls=true"
 
