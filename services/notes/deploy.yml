@@ -25,10 +25,11 @@
         dest: "{{ root_directory }}/.env"
         mode: "0600"
         content: |
-          POSTGRES_USER={{ database_user }}
-          POSTGRES_PASSWORD={{ database_password }}
+          DATABASE_USER={{ database_user }}
+          DATABASE_PASSWORD={{ database_password }}
           APP_SECRET={{ app_secret }}
           APP_URL=https://notes.anneraud.fr
+          DATABASE_NAME=docmost
 
     - name: Deploy Notes with Docker Compose
       community.docker.docker_compose_v2:
