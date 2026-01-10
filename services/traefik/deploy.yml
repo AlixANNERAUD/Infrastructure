@@ -19,6 +19,14 @@
         owner: root
         group: root
 
+    - name: Generate .env file for Traefik
+      ansible.builtin.copy:
+        dest: "{{ root_directory }}/.env"
+        mode: "0600"
+        content: |
+          CLOUDFLARE_EMAIL={{ cloudflare_email }}
+          CLOUDFLARE_API_KEY={{ cloudflare_api_key }}
+
     - name: Copy compose.yml to remote
       ansible.builtin.copy:
         src: "{{ compose_file_source }}"

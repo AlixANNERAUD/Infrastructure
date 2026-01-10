@@ -7,6 +7,10 @@ services:
       - no-new-privileges:true
     networks:
       - traefik
+    environment:
+      - TZ=Europe/Paris
+      - CLOUDFLARE_EMAIL=${CLOUDFLARE_EMAIL}
+      - CLOUDFLARE_API_KEY=${CLOUDFLARE_API_KEY}
     command:
       - "--api.insecure=false"
       - "--api.dashboard=true"
@@ -29,7 +33,9 @@ services:
       # Let's Encrypt configuration
       - "--certificatesresolvers.letsencrypt.acme.email=alix@anneraud.fr" # replace with your actual email
       - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
-      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+      #- "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.letsencrypt.acme.dnsChallenge.provider=cloudflare"
+      - "--certificatesresolvers.letsencrypt.acme.dnsChallenge.delayBeforeCheck=10"
     ports:
       - "80:80"
       - "443:443"
