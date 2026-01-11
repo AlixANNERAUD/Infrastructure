@@ -1,0 +1,60 @@
+---
+- name: Deploy LDAP Service
+  hosts: luxembourg
+  become: true
+  vars:
+    root_directory: /opt/ldap
+    compose_file_source: compose.yml
+    compose_file_destination: "{{ root_directory }}/compose.yml"
+    user_id: 0
+    group_id: 0
+    database_name: ldap
+  vars_files:
+    - ../../vault/ldap/vault.yml
+    - ../../vault/cloudflare/vault.yml
+  tasks:
+    - name: Ensure application directory exists
+      ansible.builtin.file:
+        path: "{{ root_directory }}"
+        state: directory
+        mode: "0750"
+        owner: "{{ user_id }}"
+        group: "{{ group_id }}"
+
+    - name: Copy compose file
+      ansible.builtin.copy:
+        src: "{{ compose_file_source }}"
+        dest: "{{ compose_file_destination }}"
+        mode: "0640"
+        owner: "{{ user_id }}"
+        group: "{{ group_id }}"
+
+    - name: Generate .env file for LDAP
+      ansible.builtin.copy:
+        dest: "{{ root_directory }}/.env"
+        mode: "0600"
+        content: |
+          LLDAP_JWT_SECRET={{ lldap_jwt_secret }}
+          LLDAP_KEY_SEED={{ lldap_key_seed }}
+          LLDAP_LDAP_USER_PASS={{ lldap_ldap_user_pass }}
+
+          DATABASE_USER={{ database_user }}
+          DATABASE_PASSWORD={{ database_password }}
+          DATABASE_NAME=lldap
+
+    - name: Deploy LDAP with Docker Compose
+      community.docker.docker_compose_v2:
+        project_src: "{{ root_directory }}"
+        pull: always
+        recreate: always
+        remove_orphans: true
+        state: present
+
+    - name: Update DNS records for LDAP
+      community.general.cloudflare_dns:
+        zone: anneraud.fr
+        account_email: "{{ cloudflare_email }}"
+        account_api_key: "{{ cloudflare_api_key }}"
+        type: CNAME
+        record: ldap.anneraud.fr
+        value: "{{ local_dns_host }}"

@@ -29,6 +29,8 @@ services:
 
       - "--entryPoints.web-secure-federation.address=:8448"
       - "--entryPoints.web-secure-federation.http.tls=true"
+      
+      - "--entryPoints.ldaps.address=:636"
 
       # Let's Encrypt configuration
       - "--certificatesresolvers.letsencrypt.acme.email=alix@anneraud.fr" # replace with your actual email
