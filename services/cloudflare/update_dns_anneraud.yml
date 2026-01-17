@@ -4,18 +4,12 @@
   gather_facts: false
   vars:
     a_records:
-      - record: global.luxembourg.anneraud.fr
-        type: A
-        value: 130.162.34.52
       - record: kiev.anneraud.fr
         type: A
         value: 192.168.0.52
       - record: local.bruxelles.anneraud.fr
         type: A
         value: 192.168.0.21
-      - record: local.luxembourg.anneraud.fr
-        type: A
-        value: 100.64.0.6
       - record: local.nicosie.anneraud.fr
         type: A
         value: 192.168.0.41
@@ -25,9 +19,6 @@
       - record: local.pristina.anneraud.fr
         type: A
         value: 192.168.0.22
-      - record: luxembourg.anneraud.fr
-        type: A
-        value: 130.162.34.52
       - record: madrid.anneraud.fr
         type: A
         value: 192.168.0.51
@@ -38,9 +29,6 @@
       - record: local.bruxelles.anneraud.fr
         type: AAAA
         value: fe80::9e6b:ff:fe2f:d8e5
-      - record: local.luxembourg.anneraud.fr
-        type: AAAA
-        value: fd7a:115c:a1e0::6
     cname_records:
       - record: alix.anneraud.fr
         value: alixanneraud.github.io
@@ -120,8 +108,6 @@
         value: local.bruxelles.anneraud.fr
       - record: test.anneraud.fr
         value: local.bruxelles.annneraud.fr
-      - record: traefik.luxembourg.anneraud.fr
-        value: luxembourg.anneraud.fr
     mx_records:
       - record: anneraud.fr
         priority: 5

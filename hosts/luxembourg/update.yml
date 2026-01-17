@@ -1,0 +1,37 @@
+---
+- name: Update Luxembourg host
+  hosts: luxembourg
+  become: true
+  vars:
+    records:
+      - record: local.luxembourg.anneraud.fr
+        type: A
+        value: 100.64.0.6
+      - record: local.luxembourg.anneraud.fr
+        type: AAAA
+        value: fd7a:115c:a1e0::6
+      - record: global.luxembourg.anneraud.fr
+        type: A
+        value: 130.162.34.52
+      - record: luxembourg.anneraud.fr
+        type: CNAME
+        value: global.luxembourg.anneraud.fr
+
+  vars_files:
+    - ../../vault/cloudflare/vault.yml
+  tasks:
+    - name: Update packages
+      ansible.builtin.apt:
+        update_cache: yes
+        upgrade: dist
+        cache_valid_time: 3600
+
+    - name: Update DNS records for Luxembourg
+      community.general.cloudflare_dns:
+        zone: anneraud.fr
+        account_email: "{{ cloudflare_email }}"
+        account_api_key: "{{ cloudflare_api_key }}"
+        type: "{{ item.type }}"
+        record: "{{ item.record }}"
+        value: "{{ item.value }}"
+      loop: "{{ records }}"
