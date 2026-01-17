@@ -133,17 +133,18 @@ endpoints:
 
   - name: VPN (Tailscale)
     group: Infrastructure
-    url: "https://tailscale.anneraud.fr/"
+    url: "https://tailscale.anneraud.fr/health"
     interval: 10m
     conditions:
-      - "[STATUS] == 404"
+      - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[BODY].status == pass"
     alerts:
       - type: homeassistant
 
   - name: VPN console
     group: Services
-    url: "https://tailscale.anneraud.fr/admin/"
+    url: "https://console.tailscale.anneraud.fr/"
     interval: 10m
     conditions:
       - "[STATUS] == 200"
