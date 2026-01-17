@@ -46,12 +46,14 @@ services:
       - traefik.http.routers.lldap.tls.certresolver=letsencrypt
       - traefik.http.services.lldap.loadbalancer.server.port=17170
       - traefik.http.services.lldap.loadbalancer.server.scheme=http
+      - traefik.http.routers.lldap.middlewares=internal-allowlist@docker
 
       - traefik.tcp.routers.lldaps.rule=HostSNI(`ldap.anneraud.fr`)
       - traefik.tcp.routers.lldaps.entrypoints=ldaps
       - traefik.tcp.routers.lldaps.tls=true
       - traefik.tcp.routers.lldaps.tls.certresolver=letsencrypt
       - traefik.tcp.services.lldaps.loadbalancer.server.port=3890
+      - traefik.tcp.routers.lldaps.middlewares=internal-allowlist@docker
 
   database:
     image: postgres:18
