@@ -6,7 +6,6 @@ services:
     networks:
       - traefik
     ports:
-#      - "8080:8080"
       - "9090:9090"
       - "3479:3479/udp"
     volumes:
@@ -21,15 +20,15 @@ services:
       - traefik.http.routers.headscale.entrypoints=web-secure
 
       - traefik.http.routers.headscale.middlewares=limit-headscale
-      - traefik.http.middlewares.limit-headscale.buffering.maxRequestBodyBytes=50000000 
-      - traefik.http.middlewares.limit-headscale.buffering.maxResponseBodyBytes=50000000 
-      - traefik.http.middlewares.limit-headscale.buffering.memRequestBodyBytes=50000000 
-      - traefik.http.middlewares.limit-headscale.buffering.memResponseBodyBytes=50000000 
+      - traefik.http.middlewares.limit-headscale.buffering.maxRequestBodyBytes=50000000
+      - traefik.http.middlewares.limit-headscale.buffering.maxResponseBodyBytes=50000000
+      - traefik.http.middlewares.limit-headscale.buffering.memRequestBodyBytes=50000000
+      - traefik.http.middlewares.limit-headscale.buffering.memResponseBodyBytes=50000000
     command: serve
 
   headplane:
     container_name: headplane
-    image: ghcr.io/tale/headplane:v0.6.1
+    image: ghcr.io/tale/headplane:0.6.1
     restart: unless-stopped
     volumes:
       - "./headplane:/etc/headplane"
@@ -40,12 +39,20 @@ services:
       - traefik
     labels:
       - traefik.enable=true
-      - traefik.http.routers.headplane.rule=Host(`tailscale.anneraud.fr`) && PathPrefix(`/admin`)
+      - traefik.http.routers.headplane.rule=Host(`console.tailscale.anneraud.fr`)
+
+      # Redirect to /admin path
+      - traefik.http.routers.rewrite.rule=Host(`console.tailscale.anneraud.fr`) && Path(`/`)
+      - traefik.http.routers.rewrite.service=headplane
+      - traefik.http.routers.rewrite.middlewares=rewrite
+      - traefik.http.middlewares.rewrite.addprefix.prefix=/admin
+
       - traefik.http.services.headplane.loadbalancer.server.port=3000
       - traefik.http.services.headplane.loadbalancer.server.scheme=http
       - traefik.http.routers.headplane.tls=true
       - traefik.http.routers.headplane.tls.certResolver=letsencrypt
       - traefik.http.routers.headplane.entrypoints=web-secure
+      - traefik.http.routers.headplane.middlewares=internal-allowlist@docker
 
 networks:
   traefik:
