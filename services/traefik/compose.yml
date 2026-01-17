@@ -42,8 +42,8 @@ services:
       - "80:80"
       - "443:443"
       - "8080:8080"
-      - "8448:8448"  # Matrix federation port
-      - "636:636"    # LDAPS port
+      - "8448:8448" # Matrix federation port
+      - "636:636" # LDAPS port
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       # Add the following volumes
@@ -58,6 +58,13 @@ services:
       - "traefik.http.routers.dashboard.service=api@internal"
       # Add the following label
       - "traefik.http.routers.dashboard.tls=true"
+      - "traefik.http.routers.dashboard.tls.certresolver=letsencrypt"
+
+      # Allowlist middleware configuration
+      - "traefik.http.middlewares.internal-allowlist.ipallowlist.sourcerange=192.168.0.0/24,100.64.0.0/24,fd00::/8,172.16.0.0/12"
+      
+      # Apply the middleware to the dashboard router
+      - "traefik.http.routers.dashboard.middlewares=internal-allowlist@docker"
 
 networks:
   traefik:
