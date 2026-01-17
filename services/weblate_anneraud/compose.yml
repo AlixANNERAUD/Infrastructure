@@ -1,0 +1,96 @@
+services:
+  cache:
+    image: valkey/valkey:9.0.0
+    restart: unless-stopped
+    networks:
+      - internal
+    volumes:
+      - ./redis_data:/data
+    command: [valkey-server, --save, "60", "1", --loglevel, warning]
+    read_only: true
+
+  database:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    networks:
+      - internal
+    volumes:
+      - ./postgres_data:/var/lib/postgresql
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+
+  weblate:
+    image: weblate/weblate:5.15
+    restart: unless-stopped
+    depends_on:
+      - cache
+      - database
+    volumes:
+      - ./weblate_data:/app/data
+      - ./weblate_cache:/app/cache
+    networks:
+      - internal
+      - traefik
+    environment:
+      WEBLATE_DEBUG: 0
+      WEBLATE_LOGLEVEL: INFO
+
+      WEBLATE_ALLOWED_HOSTS: "*"
+      WEBLATE_ENABLE_HTTPS: 1
+      WEBLATE_IP_PROXY_HEADER: HTTP_X_FORWARDED_FOR
+      WEBLATE_SECURE_PROXY_SSL_HEADER: HTTP_X_FORWARDED_PROTO,https
+
+      WEBLATE_TIME_ZONE: Europe/Paris
+
+      WEBLATE_SITE_TITLE: Translation
+
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_HOST: database
+      POSTGRES_PORT: 5432
+
+      REDIS_HOST: cache
+      REDIS_PORT: 6379
+
+      WEBLATE_SITE_DOMAIN: translate.anneraud.fr
+
+      WEBLATE_SERVER_EMAIL: weblate@anneraud.fr
+      WEBLATE_SERVER_FROM_EMAIL: weblate@anneraud.fr
+      WEBLATE_EMAIL_PORT: 2525
+      WEBLATE_EMAIL_USE_TLS: true
+      WEBLATE_EMAIL_USE_SSL: false
+      WEBLATE_EMAIL_HOST: ${WEBLATE_EMAIL_HOST}
+      WEBLATE_EMAIL_HOST_USER: ${WEBLATE_EMAIL_HOST_USER}
+      WEBLATE_EMAIL_HOST_PASSWORD: ${WEBLATE_EMAIL_HOST_PASSWORD}
+
+      WEBLATE_ADMIN_NAME: Alix ANNERAUD
+      WEBLATE_ADMIN_EMAIL: ${WEBLATE_ADMIN_EMAIL}
+      WEBLATE_ADMIN_PASSWORD: ${WEBLATE_ADMIN_PASSWORD}
+
+      CLIENT_MAX_BODY_SIZE: 200M
+    labels:
+      - traefik.enable=true
+      # Main Router for the new domain
+      - traefik.http.routers.weblate.rule=Host(`translate.anneraud.fr`) || Host(`translate.xila.dev`)
+      - traefik.http.routers.weblate.entrypoints=web-secure
+      - traefik.http.routers.weblate.tls=true
+      - traefik.http.routers.weblate.tls.certResolver=letsencrypt
+      - traefik.http.services.weblate.loadbalancer.server.port=8080
+
+      # 2. Attach the redirect middleware
+      - traefik.http.routers.weblate.middlewares=weblate-redirection
+      - traefik.http.middlewares.weblate-redirection.redirectregex.regex=^https?://translate.xila.dev/(.*)
+      - traefik.http.middlewares.weblate-redirection.redirectregex.replacement=https://translate.anneraud.fr/$$1
+
+    read_only: true
+    tmpfs:
+      - /run
+      - /tmp
+
+networks:
+  internal:
+  traefik:
+    external: true

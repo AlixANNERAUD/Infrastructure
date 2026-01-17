@@ -1,0 +1,86 @@
+---
+- name: Deploy Weblate
+  hosts: luxembourg
+  become: true
+  vars:
+    root_directory: /opt/weblate_anneraud
+    compose_file_source: compose.yml
+    compose_file_destination: "{{ root_directory }}/docker-compose.yml"
+  vars_files:
+    - ../../vault/weblate_anneraud/vault.yml
+    - ../../vault/cloudflare/vault.yml
+  tasks:
+    - name: Ensure application directory exists
+      ansible.builtin.file:
+        path: "{{ root_directory }}"
+        state: directory
+        mode: "0750"
+        owner: root
+        group: root
+
+    - name: Ensure weblate data directory exists
+      ansible.builtin.file:
+        path: "{{ root_directory }}/weblate_data"
+        state: directory
+        mode: "0750"
+        owner: 1000
+        group: 1000
+
+    - name: Ensure weblate cache directory exists
+      ansible.builtin.file:
+        path: "{{ root_directory }}/weblate_cache"
+        state: directory
+        mode: "0750"
+        owner: 1000
+        group: 1000
+
+    - name: Copy compose.yml to remote
+      ansible.builtin.copy:
+        src: "{{ compose_file_source }}"
+        dest: "{{ compose_file_destination }}"
+        mode: "0640"
+
+    - name: Generate .env file for Weblate
+      ansible.builtin.copy:
+        dest: "{{ root_directory }}/.env"
+        mode: "0600"
+        content: |
+          DATABASE_NAME=weblate
+          DATABASE_USER={{ database_user }}
+          DATABASE_PASSWORD={{ database_password }}
+
+          WEBLATE_REGISTRATION_OPEN={{ weblate_registration_open }}
+
+          WEBLATE_EMAIL_HOST={{ weblate_email_host }}
+          WEBLATE_EMAIL_HOST_USER={{ weblate_email_host_user }}
+          WEBLATE_EMAIL_HOST_PASSWORD={{ weblate_email_host_password }}
+
+          WEBLATE_ADMIN_NAME={{ weblate_admin_name }}
+          WEBLATE_ADMIN_EMAIL={{ weblate_admin_email }}
+          WEBLATE_ADMIN_PASSWORD='{{ weblate_admin_password }}'
+
+    - name: Deploy Weblate with Docker Compose
+      community.docker.docker_compose_v2:
+        project_src: "{{ root_directory }}"
+        pull: always
+        recreate: always
+        remove_orphans: true
+        state: present
+
+    - name: Update DNS records for Weblate
+      community.general.cloudflare_dns:
+        zone: anneraud.fr
+        account_email: "{{ cloudflare_email }}"
+        account_api_key: "{{ cloudflare_api_key }}"
+        type: CNAME
+        record: translate.anneraud.fr
+        value: "{{ global_dns_host }}"
+
+    - name: Update DNS records for Weblate (Xila)
+      community.general.cloudflare_dns:
+        zone: xila.dev
+        account_email: "{{ cloudflare_email }}"
+        account_api_key: "{{ cloudflare_api_key }}"
+        type: CNAME
+        record: translate.xila.dev
+        value: "{{ global_dns_host }}"
