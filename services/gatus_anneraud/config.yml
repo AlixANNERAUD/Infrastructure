@@ -50,16 +50,6 @@ endpoints:
     alerts:
       - type: homeassistant
 
-  - name: Galerie (Immich)
-    group: Services
-    url: "https://galerie.anneraud.fr"
-    interval: 10m
-    conditions:
-      - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
-    alerts:
-      - type: homeassistant
-
   - name: Automatisation (n8n)
     group: Services
     url: "https://automatisation.anneraud.fr/healthz"
