@@ -11,6 +11,8 @@
     txt_records:
       - record: xila.dev
         value: "google-site-verification=QuJGydEmYwNG1GLTymL0K20uIRi5DU1T4LaxcPBtvuw"
+      - record: _github-pages-challenge-Xila-Project
+        value: "bd5ac14459967978a064b9e7eab765"
   vars_files:
     - ../../vault/cloudflare/vault.yml
   module_defaults:
