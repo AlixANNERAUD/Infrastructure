@@ -108,6 +108,8 @@
         value: local.bruxelles.anneraud.fr
       - record: test.anneraud.fr
         value: local.bruxelles.annneraud.fr
+      - record: guenola-sahut.anneraud.fr
+        value: global.bruxelles.anneraud.fr
     mx_records:
       - record: anneraud.fr
         priority: 5
