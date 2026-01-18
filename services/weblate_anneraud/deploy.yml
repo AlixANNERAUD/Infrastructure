@@ -57,7 +57,6 @@
 
           WEBLATE_ADMIN_NAME={{ weblate_admin_name }}
           WEBLATE_ADMIN_EMAIL={{ weblate_admin_email }}
-          WEBLATE_ADMIN_PASSWORD='{{ weblate_admin_password }}'
 
     - name: Deploy Weblate with Docker Compose
       community.docker.docker_compose_v2:
