@@ -1,0 +1,34 @@
+---
+- name: Setup DNS records for Xila
+  hosts: localhost
+  gather_facts: false
+  vars:
+    cname_records:
+      - record: www.xila.dev
+        value: xila-project.github.io
+      - record: xila.dev
+        value: www.xila.dev
+    txt_records:
+      - record: xila.dev
+        value: "google-site-verification=QuJGydEmYwNG1GLTymL0K20uIRi5DU1T4LaxcPBtvuw"
+  vars_files:
+    - ../../vault/cloudflare/vault.yml
+  module_defaults:
+    community.general.cloudflare_dns:
+      zone: xila.dev
+      account_email: "{{ cloudflare_email }}"
+      account_api_key: "{{ cloudflare_api_key }}"
+  tasks:
+    - name: Update CNAME records for xila.dev
+      community.general.cloudflare_dns:
+        type: CNAME
+        record: "{{ item.record }}"
+        value: "{{ item.value }}"
+      loop: "{{ cname_records }}"
+
+    - name: Update TXT records for xila.dev
+      community.general.cloudflare_dns:
+        type: TXT
+        record: "{{ item.record }}"
+        value: "{{ item.value }}"
+      loop: "{{ txt_records }}"
