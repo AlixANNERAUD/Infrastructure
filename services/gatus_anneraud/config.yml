@@ -315,6 +315,17 @@ endpoints:
     alerts:
       - type: homeassistant
 
+  - name: Translation (Weblate)
+    group: Services
+    url: "https://translate.anneraud.fr/healthz/"
+    interval: 10m
+    conditions:
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[BODY] == pat(*ok*)"
+    alerts:
+      - type: homeassistant
+
   - name: Bruxelles
     url: "icmp://local.bruxelles.anneraud.fr"
     group: Infrastructure
