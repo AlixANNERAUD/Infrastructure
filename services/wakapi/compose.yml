@@ -20,7 +20,7 @@ services:
       WAKAPI_PUBLIC_URL: ${WAKAPI_PUBLIC_URL}
 
   database:
-    image: postgres:17
+    image: postgres:18
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${DATABASE_USER}
