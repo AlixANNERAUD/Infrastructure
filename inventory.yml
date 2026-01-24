@@ -4,11 +4,11 @@ all:
       hosts:
         bruxelles:
           ansible_host: local.bruxelles.anneraud.fr
-          ansible_ssh_user: alix_anneraud
+          ansible_ssh_user: ansible
           local_dns_host: local.bruxelles.anneraud.fr
           global_dns_host: global.bruxelles.anneraud.fr
         luxembourg:
           ansible_host: local.luxembourg.anneraud.fr
-          ansible_ssh_user: root
+          ansible_ssh_user: ansible
           local_dns_host: local.luxembourg.anneraud.fr
           global_dns_host: global.luxembourg.anneraud.fr
