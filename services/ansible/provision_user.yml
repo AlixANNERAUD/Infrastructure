@@ -15,10 +15,6 @@
   vars_files:
     - ../../vault/ansible/vault.yml
   tasks:
-    - name: Display become password
-      ansible.builtin.debug:
-        msg: "The become password you entered is {{ ansible_become_password }}"
-
     - name: Map prompted vars to host facts
       ansible.builtin.set_fact:
         target_host: "{{ target_host }}"
