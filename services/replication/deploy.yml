@@ -1,0 +1,61 @@
+---
+- name: Setup replication from bruxelles to other sites
+  hosts:
+    - paris
+    - pristina
+  become: true
+  vars:
+    bruxelles_host: "local.bruxelles.anneraud.fr"
+    bruxelles_user: "ansible"
+
+    service_name: "bruxelles-replicate"
+  vars_files:
+    - ../../vault/ansible/vault.yml
+    - ../../vault/replication/vault.yml
+  tasks:
+    - name: Create the systemd service unit
+      ansible.builtin.copy:
+        dest: "/etc/systemd/system/{{ service_name }}.service"
+        mode: "0640"
+        content: |
+          [Unit]
+          Description=Trigger TrueNAS Replication Task
+          After=network-online.target
+          Wants=network-online.target
+
+          [Service]
+          Type=oneshot
+          User=ansible
+          Group=ansible
+          # BatchMode=yes ensures the job fails if SSH keys aren't set up,
+          # preventing the service from hanging on a password prompt.
+          ExecStart=/usr/bin/ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new {{ bruxelles_user }}@{{ bruxelles_host }} 'midclt -K {{ bruxelles_api_key }} call replication.run {{ bruxelles_replication_identifier }}'
+
+    - name: Create the systemd timer unit
+      ansible.builtin.copy:
+        dest: "/etc/systemd/system/{{ service_name }}.timer"
+        mode: "0644"
+        content: |
+          [Unit]
+          Description=Run eplication of bruxelles every 12 hours after last finish
+
+          [Timer]
+          # Triggers 12 hours after the service last finished
+          OnUnitInactiveSec=12h
+          # Ensures the task runs if the machine was off during a scheduled slot
+          Persistent=true
+
+          [Install]
+          WantedBy=timers.target
+
+    - name: Enable and start the timer
+      ansible.builtin.systemd:
+        name: "{{ service_name }}.timer"
+        state: started
+        enabled: true
+        daemon_reload: true
+
+    - name: Ensure the service itself is enabled (but not necessarily started)
+      ansible.builtin.systemd:
+        name: "{{ service_name }}.service"
+        enabled: true

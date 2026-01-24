@@ -12,3 +12,15 @@ all:
           ansible_ssh_user: ansible
           local_dns_host: local.luxembourg.anneraud.fr
           global_dns_host: global.luxembourg.anneraud.fr
+        pristina:
+          ansible_host: local.pristina.anneraud.fr
+          ansible_ssh_user: ansible
+          local_dns_host: local.pristina.anneraud.fr
+          bruxelles_replication_identifier: "7"
+    clients:
+      hosts:
+        paris:
+          ansible_host: local.paris.anneraud.fr
+          ansible_ssh_user: ansible
+          local_dns_host: local.paris.anneraud.fr
+          bruxelles_replication_identifier: "6"
