@@ -1,0 +1,74 @@
+---
+- name: Collect Details for Provisioning
+  hosts: localhost
+  gather_facts: false
+  vars_prompt:
+    - name: target_host
+      prompt: "Enter the destination IP or Hostname"
+      private: false
+    - name: current_user
+      prompt: "Enter YOUR current username on the remote host"
+      private: false
+    - name: current_sudo_password
+      prompt: "Enter YOUR current sudo password on the remote host"
+      private: true
+  vars_files:
+    - ../../vault/ansible/vault.yml
+  tasks:
+    - name: Display become password
+      ansible.builtin.debug:
+        msg: "The become password you entered is {{ ansible_become_password }}"
+
+    - name: Map prompted vars to host facts
+      ansible.builtin.set_fact:
+        target_host: "{{ target_host }}"
+        current_sudo_password: "{{ current_sudo_password }}"
+        new_ansible_password: "{{ ansible_become_password }}"
+
+    - name: Add the host to a temporary group
+      ansible.builtin.add_host:
+        name: "{{ target_host }}"
+        groups: manual_target
+        ansible_user: alix_anneraud
+        ansible_become_pass: "{{ current_sudo_password }}"
+        ansible_become_password: "{{ current_sudo_password }}"
+        new_ansible_password: "{{ new_ansible_password }}"
+
+- name: Execute tasks on manual target
+  hosts: manual_target
+  gather_facts: false
+  become: true
+  vars:
+    ansible_user_name: "ansible"
+
+    new_password: "{{ hostvars['localhost']['new_ansible_password'] }}"
+
+    key_path: "~/.ssh/ansible.pub"
+
+  tasks:
+    - name: Ensure the 'ansible' group exists
+      ansible.builtin.group:
+        name: "{{ ansible_user_name }}"
+        state: present
+
+    - name: Create the ansible service user
+      ansible.builtin.user:
+        name: "{{ ansible_user_name }}"
+        group: "{{ ansible_user_name }}"
+        password: "{{ new_password | password_hash('sha512') }}"
+        shell: /bin/bash
+        create_home: true
+        state: present
+
+    - name: Set up authorized keys (Cloning your key to the ansible user)
+      ansible.posix.authorized_key:
+        user: "{{ ansible_user_name }}"
+        state: present
+        key: "{{ lookup('file', key_path) }}"
+
+    - name: Allow 'ansible' user to have sudo (Password Required)
+      ansible.builtin.copy:
+        dest: "/etc/sudoers.d/{{ ansible_user_name }}"
+        content: "{{ ansible_user_name }} ALL=(ALL) ALL"
+        mode: "0440"
+        validate: "/usr/sbin/visudo -cf %s"
