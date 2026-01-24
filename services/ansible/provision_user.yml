@@ -66,6 +66,21 @@
         state: present
         key: "{{ lookup('file', key_path) }}"
 
+    - name: Generate SSH key for ansible user (if not already present)
+      ansible.builtin.command:
+        cmd: ssh-keygen -t ed25519 -f /home/{{ ansible_user_name }}/.ssh/id_ed25519 -q -N ""
+      args:
+        creates: /home/{{ ansible_user_name }}/.ssh/id_ed25519
+      become_user: "{{ ansible_user_name }}"
+
+    - name: Read remote file
+      ansible.builtin.command: cat /home/{{ ansible_user_name }}/.ssh/id_ed25519.pub
+      register: file_content
+
+    - name: Display the public key for ansible user
+      ansible.builtin.debug:
+        msg: "{{ file_content.stdout }}"
+
     - name: Allow 'ansible' user to have sudo (Password Required)
       ansible.builtin.copy:
         dest: "/etc/sudoers.d/{{ ansible_user_name }}"
