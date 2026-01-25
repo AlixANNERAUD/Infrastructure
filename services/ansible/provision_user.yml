@@ -67,7 +67,6 @@
         cmd: ssh-keygen -t ed25519 -f /home/{{ ansible_user_name }}/.ssh/id_ed25519 -q -N ""
       args:
         creates: /home/{{ ansible_user_name }}/.ssh/id_ed25519
-      become_user: "{{ ansible_user_name }}"
 
     - name: Read remote file
       ansible.builtin.command: cat /home/{{ ansible_user_name }}/.ssh/id_ed25519.pub
