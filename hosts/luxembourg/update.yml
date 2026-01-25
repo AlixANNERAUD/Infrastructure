@@ -18,6 +18,7 @@
         value: global.luxembourg.anneraud.fr
 
   vars_files:
+    - ../../vault/ansible/vault.yml
     - ../../vault/cloudflare/vault.yml
   tasks:
     - name: Update packages

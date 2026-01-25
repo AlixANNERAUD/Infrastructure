@@ -12,6 +12,7 @@
         value: fe80::215:5dff:fe00:8101
 
   vars_files:
+    - ../../vault/ansible/vault.yml
     - ../../vault/cloudflare/vault.yml
   tasks:
     - name: Update packages
