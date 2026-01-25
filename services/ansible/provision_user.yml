@@ -68,6 +68,13 @@
       args:
         creates: /home/{{ ansible_user_name }}/.ssh/id_ed25519
 
+    - name: Change ownership of .ssh directory (recursively)
+      ansible.builtin.file:
+        path: /home/{{ ansible_user_name }}/.ssh
+        owner: "{{ ansible_user_name }}"
+        group: "{{ ansible_user_name }}"
+        recurse: yes
+
     - name: Read remote file
       ansible.builtin.command: cat /home/{{ ansible_user_name }}/.ssh/id_ed25519.pub
       register: file_content
