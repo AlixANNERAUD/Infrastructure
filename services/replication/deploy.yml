@@ -42,6 +42,7 @@
           [Timer]
           # Triggers 12 hours after the service last finished
           OnUnitInactiveSec=12h
+          OnBootSec=15min
           # Ensures the task runs if the machine was off during a scheduled slot
           Persistent=true
 
