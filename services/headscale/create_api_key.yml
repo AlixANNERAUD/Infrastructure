@@ -1,0 +1,24 @@
+---
+- name: Manage Headscale API Keys
+  hosts: luxembourg
+  become: true
+  vars_files:
+    - ../../vault/ansible/vault.yml
+  tasks:
+    - name: Execute API key creation inside container
+      community.docker.docker_container_exec:
+        container: headscale
+        command: headscale apikeys create
+      register: headscale_result
+
+    - name: Show API Key in terminal
+      ansible.builtin.debug:
+        msg:
+          - "--- HEADSCALE API KEY GENERATED ---"
+          - "{{ headscale_result.stdout }}"
+          - "------------------------------------"
+
+    - name: Print raw output if command failed
+      ansible.builtin.debug:
+        var: headscale_result.stderr
+      when: headscale_result.rc != 0
