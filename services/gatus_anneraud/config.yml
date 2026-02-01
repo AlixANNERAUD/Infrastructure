@@ -32,7 +32,7 @@ endpoints:
 
   - name: Bitwarden (Nextcloud)
     group: Services
-    url: "https://bitwarden.anneraud.fr/"
+    url: "https://bitwarden.anneraud.fr/alive"
     interval: 10m
     conditions:
       - "[STATUS] == 200"
@@ -73,11 +73,12 @@ endpoints:
 
   - name: Médiathèque (Jellyfin)
     group: Services
-    url: "https://maison.anneraud.fr/"
+    url: "https://mediatheque.anneraud.fr/health"
     interval: 10m
     conditions:
       - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[BODY] == pat(*Healthy*)"
     alerts:
       - type: homeassistant
 
@@ -103,11 +104,12 @@ endpoints:
 
   - name: Proxy Bruxelles (Nginx Proxy Manager)
     group: Infrastructure
-    url: "https://nginx.bruxelles.anneraud.fr/"
+    url: "https://nginx.bruxelles.anneraud.fr/api/"
     interval: 10m
     conditions:
       - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[BODY].status == OK"
     alerts:
       - type: homeassistant
 
@@ -144,21 +146,23 @@ endpoints:
 
   - name: Statistiques (Umami)
     group: Services
-    url: "https://s.anneraud.fr/"
+    url: "https://s.anneraud.fr/api/heartbeat"
     interval: 10m
     conditions:
       - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[BODY].ok == true"
     alerts:
       - type: homeassistant
 
   - name: Notes (Docmost)
     group: Services
-    url: "https://notes.anneraud.fr/"
+    url: "https://notes.anneraud.fr/api/health"
     interval: 10m
     conditions:
       - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[BODY].status == ok"
     alerts:
       - type: homeassistant
 
@@ -174,21 +178,23 @@ endpoints:
 
   - name: Git (Gitea)
     group: Services
-    url: "https://git.anneraud.fr/"
+    url: "https://git.anneraud.fr/api/healthz"
     interval: 10m
     conditions:
       - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[BODY].status == pass"
     alerts:
       - type: homeassistant
 
   - name: Finances (Firefly III)
     group: Services
-    url: "https://finances.anneraud.fr/"
+    url: "https://finances.anneraud.fr/health"
     interval: 10m
     conditions:
       - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[BODY] == pat(*OK*)"
     alerts:
       - type: homeassistant
 
@@ -274,21 +280,23 @@ endpoints:
 
   - name: Jellyseerr
     group: Services
-    url: "https://jellyseerr.anneraud.fr/"
+    url: "https://jellyseerr.anneraud.fr/api/v1/status"
     interval: 10m
     conditions:
       - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > 48h"
+      - '[BODY] == pat(*"version":*)'
     alerts:
       - type: homeassistant
 
   - name: Conteneurs Bruxelles (Portainer)
     group: Infrastructure
-    url: "https://conteneurs.bruxelles.anneraud.fr/"
+    url: "https://conteneurs.bruxelles.anneraud.fr/api/status"
     interval: 10m
     conditions:
       - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > 48h"
+      - '[BODY] == pat(*"Version":*)'
     alerts:
       - type: homeassistant
 
