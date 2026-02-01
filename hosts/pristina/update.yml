@@ -6,7 +6,7 @@
     records:
       - record: local.pristina.anneraud.fr
         type: A
-        value: 100.64.0.6
+        value: 192.168.0.22
       - record: local.pristina.anneraud.fr
         type: AAAA
         value: fe80::215:5dff:fe00:8101
