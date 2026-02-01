@@ -27,8 +27,8 @@
           Type=oneshot
           User=ansible
           Group=ansible
-          # BatchMode=yes ensures the job fails if SSH keys aren't set up,
-          # preventing the service from hanging on a password prompt.
+          BatchMode=yes # Disable password prompts
+
           ExecStart=/usr/bin/ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new {{ bruxelles_user }}@{{ bruxelles_host }} 'midclt -K {{ bruxelles_api_key }} call replication.run {{ bruxelles_replication_identifier }}'
 
     - name: Create the systemd timer unit
@@ -37,14 +37,12 @@
         mode: "0644"
         content: |
           [Unit]
-          Description=Run eplication of bruxelles every 12 hours after last finish
+          Description=Run replication of bruxelles (Desktop Optimized)
 
           [Timer]
-          # Triggers 12 hours after the service last finished
-          OnUnitInactiveSec=12h
-          OnBootSec=15min
-          # Ensures the task runs if the machine was off during a scheduled slot
+          OnCalendar=*-*-* 00/12:00:00
           Persistent=true
+          RandomizedDelaySec=5min
 
           [Install]
           WantedBy=timers.target
