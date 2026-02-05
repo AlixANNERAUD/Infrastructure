@@ -12,6 +12,7 @@
     group_id: 991
     database_name: synapse
   vars_files:
+    - ../../vault/ansible/vault.yml
     - ../../vault/matrix_anneraud/vault.yml
     - ../../vault/cloudflare/vault.yml
   tasks:
