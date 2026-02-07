@@ -19,8 +19,8 @@ services:
     image: postgres:16-alpine
     environment:
       POSTGRES_DB: ${DATABASE_NAME}
-      DATABASE_USER: ${DATABASE_USER}
-      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
     restart: unless-stopped
     volumes:
       - ./Postgres_data:/var/lib/postgresql/data
