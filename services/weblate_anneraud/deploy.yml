@@ -7,6 +7,7 @@
     compose_file_source: compose.yml
     compose_file_destination: "{{ root_directory }}/docker-compose.yml"
   vars_files:
+    - ../../vault/ansible/vault.yml
     - ../../vault/weblate_anneraud/vault.yml
     - ../../vault/cloudflare/vault.yml
   tasks:
