@@ -20,14 +20,25 @@ services:
       WAKAPI_PUBLIC_URL: ${WAKAPI_PUBLIC_URL}
 
   database:
-    image: postgres:17
+    image: postgres:18
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${DATABASE_USER}
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
       POSTGRES_DB: "wakapi"
     volumes:
-      - ./Postgres_data:/var/lib/postgresql/data
+      - ./Postgres_data:/var/lib/postgresql
+
+  pgautoupgrade:
+    image: pgautoupgrade/pgautoupgrade:18-debian
+    profiles:
+      - tools
+    environment:
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      PGAUTO_ONESHOT: "yes"
+    volumes:
+      - ./Postgres_data:/var/lib/postgresql
 
   pgbackups:
     image: prodrigestivill/postgres-backup-local

@@ -9,6 +9,7 @@
     user_id: 568
     group_id: 568
   vars_files:
+    - ../../vault/ansible/vault.yml
     - ../../vault/wakapi/vault.yml
     - ../../vault/cloudflare/vault.yml
   tasks:
