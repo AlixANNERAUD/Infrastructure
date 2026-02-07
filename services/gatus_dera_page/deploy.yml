@@ -9,6 +9,7 @@
     configuration_file_source: config.yml
     configuration_file_destination: "{{ root_directory }}/config/config.yml"
   vars_files:
+    - ../../vault/ansible/vault.yml
     - ../../vault/gatus_dera_page/vault.yml
     - ../../vault/cloudflare/vault.yml
   tasks:
