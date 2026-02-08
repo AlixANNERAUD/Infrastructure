@@ -1,0 +1,28 @@
+---
+- name: Setup DNS records
+  hosts: localhost
+  gather_facts: false
+  vars:
+    a_records:
+    aaaa_records:
+    cname_records:
+      - record: s.guenola-sahut.fr
+        value: global.bruxelles.anneraud.fr
+      - record: test.guenola-sahut.fr
+        value: global.bruxelles.anneraud.fr
+    mx_records:
+    txt_records:
+  vars_files:
+    - ../../vault/cloudflare/vault.yml
+  module_defaults:
+    community.general.cloudflare_dns:
+      zone: guenola-sahut.fr
+      account_email: "{{ cloudflare_email }}"
+      account_api_key: "{{ cloudflare_api_key }}"
+  tasks:
+    - name: Update CNAME records for guenola-sahut.fr
+      community.general.cloudflare_dns:
+        type: CNAME
+        record: "{{ item.record }}"
+        value: "{{ item.value }}"
+      loop: "{{ cname_records }}"
