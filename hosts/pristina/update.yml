@@ -7,9 +7,6 @@
       - record: local.pristina.anneraud.fr
         type: A
         value: 192.168.0.22
-      - record: local.pristina.anneraud.fr
-        type: AAAA
-        value: fe80::215:5dff:fe00:8101
 
   vars_files:
     - ../../vault/ansible/vault.yml

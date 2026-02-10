@@ -16,9 +16,6 @@
       - record: local.paris.anneraud.fr
         type: A
         value: 192.168.0.121
-      - record: local.pristina.anneraud.fr
-        type: A
-        value: 192.168.0.22
       - record: madrid.anneraud.fr
         type: A
         value: 192.168.0.51
