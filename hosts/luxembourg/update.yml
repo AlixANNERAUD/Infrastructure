@@ -7,9 +7,6 @@
       - record: local.luxembourg.anneraud.fr
         type: A
         value: 192.168.0.23
-      - record: local.luxembourg.anneraud.fr
-        type: AAAA
-        value: fd7a:115c:a1e0::6
       - record: global.luxembourg.anneraud.fr
         type: A
         value: 130.162.34.52
