@@ -6,7 +6,7 @@
     records:
       - record: local.luxembourg.anneraud.fr
         type: A
-        value: 100.64.0.6
+        value: 192.168.0.23
       - record: local.luxembourg.anneraud.fr
         type: AAAA
         value: fd7a:115c:a1e0::6
@@ -26,6 +26,27 @@
         update_cache: yes
         upgrade: dist
         cache_valid_time: 3600
+
+    - name: Create persistent Netplan configuration for custom IP
+      copy:
+        dest: /etc/netplan/99-custom-loopback.yaml
+        content: |
+          network:
+            version: 2
+            ethernets:
+              lo:
+                match:
+                  name: lo
+                addresses:
+                  - 192.168.0.23/32
+        mode: "0644"
+
+    - name: Apply Netplan configuration
+      command: netplan apply
+
+    - name: Verify the IP is reachable locally
+      command: "ping -c 2 192.168.0.23"
+      changed_when: false
 
     - name: Update DNS records for Luxembourg
       community.general.cloudflare_dns:
