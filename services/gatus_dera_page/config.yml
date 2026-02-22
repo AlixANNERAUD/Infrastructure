@@ -90,7 +90,7 @@ endpoints:
     url: "http://dimitri1.dera.page/"
     interval: 1m
     conditions:
-      - "[STATUS] == 404"
+      - "[STATUS] == 200"
 
   - name: Bruxelles (Alix)
     url: "icmp://local.bruxelles.anneraud.fr"
