@@ -45,7 +45,7 @@ services:
       - HEALTHCHECK_PORT=8080
 
   weblate:
-    image: weblate/weblate:5.15
+    image: weblate/weblate:5.16
     restart: unless-stopped
     depends_on:
       - cache
