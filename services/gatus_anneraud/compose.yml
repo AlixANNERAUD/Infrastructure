@@ -23,7 +23,7 @@ services:
       - ./data/db:/var/lib/postgresql
 
   gatus:
-    image: twinproduction/gatus:v5.34.0
+    image: twinproduction/gatus:v5.35.0
     restart: unless-stopped
     environment:
       - POSTGRES_USER=${DATABASE_USER}
