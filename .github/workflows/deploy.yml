@@ -26,23 +26,24 @@ jobs:
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
-      - name: Change directory to services/website
-        run: cd services/website
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: npm
+          node-version-file: services/website/package.json
       - name: Setup Pages
         uses: actions/configure-pages@v4
       - name: Install dependencies
         run: npm ci
+        working-directory: services/website
       - name: Build with VitePress
         run: npm run docs:build
+        working-directory: services/website
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .vitepress/dist
+          path: services/website/.vitepress/dist
 
   deploy:
     environment:
