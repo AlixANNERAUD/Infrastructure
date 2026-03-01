@@ -13,6 +13,12 @@ const configuration = defineConfig({
   vite: {
     plugins: [pagefindPlugin()],
   },
+  locales: {
+    root: {
+      label: "Français",
+      lang: "fr",
+    },
+  },
   lastUpdated: true,
   head: [
     [
