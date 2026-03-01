@@ -1,5 +1,4 @@
 import { defineConfig } from "vitepress";
-import { defineConfig, DefaultTheme } from "vitepress";
 import { withMermaid } from "vitepress-plugin-mermaid";
 import { pagefindPlugin } from "vitepress-plugin-pagefind";
 
@@ -15,6 +14,16 @@ const configuration = defineConfig({
     plugins: [pagefindPlugin()],
   },
   lastUpdated: true,
+  head: [
+    [
+      "script",
+      {
+        defer: "",
+        src: "https://s.anneraud.fr/script.js",
+        "data-website-id": "8daf8262-d0a0-4bfa-a1b9-b1cfca50fee6",
+      },
+    ],
+  ],
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
     nav: [
