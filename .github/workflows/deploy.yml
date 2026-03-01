@@ -29,9 +29,9 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
-          node-version: 24
           cache: npm
           node-version-file: services/website/package.json
+          cache-dependency-path: services/website/package-lock.json
       - name: Setup Pages
         uses: actions/configure-pages@v4
       - name: Install dependencies
