@@ -11,4 +11,10 @@ La plupart des services utilisent des enregistrements CNAME pointant vers le ser
 | global.bruxelles.anneraud.fr  | Accès réseau global à Bruxelles  | Public | Bruxelles  | Dynamique   |
 | global.luxembourg.anneraud.fr | Accès réseau global à Luxembourg | Public | Luxembourg | Statique    |
 
-Voir [playbooks/cloudflare/update_dns.yml](../playbooks/cloudflare/update_dns.yml) ou les playbooks de déploiement de services pour la liste complète des enregistrements DNS et leurs configurations.
+Voir:
+
+- <RepositoryReference path="services/cloudflare/update_dns_anneraud.yml" />
+- <RepositoryReference path="services/cloudflare/update_dns_guenola_sahut.yml" />
+- <RepositoryReference path="services/cloudflare/update_dns_mini_train_store.yml" />
+- <RepositoryReference path="services/cloudflare/update_dns_xila.yml" />
+  ou les playbooks de déploiement de services pour la liste complète des enregistrements DNS et leurs configurations.
