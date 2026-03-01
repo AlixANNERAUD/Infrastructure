@@ -53,7 +53,7 @@ const configuration = defineConfig({
     },
     footer: {
       message:
-        "Administré par <a href='https://alix.anneraud.fr'>Alix ANNERAUD</a>",
+        "Administré par <a href='https://alix.anneraud.fr'>Alix ANNERAUD</a> - Sous licence <a href='https://mit-license.org/'>MIT</a> - Conçu avec <a href='https://vitepress.dev/'>VitePress</a>",
     },
     socialLinks: [
       {
