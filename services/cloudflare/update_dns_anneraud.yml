@@ -23,6 +23,8 @@
         type: A
         value: 176.132.67.30
     cname_records:
+      - record: anneraud.fr
+        value: global.bruxelles.anneraud.fr
       - record: alix.anneraud.fr
         value: alixanneraud.github.io
       - record: amsterdam.anneraud.fr
