@@ -22,7 +22,7 @@ alerting:
 endpoints:
   - name: Accueil
     group: Services
-    url: "https://anneraud.fr/"
+    url: "https://www.anneraud.fr/"
     interval: 10m
     conditions:
       - "[STATUS] == 200"
