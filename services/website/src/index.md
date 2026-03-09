@@ -18,14 +18,14 @@ hero:
 features:
   - icon: 🌐
     title: Nuage (Nextcloud)
-    details: Stockage cloud et collaboration. Accessible sans VPN.
+    details: Stockage cloud et collaboration.
     link: https://nuage.anneraud.fr
     linkText: Visiter Nuage
     rel: external
     target: _blank
   - icon: 💬
     title: Messagerie (Matrix)
-    details: Plateforme de communication sécurisée. Accessible sans VPN.
+    details: Plateforme de communication sécurisée.
     link: https://matrix.anneraud.fr
     linkText: Visiter Matrix
     rel: external
@@ -39,21 +39,21 @@ features:
     target: _blank
   - icon: 🖼️
     title: Galerie
-    details: Hébergement de photos. Accessible sans VPN.
+    details: Hébergement de photos.
     link: https://galerie.anneraud.fr
     linkText: Visiter Galerie
     rel: external
     target: _blank
   - icon: 🏠
     title: Maison (Home Assistant)
-    details: Système domotique. Accessible sans VPN.
+    details: Système domotique.
     link: https://maison.anneraud.fr
     linkText: Visiter Maison
     rel: external
     target: _blank
   - icon: 🔑
     title: Bitwarden (Vaultwarden)
-    details: Gestionnaire de mots de passe. Accessible sans VPN.
+    details: Gestionnaire de mots de passe.
     link: https://bitwarden.anneraud.fr
     linkText: Visiter Bitwarden
     rel: external
@@ -74,7 +74,7 @@ features:
     target: _blank
   - icon: 📊
     title: Statistiques (Umami)
-    details: Plateforme d'analyse web. Accessible sans VPN.
+    details: Plateforme d'analyse web.
     link: https://s.anneraud.fr
     linkText: Visiter Statistiques
     rel: external
@@ -95,7 +95,7 @@ features:
     target: _blank
   - icon: 🏢
     title: Arnaud (Odoo)
-    details: Système de gestion d'entreprise. Accessible sans VPN.
+    details: Système de gestion d'entreprise.
     link: https://arnaud.anneraud.fr
     linkText: Visiter Arnaud
     rel: external
@@ -123,14 +123,14 @@ features:
     target: _blank
   - icon: 🕒
     title: Wakapi
-    details: Suivi du temps de codage. Accessible sans VPN.
+    details: Suivi du temps de codage.
     link: https://wakapi.anneraud.fr
     linkText: Visiter Wakapi
     rel: external
     target: _blank
   - icon: 🎥
     title: Médiathèque (Jellyfin)
-    details: Serveur multimédia pour films, séries et musique. Accessible sans VPN.
+    details: Serveur multimédia pour films, séries et musique.
     link: https://mediatheque.anneraud.fr
     linkText: Visiter Médiathèque
     rel: external
