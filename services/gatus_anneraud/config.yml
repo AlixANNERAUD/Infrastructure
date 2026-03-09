@@ -166,6 +166,16 @@ endpoints:
     alerts:
       - type: homeassistant
 
+  - name: PDF (BentoPDF)
+    group: Services
+    url: "https://pdf.anneraud.fr"
+    interval: 10m
+    conditions:
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
+    alerts:
+      - type: homeassistant
+
   - name: Mini Train Store (Odoo)
     group: Services
     url: "https://minitrainstore.fr/"

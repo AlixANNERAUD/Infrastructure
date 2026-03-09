@@ -86,6 +86,13 @@ features:
     linkText: Visiter Notes
     rel: external
     target: _blank
+  - icon: 📚
+    title: PDF (BentoPDF)
+    details: Outil de manipulation de PDF.
+    link: https://pdf.anneraud.fr
+    linkText: Visiter PDF
+    rel: external
+    target: _blank
   - icon: 🏢
     title: Arnaud (Odoo)
     details: Système de gestion d'entreprise. Accessible sans VPN.
