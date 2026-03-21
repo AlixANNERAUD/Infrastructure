@@ -16,6 +16,7 @@ Ce serveur héberge la majorité de mes services personnels en utilisant TrueNAS
 - Stockage :
   - Western Digital Black 750 (SSD - 2 To - NVMe - Pool de données ZFS)
   - Western Digital Black 770 (SSD - 2 To - NVMe - Pool de données ZFS)
+  - Western Digital Black 7200 (SSD - 2 To - SATA - Pool de données ZFS)
   - Micron 5200 (SSD - 1,9 To - SATA - Pool de données ZFS)
   - Crucial C300 (SSD - 64 Go - SATA - Système TrueNAS)
 
