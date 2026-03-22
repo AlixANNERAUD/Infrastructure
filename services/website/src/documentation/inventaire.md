@@ -1,8 +1,8 @@
-# Inventaire
+# 🗂️ Inventaire
 
 Ce document fournit un inventaire des composants de l'infrastructure, notamment les serveurs, les services et leurs configurations respectives.
 
-## Serveurs
+## 🖥️ Serveurs
 
 ### Bruxelles
 
@@ -32,7 +32,7 @@ Ce serveur est hébergé sur Oracle Cloud Infrastructure (OCI) et sert aux servi
 - Mémoire : 24 Go
 - Stockage : 200 Go
 
-## Réseau
+## 🌐 Réseau
 
 ### Berlin
 
@@ -60,7 +60,7 @@ Switch (L2) pour connecter les caméras de surveillance et Chisinau à Berlin.
 - Modèle : Linksys
 - Ports : 5 ports Gigabit Ethernet
 
-## Caméras
+## 📷 Caméras
 
 ### Nicosie
 
@@ -86,7 +86,7 @@ Caméra de surveillance extérieure pour surveiller la cour.
 - Résolution : 4 MP (2560 x 1440)
 - Connectivité : Wi-Fi
 
-## Imprimantes
+## 🖨️ Imprimantes
 
 ### Madrid
 
@@ -102,7 +102,7 @@ Imprimante laser monochrome pour les impressions plus fréquentes dans l'atelier
 - Modèle : HP LaserJet P2055dn
 - Connectivité : Ethernet, USB
 
-## Ordinateurs
+## 💻 Ordinateurs
 
 ### Paris
 
