@@ -31,10 +31,10 @@ features:
     rel: external
     target: _blank
   - icon: 🌎
-    title: Traduction (Weblate)
+    title: Traduction (Tolgee)
     details: Plateforme de traduction. Nécessite un VPN.
     link: https://translate.anneraud.fr
-    linkText: Visiter Weblate
+    linkText: Visiter Gatus
     rel: external
     target: _blank
   - icon: 🖼️

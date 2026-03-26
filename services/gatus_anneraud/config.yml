@@ -333,14 +333,13 @@ endpoints:
     alerts:
       - type: homeassistant
 
-  - name: Translation (Weblate)
+  - name: Translation (Tolgee)
     group: Services
-    url: "https://translate.anneraud.fr/healthz/"
+    url: "https://translate.anneraud.fr/"
     interval: 10m
     conditions:
       - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > 48h"
-      - "[BODY] == pat(*ok*)"
     alerts:
       - type: homeassistant
 
