@@ -1,0 +1,80 @@
+services:
+  app:
+    image: tolgee/tolgee:latest
+    volumes:
+      - ./tolgee_data:/data
+    environment:
+      - TOLGEE_AUTHENTICATION_ENABLED=true
+      - TOLGEE_AUTHENTICATION_JWT_SECRET=${TOLGEE_AUTHENTICATION_JWT_SECRET}
+
+      - TOLGEE_SMTP_AUTH=true
+      - TOLGEE_SMTP_FROM=Translate <translate@anneraud.fr>
+      - TOLGEE_SMTP_HOST=${TOLGEE_SMTP_HOST}
+      - TOLGEE_SMTP_PASSWORD=${TOLGEE_SMTP_PASSWORD}
+      - TOLGEE_SMTP_PORT=2525
+      - TOLGEE_SMTP_SSL_ENABLED=true
+      - TOLGEE_SMTP_USERNAME=${TOLGEE_SMTP_USERNAME}
+
+      - TOLGEE_SPRING_DATASOURCE_URL=jdbc:postgresql://database:5432/${DATABASE_NAME}
+      - TOLGEE_SPRING_DATASOURCE_USERNAME=${DATABASE_USER}
+      - TOLGEE_SPRING_DATASOURCE_PASSWORD=${DATABASE_PASSWORD}
+    deploy:
+      restart_policy:
+        condition: on-failure
+    depends_on:
+      - database
+    networks:
+      - internal
+      - traefik
+    labels:
+      - traefik.enable=true
+      # Main Router for the new domain
+      - traefik.http.routers.weblate.rule=Host(`translate.anneraud.fr`) || Host(`translate.xila.dev`)
+      - traefik.http.routers.weblate.entrypoints=web-secure
+      - traefik.http.routers.weblate.tls=true
+      - traefik.http.routers.weblate.tls.certResolver=letsencrypt
+      - traefik.http.services.weblate.loadbalancer.server.port=8080
+
+      # 2. Attach the redirect middleware
+      - traefik.http.routers.weblate.middlewares=weblate-redirection
+      - traefik.http.middlewares.weblate-redirection.redirectregex.regex=^https?://translate.xila.dev/(.*)
+      - traefik.http.middlewares.weblate-redirection.redirectregex.replacement=https://translate.anneraud.fr/$$1
+
+  database:
+    image: postgres:18
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+    volumes:
+      - ./postgres_data:/var/lib/postgresql
+    networks:
+      - internal
+
+  pgbackups:
+    image: prodrigestivill/postgres-backup-local
+    restart: always
+    #user: postgres:postgres # Optional: see below
+    volumes:
+      - ./postgres_backup:/backups
+    networks:
+      - internal
+    depends_on:
+      - database
+    environment:
+      - POSTGRES_HOST=database
+      - POSTGRES_DB=${DATABASE_NAME}
+      - POSTGRES_USER=${DATABASE_USER}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+      - POSTGRES_EXTRA_OPTS=-Z1 --schema=public --blobs
+      - SCHEDULE=@daily
+      - BACKUP_ON_START=TRUE
+      - BACKUP_KEEP_DAYS=7
+      - BACKUP_KEEP_WEEKS=4
+      - BACKUP_KEEP_MONTHS=6
+      - HEALTHCHECK_PORT=8080
+
+networks:
+  internal:
+  traefik:
+    external: true

@@ -1,0 +1,67 @@
+---
+- name: Deploy Tolgee
+  hosts: luxembourg
+  become: true
+  vars:
+    root_directory: /opt/tolgee_anneraud
+    compose_file_source: compose.yml
+    compose_file_destination: "{{ root_directory }}/docker-compose.yml"
+  vars_files:
+    - ../../vault/ansible/vault.yml
+    - ../../vault/tolgee_anneraud/vault.yml
+    - ../../vault/cloudflare/vault.yml
+  tasks:
+    - name: Ensure application directory exists
+      ansible.builtin.file:
+        path: "{{ root_directory }}"
+        state: directory
+        mode: "0750"
+        owner: root
+        group: root
+
+    - name: Copy compose.yml to remote
+      ansible.builtin.copy:
+        src: "{{ compose_file_source }}"
+        dest: "{{ compose_file_destination }}"
+        mode: "0640"
+
+    - name: Generate .env file for  Tolgee
+      ansible.builtin.copy:
+        dest: "{{ root_directory }}/.env"
+        mode: "0600"
+        content: |
+          DATABASE_NAME=tolgee
+          DATABASE_USER={{ database_user }}
+          DATABASE_PASSWORD={{ database_password }}
+
+          TOLGEE_AUTHENTICATION_JWT_SECRET={{ tolgee_authentication_jwt_secret }}
+
+          TOLGEE_SMTP_HOST={{ tolgee_smtp_host }}
+          TOLGEE_SMTP_PASSWORD={{ tolgee_smtp_password }}
+          TOLGEE_SMTP_USERNAME={{ tolgee_smtp_username }}
+
+    - name: Deploy Tolgee with Docker Compose
+      community.docker.docker_compose_v2:
+        project_src: "{{ root_directory }}"
+        pull: always
+        recreate: always
+        remove_orphans: true
+        state: present
+
+    - name: Update DNS records for Tolgee
+      community.general.cloudflare_dns:
+        zone: anneraud.fr
+        account_email: "{{ cloudflare_email }}"
+        account_api_key: "{{ cloudflare_api_key }}"
+        type: CNAME
+        record: translate.anneraud.fr
+        value: "{{ global_dns_host }}"
+
+    - name: Update DNS records for Weblate (Xila)
+      community.general.cloudflare_dns:
+        zone: xila.dev
+        account_email: "{{ cloudflare_email }}"
+        account_api_key: "{{ cloudflare_api_key }}"
+        type: CNAME
+        record: translate.xila.dev
+        value: "{{ global_dns_host }}"
