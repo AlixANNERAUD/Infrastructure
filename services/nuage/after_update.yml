@@ -2,6 +2,8 @@
 - name: After updating Nuage (Nextcloud)
   hosts: bruxelles
   become: true
+  vars_files:
+    - ../../vault/ansible/vault.yml
   vars:
     container_name: ix-nextcloud-nextcloud-1
 
