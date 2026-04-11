@@ -343,17 +343,6 @@ endpoints:
     alerts:
       - type: homeassistant
 
-  - name: Synchronisation (Syncthing)
-    group: Services
-    url: "https://synchronisation.anneraud.fr/rest/noauth/health"
-    interval: 10m
-    conditions:
-      - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
-      - "[BODY].status == OK"
-    alerts:
-      - type: homeassistant
-
   - name: Bruxelles
     url: "icmp://local.bruxelles.anneraud.fr"
     group: Infrastructure
