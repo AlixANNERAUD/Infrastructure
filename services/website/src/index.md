@@ -37,6 +37,13 @@ features:
     linkText: Visiter Gatus
     rel: external
     target: _blank
+  - icon: 🔄
+    title: Synchronisation (Syncthing)
+    details: Synchronisation de fichiers pair à pair. Nécessite un VPN.
+    link: https://synchronisation.anneraud.fr
+    linkText: Visiter Synchronisation
+    rel: external
+    target: _blank
   - icon: 🖼️
     title: Galerie
     details: Hébergement de photos.
