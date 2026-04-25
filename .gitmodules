@@ -4,3 +4,6 @@
 [submodule "Infrastructure_vault"]
 	path = vault
 	url = https://github.com/AlixANNERAUD/Infrastructure_vault.git
+[submodule "services/website/website"]
+	path = services/website/website
+	url = https://github.com/AlixANNERAUD/Infrastructure_website.git
