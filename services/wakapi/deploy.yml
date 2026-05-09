@@ -35,6 +35,9 @@
           DATABASE_PASSWORD={{ database_password }}
           DATABASE_USER={{ database_user }}
           WAKAPI_PASSWORD_SALT={{ wakapi_password_salt }}
+
+          WAKAPI_MAIL_SMTP_HOST={{ wakapi_mail_smtp_host }}
+          WAKAPI_MAIL_SMTP_USER={{ wakapi_mail_smtp_user }}
           WAKAPI_MAIL_SMTP_PASS={{ wakapi_mail_smtp_pass }}
 
     - name: Deploy Wakapi with Docker Compose
