@@ -3,7 +3,7 @@
   hosts: bruxelles
   become: true
   vars:
-    root_directory: /mnt/Donnees/Applications/Wakapi
+    root_directory: /mnt/Donnees/Applications_chiffrees/Wakapi
     compose_file_source: compose.yml
     compose_file_destination: "{{ root_directory }}/compose.yml"
     user_id: 568

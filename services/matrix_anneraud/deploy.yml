@@ -3,7 +3,7 @@
   hosts: bruxelles
   become: true
   vars:
-    root_directory: /mnt/Donnees/Applications/Matrix_anneraud
+    root_directory: /mnt/Donnees/Applications_chiffrees/Matrix_anneraud
     compose_file_source: compose.yml
     compose_file_destination: "{{ root_directory }}/compose.yml"
     configuration_file_source: homeserver.yaml.j2
