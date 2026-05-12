@@ -51,6 +51,30 @@ endpoints:
       - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > 48h"
 
+  - name: Bento PDF
+    group: Services
+    url: "https://bento-pdf.dera.page"
+    interval: 1m
+    conditions:
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
+
+  - name: Calendrier Républicain
+    group: Services
+    url: "https://calendrier.dera.page"
+    interval: 1m
+    conditions:
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
+
+  - name: Blog
+    group: Services
+    url: "https://blog.dera.page"
+    interval: 1m
+    conditions:
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
+
   - name: Umami
     group: Services
     url: "https://s.dera.page/api/heartbeat"
