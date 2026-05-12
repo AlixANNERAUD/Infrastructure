@@ -45,7 +45,7 @@ endpoints:
 
   - name: Pixel war
     group: Services
-    url: "https://pixelwar.insa.lol"
+    url: "https://pixelwar.dera.page"
     interval: 1m
     conditions:
       - "[STATUS] == 200"
