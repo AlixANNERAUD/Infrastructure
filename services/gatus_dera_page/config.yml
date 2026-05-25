@@ -111,7 +111,7 @@ endpoints:
 
   - name: Dimitri
     group: Infrastructure
-    url: "http://dimitri1.dera.page/"
+    url: "https://dimitri1.dera.page/"
     interval: 1m
     conditions:
       - "[STATUS] == 200"
