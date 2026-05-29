@@ -6,6 +6,10 @@
     a_records:
     aaaa_records:
     cname_records:
+      - record: www.guenola-sahut.fr
+        value: global.bruxelles.anneraud.fr
+      - record: guenola-sahut.fr
+        value: global.bruxelles.anneraud.fr
       - record: s.guenola-sahut.fr
         value: global.bruxelles.anneraud.fr
       - record: test.guenola-sahut.fr
