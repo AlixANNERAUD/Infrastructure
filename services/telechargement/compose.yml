@@ -30,7 +30,7 @@ services:
       - SERVER_COUNTRIES=${SERVER_COUNTRIES}
 
   qbittorrent:
-    image: lscr.io/linuxserver/qbittorrent:5.2.1
+    image: lscr.io/linuxserver/qbittorrent:20.04.1
     container_name: qbittorrent
     restart: unless-stopped
     depends_on:
