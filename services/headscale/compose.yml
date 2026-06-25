@@ -1,6 +1,6 @@
 services:
   headscale:
-    image: headscale/headscale:v0.28
+    image: headscale/headscale:v0.29
     restart: unless-stopped
     container_name: headscale
     networks:
