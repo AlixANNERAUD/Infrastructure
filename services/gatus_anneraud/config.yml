@@ -30,7 +30,7 @@ endpoints:
     alerts:
       - type: homeassistant
 
-  - name: Bitwarden (Nextcloud)
+  - name: Bitwarden
     group: Services
     url: "https://bitwarden.anneraud.fr/alive"
     interval: 10m
@@ -94,7 +94,7 @@ endpoints:
 
   - name: Archive (Paperless-ngx)
     group: Services
-    url: "https://maison.anneraud.fr/"
+    url: "https://archive.anneraud.fr/"
     interval: 10m
     conditions:
       - "[STATUS] == 200"
