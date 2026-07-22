@@ -109,6 +109,8 @@
         value: global.bruxelles.anneraud.fr
       - record: metube.anneraud.fr
         value: local.bruxelles.anneraud.fr
+      - record: databasus.anneraud.fr
+        value: local.bruxelles.anneraud.fr
     mx_records:
       - record: anneraud.fr
         priority: 5

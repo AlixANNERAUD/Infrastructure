@@ -103,7 +103,7 @@ endpoints:
       - type: homeassistant
 
   - name: Proxy Bruxelles (Nginx Proxy Manager)
-    group: Infrastructure
+    group: Administration
     url: "https://nginx.bruxelles.anneraud.fr/api/"
     interval: 10m
     conditions:
@@ -114,7 +114,7 @@ endpoints:
       - type: homeassistant
 
   - name: DNS dynamique Bruxelles (DDNS updater)
-    group: Infrastructure
+    group: Administration
     url: "https://ddns-updater.bruxelles.anneraud.fr/"
     interval: 10m
     conditions:
@@ -124,7 +124,7 @@ endpoints:
       - type: homeassistant
 
   - name: VPN (Tailscale)
-    group: Infrastructure
+    group: Administration
     url: "https://tailscale.anneraud.fr/health"
     interval: 10m
     conditions:
@@ -135,7 +135,7 @@ endpoints:
       - type: homeassistant
 
   - name: VPN console
-    group: Services
+    group: Administration
     url: "https://console.tailscale.anneraud.fr/"
     interval: 10m
     conditions:
@@ -249,7 +249,7 @@ endpoints:
       - type: homeassistant
 
   - name: Bruxelles console (TrueNAS)
-    group: Infrastructure
+    group: Administration
     url: "https://bruxelles.anneraud.fr/"
     interval: 10m
     conditions:
@@ -310,7 +310,7 @@ endpoints:
       - type: homeassistant
 
   - name: Conteneurs Bruxelles (Portainer)
-    group: Infrastructure
+    group: Administration
     url: "https://conteneurs.bruxelles.anneraud.fr/api/status"
     interval: 10m
     conditions:
@@ -350,6 +350,17 @@ endpoints:
     conditions:
       - "[STATUS] == 200"
       - "[CERTIFICATE_EXPIRATION] > 48h"
+    alerts:
+      - type: homeassistant
+
+  - name: Databasus
+    group: Administration
+    url: "https://databasus.anneraud.fr:443/api/v1/system/health"
+    interval: 10m
+    conditions:
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[BODY].status == Application is healthy, internal DB working fine and disk usage is below 95%. You can connect downdetector to this endpoint"
     alerts:
       - type: homeassistant
 
