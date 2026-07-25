@@ -25,6 +25,8 @@ services:
       WAKAPI_MAIL_SMTP_PASS: ${WAKAPI_MAIL_SMTP_PASS}
       WAKAPI_MAIL_SMTP_TLS: "false"
       WAKAPI_MAIL_SMTP_PORT: "587"
+    networks:
+      - internal
 
   database:
     image: postgres:18
@@ -35,36 +37,11 @@ services:
       POSTGRES_DB: "wakapi"
     volumes:
       - ./Postgres_data:/var/lib/postgresql
+    networks:
+      - internal
+      - databases
 
-  pgautoupgrade:
-    image: pgautoupgrade/pgautoupgrade:18-debian
-    profiles:
-      - tools
-    environment:
-      POSTGRES_USER: ${DATABASE_USER}
-      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
-      PGAUTO_ONESHOT: "yes"
-    volumes:
-      - ./Postgres_data:/var/lib/postgresql
-
-  pgbackups:
-    image: prodrigestivill/postgres-backup-local
-    restart: always
-    #user: postgres:postgres # Optional: see below
-    volumes:
-      - ./Postgres_backup:/backups
-    depends_on:
-      - database
-    environment:
-      - POSTGRES_HOST=database
-      - POSTGRES_DB=wakapi
-      - POSTGRES_USER=${DATABASE_USER}
-      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
-      #  - POSTGRES_PASSWORD_FILE=/run/secrets/db_password <-- alternative for POSTGRES_PASSWORD (to use with docker secrets)
-      - POSTGRES_EXTRA_OPTS=-Z1 --schema=public --blobs
-      - SCHEDULE=@daily
-      - BACKUP_ON_START=TRUE
-      - BACKUP_KEEP_DAYS=7
-      - BACKUP_KEEP_WEEKS=4
-      - BACKUP_KEEP_MONTHS=6
-      - HEALTHCHECK_PORT=8080
+networks:
+  internal:
+  databases:
+    external: true
