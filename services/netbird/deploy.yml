@@ -1,0 +1,63 @@
+---
+- name: Deploy Netbird
+  hosts: luxembourg
+  become: true
+  vars:
+    root_directory: /opt/netbird
+    compose_file_source: compose.yml
+    compose_file_destination: "{{ root_directory }}/compose.yml"
+    configuration_file_source: config.yaml.j2
+    configuration_file_destination: "{{ root_directory }}/netbird_data/config.yaml"
+    user_id: 991
+    group_id: 991
+  vars_files:
+    - ../../vault/ansible/vault.yml
+    - ../../vault/netbird/vault.yml
+    - ../../vault/cloudflare/vault.yml
+  tasks:
+    - name: Ensure application directory exists
+      ansible.builtin.file:
+        path: "{{ root_directory }}/netbird_data"
+        state: directory
+        mode: "0750"
+        owner: "{{ user_id }}"
+        group: "{{ group_id }}"
+
+    - name: Copy compose file
+      ansible.builtin.copy:
+        src: "{{ compose_file_source }}"
+        dest: "{{ compose_file_destination }}"
+        mode: "0640"
+        owner: "{{ user_id }}"
+        group: "{{ group_id }}"
+
+    - name: Copy Netbird configuration file
+      ansible.builtin.template:
+        src: "{{ configuration_file_source }}"
+        dest: "{{ configuration_file_destination }}"
+        mode: "0640"
+        owner: "{{ user_id }}"
+        group: "{{ group_id }}"
+
+    - name: Generate .env file for Netbird
+      ansible.builtin.copy:
+        dest: "{{ root_directory }}/.env"
+        mode: "0600"
+        content: |
+
+    - name: Deploy Matrix with Docker Compose
+      community.docker.docker_compose_v2:
+        project_src: "{{ root_directory }}"
+        pull: always
+        recreate: always
+        remove_orphans: true
+        state: present
+
+    - name: Update DNS records for Netbird
+      community.general.cloudflare_dns:
+        zone: anneraud.fr
+        account_email: "{{ cloudflare_email }}"
+        account_api_key: "{{ cloudflare_api_key }}"
+        type: CNAME
+        record: netbird.anneraud.fr
+        value: "{{ global_dns_host }}"
