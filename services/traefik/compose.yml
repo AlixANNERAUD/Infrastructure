@@ -29,7 +29,7 @@ services:
 
       - "--entryPoints.web-secure-federation.address=:8448"
       - "--entryPoints.web-secure-federation.http.tls=true"
-      
+
       - "--entryPoints.ldaps.address=:636"
 
       # Let's Encrypt configuration
@@ -61,8 +61,8 @@ services:
       - "traefik.http.routers.dashboard.tls.certresolver=letsencrypt"
 
       # Allowlist middleware configuration
-      - "traefik.http.middlewares.internal-allowlist.ipallowlist.sourcerange=192.168.0.0/24,100.64.0.0/24,fd00::/8,172.16.0.0/12"
-      
+      - "traefik.http.middlewares.internal-allowlist.ipallowlist.sourcerange=192.168.0.0/24,100.64.0.0/24,100.128.0.0/24,fd00::/8,172.16.0.0/12"
+
       # Apply the middleware to the dashboard router
       - "traefik.http.routers.dashboard.middlewares=internal-allowlist@docker"
 
