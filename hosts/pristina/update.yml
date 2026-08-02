@@ -12,17 +12,17 @@
     - ../../vault/ansible/vault.yml
     - ../../vault/cloudflare/vault.yml
   tasks:
-    - name: Add Tailscale GPG key
+    - name: Add Netbird GPG key
       ansible.builtin.get_url:
-        url: https://pkgs.tailscale.com/stable/ubuntu/noble.noarmor.gpg
-        dest: /usr/share/keyrings/tailscale-archive-keyring.gpg
+        url: https://pkgs.netbird.io/debian/public.key
+        dest: /usr/share/keyrings/netbird-archive-keyring.gpg
         mode: "0644"
         force: true
 
-    - name: Add Tailscale repository
+    - name: Add Netbird repository
       ansible.builtin.uri:
-        dest: /etc/apt/sources.list.d/tailscale.list
-        url: https://pkgs.tailscale.com/stable/ubuntu/noble.tailscale-keyring.list
+        dest: /etc/apt/sources.list.d/netbird.list
+        url: https://pkgs.netbird.io/debian/netbird.list
 
     - name: Update packages
       ansible.builtin.apt:
@@ -30,9 +30,9 @@
         upgrade: dist
         cache_valid_time: 3600
 
-    - name: Install tailscale
+    - name: Install netbird
       ansible.builtin.apt:
-        name: tailscale
+        name: netbird
         state: latest
         update_cache: yes
 

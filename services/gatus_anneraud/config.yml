@@ -123,20 +123,9 @@ endpoints:
     alerts:
       - type: homeassistant
 
-  - name: VPN (Tailscale)
+  - name: VPN (Netbird)
     group: Administration
-    url: "https://tailscale.anneraud.fr/health"
-    interval: 10m
-    conditions:
-      - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
-      - "[BODY].status == pass"
-    alerts:
-      - type: homeassistant
-
-  - name: VPN console
-    group: Administration
-    url: "https://console.tailscale.anneraud.fr/"
+    url: "https://netbird.anneraud.fr"
     interval: 10m
     conditions:
       - "[STATUS] == 200"

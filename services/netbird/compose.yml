@@ -40,7 +40,7 @@ services:
     restart: unless-stopped
     networks: [traefik]
     ports:
-      - '3478:3478/udp'
+      - "3478:3478/udp"
     volumes:
       - netbird_data:/var/lib/netbird
       - ./config.yaml:/etc/netbird/config.yaml
@@ -59,10 +59,17 @@ services:
       - traefik.http.routers.netbird-backend.tls=true
       - traefik.http.routers.netbird-backend.tls.certresolver=letsencrypt
       - traefik.http.routers.netbird-backend.service=netbird-server
+      # Healthcheck router
+      - traefik.http.routers.netbird-health.rule=Host(`netbird.anneraud.fr`) && Path(`/health`)
+      - traefik.http.routers.netbird-health.entrypoints=web-secure
+      - traefik.http.routers.netbird-health.tls=true
+      - traefik.http.routers.netbird-health.tls.certresolver=letsencrypt
+      - traefik.http.routers.netbird-health.service=netbird-health-svc
       # Services
       - traefik.http.services.netbird-server.loadbalancer.server.port=80
       - traefik.http.services.netbird-server-h2c.loadbalancer.server.port=80
       - traefik.http.services.netbird-server-h2c.loadbalancer.server.scheme=h2c
+      - traefik.http.services.netbird-health-svc.loadbalancer.server.port=9000
     logging:
       driver: "json-file"
       options:
