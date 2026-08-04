@@ -26,6 +26,9 @@ services:
 
       - "--entryPoints.web-secure.address=:443"
       - "--entryPoints.web-secure.http.tls=true"
+      - "--entryPoints.web-secure.transport.respondingTimeouts.readTimeout=0"
+      - "--entryPoints.web-secure.transport.respondingTimeouts.writeTimeout=0"
+      - "--entryPoints.web-secure.transport.respondingTimeouts.idleTimeout=0"
 
       - "--entryPoints.web-secure-federation.address=:8448"
       - "--entryPoints.web-secure-federation.http.tls=true"
