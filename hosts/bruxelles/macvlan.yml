@@ -1,0 +1,48 @@
+---
+- name: Setup Docker macvlan network and host routing
+  hosts: bruxelles
+  become: true
+  vars:
+    network_name: "macvlan0"
+    parent_interface: "enp4s0"
+    subnet: "192.168.0.0/24"
+    gateway: "192.168.0.254"
+    ip_range: "192.168.0.24/32"
+    host_mvlan_interface: "mvlan0"
+  vars_files:
+    - ../../vault/ansible/vault.yml
+  tasks:
+    - name: Create Docker macvlan network
+      community.docker.docker_network:
+        name: "{{ network_name }}"
+        driver: macvlan
+        driver_options:
+          parent: "{{ parent_interface }}"
+        ipam_config:
+          - subnet: "{{ subnet }}"
+            gateway: "{{ gateway }}"
+            iprange: "{{ ip_range }}"
+
+    - name: Create host macvlan interface for host-to-container routing
+      ansible.builtin.command:
+        cmd: "ip link add {{ host_mvlan_interface }} link {{ parent_interface }} type macvlan mode bridge"
+      register: create_iface
+      failed_when:
+        - create_iface.rc != 0
+        - "'File exists' not in create_iface.stderr"
+      changed_when: create_iface.rc == 0
+
+    - name: Bring up host macvlan interface
+      ansible.builtin.command:
+        cmd: "ip link set {{ host_mvlan_interface }} up"
+      register: set_up
+      changed_when: false
+
+    - name: Add route to macvlan subnet via mvlan0
+      ansible.builtin.command:
+        cmd: "ip route add {{ ip_range }} dev {{ host_mvlan_interface }}"
+      register: add_route
+      failed_when:
+        - add_route.rc != 0
+        - "'File exists' not in add_route.stderr"
+      changed_when: add_route.rc == 0
