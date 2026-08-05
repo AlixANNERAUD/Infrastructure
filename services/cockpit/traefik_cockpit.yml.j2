@@ -1,0 +1,17 @@
+http:
+  routers:
+    cockpit:
+      rule: "Host(`{{ cockpit_domain }}`)"
+      entryPoints:
+        - web-secure
+      tls:
+        certResolver: letsencrypt
+      service: cockpit-service
+      middlewares:
+        - internal-allowlist@docker
+
+  services:
+    cockpit-service:
+      loadBalancer:
+        servers:
+          - url: "http://host.docker.internal:9090"

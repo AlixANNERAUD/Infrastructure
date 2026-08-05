@@ -1,0 +1,68 @@
+---
+- name: Configure Cockpit for Existing Traefik Setup
+  hosts: luxembourg
+  become: true
+  vars:
+    cockpit_domain: "cockpit.luxembourg.anneraud.fr"
+    cockpit_root_dir: "/opt/cockpit"
+
+    cockpit_conf_dir: "/etc/cockpit"
+    cockpit_conf_file: "{{ cockpit_conf_dir }}/cockpit.conf"
+
+    traefik_dynamic_config_dir: "/opt/traefik/dynamic"
+    traefik_cockpit_config_file: "{{ traefik_dynamic_config_dir }}/cockpit.yml"
+  vars_files:
+    - ../../vault/ansible/vault.yml
+    - ../../vault/cloudflare/vault.yml
+  tasks:
+    - name: Ensure Cockpit root directory exists
+      ansible.builtin.file:
+        path: "{{ cockpit_root_dir }}"
+        state: directory
+        mode: "0755"
+
+    - name: Ensure Cockpit package is installed
+      ansible.builtin.apt:
+        name: cockpit
+        state: present
+        update_cache: yes
+
+    - name: Ensure Cockpit system config directory exists
+      ansible.builtin.file:
+        path: "{{ cockpit_conf_dir }}"
+        state: directory
+        mode: "0755"
+
+    - name: Deploy Cockpit reverse proxy config
+      ansible.builtin.template:
+        src: cockpit.conf.j2
+        dest: "{{ cockpit_conf_file }}"
+        mode: "0644"
+      notify: Restart Cockpit Service
+
+    - name: Ensure Cockpit socket is running
+      ansible.builtin.systemd:
+        name: cockpit.socket
+        enabled: yes
+        state: started
+
+    - name: Deploy Traefik dynamic routing file for Cockpit
+      ansible.builtin.template:
+        src: traefik_cockpit.yml.j2
+        dest: "{{ traefik_cockpit_config_file }}"
+        mode: "0644"
+
+    - name: Update DNS records for Cockpit
+      community.general.cloudflare_dns:
+        zone: anneraud.fr
+        account_email: "{{ cloudflare_email }}"
+        account_api_key: "{{ cloudflare_api_key }}"
+        type: CNAME
+        record: cockpit.luxembourg.anneraud.fr
+        value: "{{ local_dns_host }}"
+
+  handlers:
+    - name: Restart Cockpit Service
+      ansible.builtin.systemd:
+        name: cockpit.service
+        state: restarted

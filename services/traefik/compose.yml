@@ -3,6 +3,8 @@ services:
     image: "traefik:v3.7"
     container_name: "traefik"
     restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     security_opt:
       - no-new-privileges:true
     networks:
