@@ -35,7 +35,7 @@ services:
 
   # Combined server (Management + Signal + Relay + STUN)
   netbird-server:
-    image: netbirdio/netbird-server:0.77.0
+    image: netbirdio/netbird-server:0.77.1
     container_name: netbird-server
     restart: unless-stopped
     networks: [traefik]
