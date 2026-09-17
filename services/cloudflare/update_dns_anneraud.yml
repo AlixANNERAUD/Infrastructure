@@ -25,6 +25,10 @@
       - record: simon.anneraud.fr
         type: A
         value: 176.132.67.30
+    aaaa_records:
+      - record: global.luxembourg.anneraud.fr
+        type: AAAA
+        value: 2603:c020:801b:bc7e:0:99f9:e880:2362
     cname_records:
       - record: archive-courriel.anneraud.fr
         value: local.bruxelles.anneraud.fr
@@ -145,6 +149,13 @@
         record: "{{ item.record }}"
         value: "{{ item.value }}"
       loop: "{{ a_records }}"
+
+    - name: Update AAAA records for anneraud.fr
+      community.general.cloudflare_dns:
+        type: AAAA
+        record: "{{ item.record }}"
+        value: "{{ item.value }}"
+      loop: "{{ aaaa_records }}"
 
     - name: Update CNAME records for anneraud.fr
       community.general.cloudflare_dns:
