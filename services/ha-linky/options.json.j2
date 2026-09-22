@@ -1,0 +1,4 @@
+{
+  "meters": {{ ha_linky_meters | map('combine', {'action': 'sync', 'production': false}) | list | to_nice_json(indent=4) }},
+  "costs": {{ ha_linky_costs | to_nice_json(indent=4) }}
+}

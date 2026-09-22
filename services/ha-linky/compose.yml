@@ -1,0 +1,11 @@
+services:
+  ha-linky:
+    image: ghcr.io/alixanneraud/ha-linky-standalone
+    container_name: ha-linky
+    restart: unless-stopped
+    volumes:
+      - ./options.json:/data/options.json
+    environment:
+      TZ: "Europe/Paris"
+      WS_URL: ${HOME_ASSISTANT_WEBSOCKET_URL}
+      SUPERVISOR_TOKEN: ${HOME_ASSISTANT_SUPERVISOR_TOKEN}

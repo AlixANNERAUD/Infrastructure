@@ -1,0 +1,58 @@
+---
+- name: Deploy HA-Linky
+  hosts: bruxelles
+  become: true
+  vars:
+    root_directory: /mnt/Donnees/Applications_chiffrees/HA-Linky
+    compose_file_source: compose.yml
+    compose_file_destination: "{{ root_directory }}/compose.yml"
+    configuration_file_source: options.json.j2
+    configuration_file_destination: "{{ root_directory }}/options.json"
+    user_id: 568
+    group_id: 568
+  vars_files:
+    - ../../vault/ansible/vault.yml
+    - ../../vault/ha-linky/vault.yml
+
+  tasks:
+    - name: Ensure application directories exist
+      ansible.builtin.file:
+        path: "{{ root_directory }}"
+        state: directory
+        mode: "0750"
+        owner: "{{ user_id }}"
+        group: "{{ group_id }}"
+
+    - name: Copy compose file
+      ansible.builtin.copy:
+        src: "{{ compose_file_source }}"
+        dest: "{{ compose_file_destination }}"
+        mode: "0640"
+        owner: "{{ user_id }}"
+        group: "{{ group_id }}"
+
+    - name: Copy HA-Linky configuration file
+      ansible.builtin.template:
+        src: "{{ configuration_file_source }}"
+        dest: "{{ configuration_file_destination }}"
+        mode: "0640"
+        owner: "{{ user_id }}"
+        group: "{{ group_id }}"
+
+    - name: Generate .env file for HA-Linky
+      ansible.builtin.copy:
+        dest: "{{ root_directory }}/.env"
+        mode: "0600"
+        owner: "{{ user_id }}"
+        group: "{{ group_id }}"
+        content: |
+          HOME_ASSISTANT_WEBSOCKET_URL={{ home_assistant_websocket_url }}
+          HOME_ASSISTANT_SUPERVISOR_TOKEN={{ home_assistant_supervisor_token }}
+
+    - name: Deploy HA-Linky with Docker Compose
+      community.docker.docker_compose_v2:
+        project_src: "{{ root_directory }}"
+        pull: always
+        recreate: always
+        remove_orphans: true
+        state: present
