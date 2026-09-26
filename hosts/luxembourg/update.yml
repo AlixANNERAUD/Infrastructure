@@ -6,7 +6,7 @@
     records:
       - record: local.luxembourg.anneraud.fr
         type: A
-        value: 192.168.0.23
+        value: 192.168.2.16
       - record: global.luxembourg.anneraud.fr
         type: A
         value: 130.162.34.52
@@ -35,14 +35,14 @@
                 match:
                   name: lo
                 addresses:
-                  - 192.168.0.23/32
+                  - 192.168.2.16/32
         mode: "0644"
 
     - name: Apply Netplan configuration
       command: netplan apply
 
     - name: Verify the IP is reachable locally
-      command: "ping -c 2 192.168.0.23"
+      command: "ping -c 2 192.168.2.16"
       changed_when: false
 
     - name: Update DNS records for Luxembourg
