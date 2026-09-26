@@ -155,6 +155,25 @@ endpoints:
     alerts:
       - type: homeassistant
 
+  - name: Assistant (Open WebUI)
+    group: Services
+    url: "https://assistant.anneraud.fr/"
+    interval: 10m
+    conditions:
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
+    alerts:
+      - type: homeassistant
+
+  - name: Recherche (SearXNG)
+    group: Services
+    url: "https://recherche.anneraud.fr/"
+    interval: 10m
+    conditions:
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
+    alerts:
+      - type: homeassistant
   - name: PDF (BentoPDF)
     group: Services
     url: "https://pdf.anneraud.fr"
