@@ -122,6 +122,8 @@
         value: local.bruxelles.anneraud.fr
       - record: assistant.anneraud.fr
         value: local.bruxelles.anneraud.fr
+      - record: recherche.anneraud.fr
+        value: local.bruxelles.anneraud.fr
     mx_records:
       - record: anneraud.fr
         priority: 5
