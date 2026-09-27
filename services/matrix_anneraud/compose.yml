@@ -12,10 +12,9 @@ services:
       - database
     # In order to expose Synapse, remove one of the following, you might for
     # instance expose the TLS port directly:
-    ports:
-      - 38448:8008/tcp
     networks:
       - internal
+      - proxy
 
   database:
     image: docker.io/postgres:18
@@ -39,4 +38,6 @@ services:
 networks:
   internal:
   databases:
+    external: true
+  proxy:
     external: true

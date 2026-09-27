@@ -9,13 +9,12 @@ services:
       APP_SECRET: ${APP_SECRET}
       DATABASE_URL: "postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@db:5432/${DATABASE_NAME}?schema=public"
       REDIS_URL: "redis://redis:6379"
-    ports:
-      - "30101:3000"
     restart: unless-stopped
     volumes:
       - ./Storage:/app/data/storage
     networks:
       - internal
+      - proxy
 
   db:
     image: postgres:18-alpine
@@ -41,4 +40,6 @@ services:
 networks:
   internal:
   databases:
+    external: true
+  proxy:
     external: true

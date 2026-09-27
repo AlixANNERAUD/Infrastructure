@@ -2,8 +2,6 @@ services:
   wakapi:
     image: ghcr.io/muety/wakapi:2.18
     init: true
-    ports:
-      - ${WAKAPI_PORT}:3000
     restart: unless-stopped
     environment:
       # See README.md and config.default.yml for all config options
@@ -27,6 +25,7 @@ services:
       WAKAPI_MAIL_SMTP_PORT: "587"
     networks:
       - internal
+      - proxy
 
   database:
     image: postgres:18
@@ -44,4 +43,6 @@ services:
 networks:
   internal:
   databases:
+    external: true
+  proxy:
     external: true
