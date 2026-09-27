@@ -361,6 +361,46 @@ endpoints:
     alerts:
       - type: homeassistant
 
+  - name: Bichon
+    group: Services
+    url: "https://archive-courriel.anneraud.fr/"
+    interval: 10m
+    conditions:
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
+    alerts:
+      - type: homeassistant
+
+  - name: Collabora
+    group: Services
+    url: "https://collabora.anneraud.fr/hosting/discovery"
+    interval: 10m
+    conditions:
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
+    alerts:
+      - type: homeassistant
+
+  - name: MeTube
+    group: Services
+    url: "https://metube.anneraud.fr/"
+    interval: 10m
+    conditions:
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
+    alerts:
+      - type: homeassistant
+
+  - name: MeshCentral
+    group: Services
+    url: "https://parc.anneraud.fr/"
+    interval: 10m
+    conditions:
+      - "[STATUS] == 200"
+      - "[CERTIFICATE_EXPIRATION] > 48h"
+    alerts:
+      - type: homeassistant
+
   - name: Databasus
     group: Administration
     url: "https://databasus.anneraud.fr:443/api/v1/system/health"
