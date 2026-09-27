@@ -30,6 +30,8 @@
         type: AAAA
         value: 2603:c020:801b:bc7e:0:99f9:e880:2362
     cname_records:
+      - record: parc.anneraud.fr
+        value: global.bruxelles.anneraud.fr
       - record: archive-courriel.anneraud.fr
         value: local.bruxelles.anneraud.fr
       - record: anneraud.fr
