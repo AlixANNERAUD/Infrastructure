@@ -11,6 +11,6 @@ fi
 # Set your exports
 export ANSIBLE_VAULT_PASSWORD_FILE="$tmp_vault_file"
 export ANSIBLE_INVENTORY="$(pwd)/inventory.yml"
-export EDITOR="codium --wait"
+export EDITOR="zed --wait"
 
 echo "Environment variables set for $(pwd)"
