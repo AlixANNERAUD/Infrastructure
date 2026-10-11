@@ -27,6 +27,7 @@ See [documentation/inventory.md](documentation/inventory.md)
 | [Notes](https://notes.anneraud.fr/)                                    | Documentation (Docmost)                      | Private | Bruxelles  | Ansible      | ![Status](<https://etat.anneraud.fr/api/v1/endpoints/services_notes-(docmost)/uptimes/30d/badge.svg>)                              |
 | [Assistant](https://assistant.anneraud.fr/)                            | AI assistant (Open WebUI)                    | Private | Bruxelles  | TrueNAS Apps | ![Status](<https://etat.anneraud.fr/api/v1/endpoints/services_assistant-(open-webui)/uptimes/30d/badge.svg>)                       |
 | [Recherche](https://recherche.anneraud.fr/)                            | Search engine (SearXNG)                      | Private | Bruxelles  | TrueNAS Apps | ![Status](<https://etat.anneraud.fr/api/v1/endpoints/services_recherche-(searxng)/uptimes/30d/badge.svg>)                           |
+| [Authentification](https://authentification.anneraud.fr/)              | Identity provider (Zitadel)                  | Private | Bruxelles  | Ansible      | ![Status](<https://etat.anneraud.fr/api/v1/endpoints/services_authentification-(zitadel)/uptimes/30d/badge.svg>)                   |
 | [PDF](https://pdf.anneraud.fr/)                                        | PDF management (BentoPDF)                    | Private | Bruxelles  | TrueNAS Apps | ![Status](<https://etat.anneraud.fr/api/v1/endpoints/services_pdf-(bentopdf)/uptimes/30d/badge.svg>)                               |
 | [Mini Train Store](https://minitrainstore.fr/)                         | Business management (Odoo)                   | Public  | Bruxelles  | TrueNAS Apps | ![Status](<https://etat.anneraud.fr/api/v1/endpoints/services_mini-train-store-(odoo)/uptimes/30d/badge.svg>)                      |
 | [Git](https://git.anneraud.fr/)                                        | Git forge (Gitea)                            | Private | Bruxelles  | TrueNAS Apps | ![Status](<https://etat.anneraud.fr/api/v1/endpoints/services_git-(gitea)/uptimes/30d/badge.svg>)                                  |
@@ -76,6 +77,16 @@ vault/                  # Private submodule with encrypted secrets
 deployments/            # Deployment-specific files
 documentation/          # Documentation
 ```
+
+## Vigie
+
+The [Vigie monitoring stack](services/vigie/readme.md) deploys Grafana,
+Prometheus, and Alertmanager on Luxembourg, with Traefik request metrics and an
+NPM access-log collector on Bruxelles. It provides application error dashboards
+and threshold-based webhook notifications.
+
+Configure the selected applications, NPM log paths, and monitoring vault before
+deploying `services/vigie/deploy.yml`.
 
 ## Vault
 
