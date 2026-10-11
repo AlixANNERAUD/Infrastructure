@@ -1,0 +1,12 @@
+services:
+  mcphub:
+    image: samanhappy/mcphub:1.1.3
+    restart: unless-stopped
+    volumes:
+      - ./data:/app/data
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true
