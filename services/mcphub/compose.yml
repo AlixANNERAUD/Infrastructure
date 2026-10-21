@@ -1,6 +1,6 @@
 services:
   mcphub:
-    image: samanhappy/mcphub:1.1.3
+    image: samanhappy/mcphub:1.1.8
     restart: unless-stopped
     volumes:
       - ./data:/app/data
