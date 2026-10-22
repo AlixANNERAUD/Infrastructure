@@ -2,7 +2,7 @@ name: zitadel
 
 services:
   zitadel:
-    image: ghcr.io/zitadel/zitadel:v4.19.5
+    image: ghcr.io/zitadel/zitadel:v4.20.0
     restart: unless-stopped
     user: "991:991"
     ports:
@@ -41,7 +41,7 @@ services:
         condition: service_healthy
 
   login:
-    image: ghcr.io/zitadel/zitadel-login:v4.19.5
+    image: ghcr.io/zitadel/zitadel-login:v4.20.0
     restart: unless-stopped
     user: "991:991"
     ports:
