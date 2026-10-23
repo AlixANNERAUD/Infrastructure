@@ -130,17 +130,9 @@ endpoints:
     conditions:
       - "[CONNECTED] == true"
 
-  - name: Partage
-    group: École
-    url: "https://partage.insa-rouen.fr"
-    interval: 1m
-    conditions:
-      - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
-
-  - name: Moodle
-    group: École
-    url: "https://moodle.insa-rouen.fr"
+  - name: Star History
+    group: Services
+    url: "https://star-history.dera.page"
     interval: 1m
     conditions:
       - "[STATUS] == 200"
