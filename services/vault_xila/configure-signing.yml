@@ -1,0 +1,176 @@
+---
+- name: Configure Xila application signing in OpenBao
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars:
+    bao_addr: https://vault.xila.dev
+    signing_sha: a50520f1402d8374fb8c7f614fed91bd512d0ac6
+    bao_token_path: "{{ lookup('ansible.builtin.env', 'BAO_TOKEN_PATH') | default(lookup('ansible.builtin.env', 'HOME') + '/.vault-token', true) }}"
+    bao_token: "{{ lookup('ansible.builtin.env', 'BAO_TOKEN') | default(lookup('ansible.builtin.file', bao_token_path, errors='ignore'), true) | default('', true) | trim }}"
+    signing_policy: |
+      path "transit/sign/xila-applications" {
+        capabilities = ["update"]
+      }
+    signing_role:
+      role_type: jwt
+      user_claim: repository
+      bound_audiences: ["https://vault.xila.dev"]
+      bound_claims_type: glob
+      bound_claims:
+        repository: xila-project/applications
+        event_name: push
+        ref_type: tag
+        ref: refs/tags/v*
+        sub: repo:xila-project/applications:ref:refs/tags/v*
+        workflow_ref: xila-project/applications/.github/workflows/release.yml@refs/tags/v*
+        job_workflow_ref: "xila-project/package_manager/.github/workflows/package-wasm.yml@{{ signing_sha }}"
+      token_policies: [xila-app-sign]
+      token_no_default_policy: true
+      token_ttl: 10m
+      token_max_ttl: 15m
+  module_defaults:
+    ansible.builtin.uri:
+      headers:
+        X-Vault-Token: "{{ bao_token }}"
+      validate_certs: true
+      return_content: true
+  tasks:
+    - name: Require a local administrator login
+      ansible.builtin.assert:
+        that: ["bao_token | length > 0"]
+        fail_msg: Run bao login on this machine or set BAO_TOKEN securely first.
+      no_log: true
+
+    - name: Inspect enabled audit devices
+      ansible.builtin.uri:
+        url: "{{ bao_addr }}/v1/sys/audit"
+      register: audit_devices
+      no_log: true
+
+    - name: Require auditing before configuring signing
+      ansible.builtin.assert:
+        that: ["audit_devices.json.data | length > 0"]
+        fail_msg: Enable and verify an OpenBao audit device before configuring signing.
+      no_log: true
+
+    - name: Inspect existing secrets engines
+      ansible.builtin.uri:
+        url: "{{ bao_addr }}/v1/sys/mounts"
+      register: mounts
+      no_log: true
+
+    - name: Reject an incompatible transit mount
+      ansible.builtin.assert:
+        that: ["'transit/' not in mounts.json.data or mounts.json.data['transit/'].type == 'transit'"]
+        fail_msg: transit/ exists but is not a Transit engine; resolve manually.
+      no_log: true
+
+    - name: Enable Transit if absent
+      ansible.builtin.uri:
+        url: "{{ bao_addr }}/v1/sys/mounts/transit"
+        method: POST
+        body_format: json
+        body: {type: transit}
+        status_code: [200, 204]
+      when: "'transit/' not in mounts.json.data"
+      changed_when: true
+      no_log: true
+
+    - name: Inspect the existing signing key
+      ansible.builtin.uri:
+        url: "{{ bao_addr }}/v1/transit/keys/xila-applications"
+        status_code: [200, 404]
+      register: key_info
+      no_log: true
+
+    - name: Require an existing key to have safe settings
+      ansible.builtin.assert:
+        that:
+          - key_info.status == 404 or key_info.json.data.type == 'ed25519'
+          - key_info.status == 404 or not key_info.json.data.derived
+          - key_info.status == 404 or not key_info.json.data.exportable
+        fail_msg: Existing xila-applications key is incompatible or exportable; investigate manually.
+      no_log: true
+
+    - name: Create the signing key only if absent
+      ansible.builtin.uri:
+        url: "{{ bao_addr }}/v1/transit/keys/xila-applications"
+        method: POST
+        body_format: json
+        body: {type: ed25519, derived: false, exportable: false, allow_plaintext_backup: false}
+        status_code: [200, 204]
+      when: key_info.status == 404
+      changed_when: true
+      no_log: true
+
+    - name: Inspect authentication methods
+      ansible.builtin.uri:
+        url: "{{ bao_addr }}/v1/sys/auth"
+      register: auth_methods
+      no_log: true
+
+    - name: Reject an incompatible JWT mount
+      ansible.builtin.assert:
+        that: ["'jwt/' not in auth_methods.json.data or auth_methods.json.data['jwt/'].type == 'jwt'"]
+        fail_msg: jwt/ exists with a different type; resolve manually.
+      no_log: true
+
+    - name: Enable JWT authentication if absent
+      ansible.builtin.uri:
+        url: "{{ bao_addr }}/v1/sys/auth/jwt"
+        method: POST
+        body_format: json
+        body: {type: jwt}
+        status_code: [200, 204]
+      when: "'jwt/' not in auth_methods.json.data"
+      changed_when: true
+      no_log: true
+
+    - name: Read existing JWT configuration
+      ansible.builtin.uri:
+        url: "{{ bao_addr }}/v1/auth/jwt/config"
+        status_code: [200, 404]
+      register: jwt_config
+      no_log: true
+
+    - name: Refuse to overwrite an existing different JWT configuration
+      ansible.builtin.assert:
+        that:
+          - jwt_config.status == 404 or jwt_config.json.data.oidc_discovery_url == 'https://token.actions.githubusercontent.com'
+          - jwt_config.status == 404 or jwt_config.json.data.bound_issuer == 'https://token.actions.githubusercontent.com'
+        fail_msg: Existing jwt/ configuration differs; inspect it before changing it.
+      no_log: true
+
+    - name: Configure GitHub JWT discovery if absent
+      ansible.builtin.uri:
+        url: "{{ bao_addr }}/v1/auth/jwt/config"
+        method: POST
+        body_format: json
+        body:
+          oidc_discovery_url: https://token.actions.githubusercontent.com
+          bound_issuer: https://token.actions.githubusercontent.com
+        status_code: [200, 204]
+      when: jwt_config.status == 404
+      changed_when: true
+      no_log: true
+
+    - name: Configure the Xila signing policy
+      ansible.builtin.uri:
+        url: "{{ bao_addr }}/v1/sys/policies/acl/xila-app-sign"
+        method: PUT
+        body_format: json
+        body: {policy: "{{ signing_policy }}"}
+        status_code: [200, 204]
+      changed_when: true
+      no_log: true
+
+    - name: Configure the restricted GitHub signing role
+      ansible.builtin.uri:
+        url: "{{ bao_addr }}/v1/auth/jwt/role/xila-app-release"
+        method: POST
+        body_format: json
+        body: "{{ signing_role }}"
+        status_code: [200, 204]
+      changed_when: true
+      no_log: true

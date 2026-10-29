@@ -1,0 +1,22 @@
+ui = false
+audit "file" "xila-audit" {
+  options {
+    file_path = "/openbao/logs/audit.log"
+  }
+}
+disable_mlock = true
+api_addr = {{ openbao_api_url | to_json }}
+cluster_addr = "https://openbao:8201"
+
+storage "raft" {
+  path = "/openbao/data"
+  node_id = "bruxelles-openbao"
+}
+
+listener "tcp" {
+  address = "0.0.0.0:8200"
+  cluster_address = "0.0.0.0:8201"
+  tls_disable = 0
+  tls_cert_file = "/openbao/tls/tls.crt"
+  tls_key_file = "/openbao/tls/tls.key"
+}

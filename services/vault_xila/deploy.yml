@@ -1,0 +1,116 @@
+---
+- name: Deploy Vault Xila on Bruxelles
+  hosts: bruxelles
+  become: true
+  vars:
+    openbao_root_directory: /mnt/Donnees/Applications_chiffrees/Vault_xila
+    openbao_api_url: https://vault.xila.dev
+    openbao_container_uid: "568"
+    openbao_container_gid: "568"
+  vars_files:
+    - ../../vault/ansible/vault.yml
+    - ../../vault/cloudflare/vault.yml
+  tasks:
+    - name: Validate OpenBao settings
+      ansible.builtin.assert:
+        that:
+          - openbao_api_url is match('^https://')
+
+    - name: Ensure OpenBao directories exist
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: directory
+        owner: "{{ item.owner | default('root') }}"
+        group: "{{ item.group | default('root') }}"
+        mode: "{{ item.mode }}"
+      loop:
+        - {path: "{{ openbao_root_directory }}", mode: "0750", owner: root, group: root}
+        - {path: "{{ openbao_root_directory }}/tls", mode: "0750", owner: "{{ openbao_container_uid }}", group: "{{ openbao_container_gid }}"}
+        - {path: "{{ openbao_root_directory }}/data", mode: "0700", owner: "{{ openbao_container_uid }}", group: "{{ openbao_container_gid }}"}
+        - {path: "{{ openbao_root_directory }}/logs", mode: "0700", owner: "{{ openbao_container_uid }}", group: "{{ openbao_container_gid }}"}
+
+    - name: Install OpenBao Compose configuration
+      ansible.builtin.copy:
+        src: compose.yml
+        dest: "{{ openbao_root_directory }}/compose.yml"
+        owner: root
+        group: root
+        mode: "0640"
+
+    - name: Configure OpenBao server
+      ansible.builtin.template:
+        src: config.hcl.j2
+        dest: "{{ openbao_root_directory }}/config.hcl"
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Check existing TLS certificate and key
+      ansible.builtin.stat:
+        path: "{{ openbao_root_directory }}/tls/{{ item }}"
+      loop: [tls.crt, tls.key]
+      register: openbao_tls_files
+
+    - name: Refuse to overwrite incomplete TLS material
+      ansible.builtin.assert:
+        that:
+          - openbao_tls_files.results[0].stat.exists == openbao_tls_files.results[1].stat.exists
+        fail_msg: Only one TLS file exists; restore the missing file or resolve it manually before deployment.
+
+    - name: Generate a self-signed OpenBao TLS certificate once
+      ansible.builtin.command:
+        argv:
+          - openssl
+          - req
+          - -x509
+          - -newkey
+          - rsa:3072
+          - -sha256
+          - -nodes
+          - -keyout
+          - "{{ openbao_root_directory }}/tls/tls.key"
+          - -out
+          - "{{ openbao_root_directory }}/tls/tls.crt"
+          - -days
+          - "365"
+          - -subj
+          - /CN=vault.xila.dev
+          - -addext
+          - subjectAltName=DNS:vault.xila.dev
+      when: not openbao_tls_files.results[0].stat.exists
+
+    - name: Protect OpenBao TLS files
+      ansible.builtin.file:
+        path: "{{ openbao_root_directory }}/tls/{{ item }}"
+        owner: "{{ openbao_container_uid }}"
+        group: "{{ openbao_container_gid }}"
+        mode: "0440"
+      loop: [tls.crt, tls.key]
+
+    - name: Configure OpenBao Compose environment
+      ansible.builtin.copy:
+        dest: "{{ openbao_root_directory }}/.env"
+        owner: root
+        group: root
+        mode: "0600"
+        content: |
+          BAO_API_ADDR={{ openbao_api_url }}
+
+    - name: Deploy OpenBao
+      community.docker.docker_compose_v2:
+        project_src: "{{ openbao_root_directory }}"
+        pull: missing
+        recreate: always
+        state: present
+        wait: true
+        wait_timeout: 120
+
+    - name: Update Cloudflare DNS record for OpenBao
+      community.general.cloudflare_dns:
+        zone: xila.dev
+        account_email: "{{ cloudflare_email }}"
+        account_api_key: "{{ cloudflare_api_key }}"
+        type: CNAME
+        record: vault.xila.dev
+        value: "{{ local_dns_host }}"
+        proxied: false
