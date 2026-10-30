@@ -80,7 +80,21 @@
   loop: "{{ compose_service_files }}"
   loop_control:
     label: "{{ item.destination }}"
+  when: item.restart | default(true)
   notify: Restart the stack
+
+# Files the service reloads itself (restart: false) must not restart the stack
+- name: Copy extra files that need no restart
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/{{ item.source }}"
+    dest: "{{ compose_service_path }}/{{ item.destination }}"
+    mode: "0640"
+    owner: "{{ compose_service_user }}"
+    group: "{{ compose_service_group }}"
+  loop: "{{ compose_service_files }}"
+  loop_control:
+    label: "{{ item.destination }}"
+  when: not (item.restart | default(true))
 
 - name: Render templates
   ansible.builtin.template:
@@ -92,7 +106,20 @@
   loop: "{{ compose_service_templates }}"
   loop_control:
     label: "{{ item.destination }}"
+  when: item.restart | default(true)
   notify: Restart the stack
+
+- name: Render templates that need no restart
+  ansible.builtin.template:
+    src: "{{ playbook_dir }}/{{ item.source }}"
+    dest: "{{ compose_service_path }}/{{ item.destination }}"
+    mode: "0640"
+    owner: "{{ compose_service_user }}"
+    group: "{{ compose_service_group }}"
+  loop: "{{ compose_service_templates }}"
+  loop_control:
+    label: "{{ item.destination }}"
+  when: not (item.restart | default(true))
 
 - name: Create files mounted into containers
   ansible.builtin.file:
@@ -104,6 +131,52 @@
     modification_time: preserve
     access_time: preserve
   loop: "{{ compose_service_mounted_files }}"
+
+- name: Look up the external networks
+  community.docker.docker_network_info:
+    name: "{{ item.name }}"
+  loop: "{{ compose_service_external_networks }}"
+  loop_control:
+    label: "{{ item.name }}"
+  register: compose_service_network_lookups
+
+# Never recreate an existing network: a driver mismatch would make the module disconnect every container
+- name: Create the missing external networks
+  community.docker.docker_network:
+    name: "{{ item.item.name }}"
+    internal: "{{ item.item.internal | default(false) }}"
+  loop: "{{ compose_service_network_lookups.results }}"
+  loop_control:
+    label: "{{ item.item.name }}"
+  when: not item.exists
+
+# An existing network is kept as it is, so a different internal flag is only reported
+- name: Start without network drift
+  ansible.builtin.set_fact:
+    compose_service_network_drift: []
+
+- name: Look for external networks that differ from their declaration
+  ansible.builtin.set_fact:
+    compose_service_network_drift: >-
+      {{
+        compose_service_network_drift
+        + [{'name': item.item.name, 'actual': item.network.Internal | default(false), 'declared': item.item.internal | default(false)}]
+      }}
+  loop: "{{ compose_service_network_lookups.results }}"
+  loop_control:
+    label: "{{ item.item.name }}"
+  when: item.exists and (item.network.Internal | default(false)) != (item.item.internal | default(false))
+
+- name: Report external networks that differ from their declaration
+  ansible.builtin.debug:
+    msg: >-
+      WARNING: network {{ item.name }} has internal={{ item.actual }} but internal={{ item.declared }} is declared.
+      The role never recreates a network. To fix it once: stop the containers attached to it, run
+      docker network rm {{ item.name }}, rerun the playbook, then restart the apps attached from outside
+      this repository (for example Databasus).
+  loop: "{{ compose_service_network_drift | default([]) }}"
+  loop_control:
+    label: "{{ item.name }}"
 
 # Recreates containers only when their image or configuration changed
 - name: Start the stack

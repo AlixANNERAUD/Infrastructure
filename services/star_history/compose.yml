@@ -1,6 +1,14 @@
+# Container logs are unbounded by default and would fill the disk
+x-logging: &logging
+  driver: local
+  options:
+    max-size: "20m"
+    max-file: "3"
+
 services:
   star_history:
     image: ghcr.io/mubelotix/simrepo:latest
+    logging: *logging
     container_name: star_history
     user: "${USER_ID}:${GROUP_ID}"
     restart: unless-stopped

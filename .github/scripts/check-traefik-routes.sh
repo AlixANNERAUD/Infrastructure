@@ -124,10 +124,44 @@ check(replacement("redirect-anneraud") and not replacement("redirect-anneraud").
       "middleware redirect-anneraud keeps the path")
 
 for route in routes:
-    names = [route["name"]] + [f"{route['name']}-{index}" for index in range(1, len(route.get("paths", [])) + 1)]
-    for name in names:
+    # A path inherits its route's allowlist unless it sets its own
+    expectations = {route["name"]: route["internal"]}
+    for index, path in enumerate(route.get("paths", []), start=1):
+        expectations[f"{route['name']}-{index}"] = path.get("internal", route["internal"])
+    for name, internal in expectations.items():
         allowlisted = "internal-allowlist@file" in routers.get(name, {}).get("middlewares", [])
-        check(allowlisted == route["internal"], f"router {name} internal allowlist is {allowlisted}")
+        check(allowlisted == internal, f"router {name} internal allowlist is {allowlisted}")
+
+# Synapse's admin API stays internal while the rest of matrix.anneraud.fr is public
+check("internal-allowlist@file" in routers.get("synapse-1", {}).get("middlewares", []), "router synapse-1 is not allowlisted")
+check("internal-allowlist@file" not in routers.get("synapse", {}).get("middlewares", []), "router synapse is allowlisted")
+check(
+    routers.get("synapse-1", {}).get("rule") == "(Host(`matrix.anneraud.fr`)) && PathPrefix(`/_synapse/admin`)",
+    "router synapse-1 has the wrong rule",
+)
+
+# Sites proxied by Cloudflare must refuse connections that skip it, and nothing else may
+cloudflare_networks = yaml.safe_load(Path("inventory/group_vars/all.yml").read_text())["cloudflare_networks"]
+cloudflare_routers = {"odoo-minitrainstore", "odoo-guenola-sahut", "redirect-minitrainstore", "redirect-guenola-sahut"}
+expected_cloudflare = {route["name"] for route in routes if route.get("cloudflare_only")} | {
+    f"redirect-{redirect['name']}" for redirect in redirects if redirect.get("cloudflare_only")
+}
+check(expected_cloudflare == cloudflare_routers, f"cloudflare_only is set on {sorted(expected_cloudflare)}")
+check(cloudflare_routers <= set(routers), f"routers missing: {sorted(cloudflare_routers - set(routers))}")
+for name, router in sorted(routers.items()):
+    restricted = "cloudflare-only@file" in router.get("middlewares", [])
+    check(restricted == (name in cloudflare_routers), f"router {name} Cloudflare restriction is {restricted}")
+# A redirect replies on its own, so every restriction must run before it
+for name, router in sorted(routers.items()):
+    chain = router.get("middlewares", [])
+    redirecting = [position for position, middleware in enumerate(chain) if middleware.startswith("redirect-") or middleware.endswith("-redirect@file")]
+    for restriction in ("cloudflare-only@file", "internal-allowlist@file"):
+        if restriction in chain and redirecting:
+            check(chain.index(restriction) < min(redirecting), f"router {name} runs {restriction} after a redirect")
+check(
+    middlewares.get("cloudflare-only", {}).get("ipAllowList", {}).get("sourceRange") == cloudflare_networks,
+    "middleware cloudflare-only does not allow exactly cloudflare_networks",
+)
 
 if failures:
     print("\n".join(failures))

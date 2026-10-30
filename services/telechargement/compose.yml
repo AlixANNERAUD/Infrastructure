@@ -1,6 +1,14 @@
+# Container logs are unbounded by default and would fill the disk
+x-logging: &logging
+  driver: local
+  options:
+    max-size: "20m"
+    max-file: "3"
+
 services:
   gluetun:
     image: qmcgaw/gluetun:v3
+    logging: *logging
     container_name: gluetun
     restart: unless-stopped
     cap_add:
@@ -30,6 +38,7 @@ services:
 
   qbittorrent:
     image: lscr.io/linuxserver/qbittorrent:5.3.0
+    logging: *logging
     container_name: qbittorrent
     restart: unless-stopped
     depends_on:

@@ -1,6 +1,14 @@
+# Container logs are unbounded by default and would fill the disk
+x-logging: &logging
+  driver: local
+  options:
+    max-size: "20m"
+    max-file: "3"
+
 services:
   ha-linky:
     image: ghcr.io/alixanneraud/ha-linky-standalone
+    logging: *logging
     container_name: ha-linky
     restart: unless-stopped
     volumes:

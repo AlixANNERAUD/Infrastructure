@@ -14,14 +14,20 @@ compose_service_environment: {}
 compose_service_directories: []
 
 # Extra files copied from the playbook folder: [{source: config.yml, destination: config/config.yml}]
+# Changing one restarts the stack, unless the entry sets restart: false (for files the service reloads itself)
 compose_service_files: []
 
 # Jinja templates rendered from the playbook folder: [{source: config.yaml.j2, destination: config.yaml}]
+# restart: false works here too
 compose_service_templates: []
 
 # Files bind-mounted into containers that must exist beforehand, otherwise
 # Docker creates a directory in their place
 compose_service_mounted_files: []
+
+# Networks declared external in compose.yml, created before the stack starts when missing
+# (existing ones are left untouched): [{name: databases, internal: true}], internal defaults to false
+compose_service_external_networks: []
 
 # CNAME records pointing to the host: [{record: app.example.org, visibility: public | private, zone: example.org}]
 # visibility defaults to public (global_dns_host), zone to the last two labels of the record

@@ -1,8 +1,16 @@
 name: zitadel
 
+# Container logs are unbounded by default and would fill the disk
+x-logging: &logging
+  driver: local
+  options:
+    max-size: "20m"
+    max-file: "3"
+
 services:
   zitadel:
     image: ghcr.io/zitadel/zitadel:v4.20.0
+    logging: *logging
     restart: unless-stopped
     user: "991:991"
     command: start-from-init --masterkey "${ZITADEL_MASTERKEY}"
@@ -41,6 +49,7 @@ services:
 
   login:
     image: ghcr.io/zitadel/zitadel-login:v4.20.0
+    logging: *logging
     restart: unless-stopped
     user: "991:991"
     environment:
@@ -59,6 +68,7 @@ services:
 
   postgres:
     image: postgres:18-alpine
+    logging: *logging
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
@@ -76,7 +86,11 @@ services:
       - databases
 
 networks:
+  # Database side only: no route out of the Docker network
   internal:
+    internal: true
+  # Shared with Databasus, which backs the databases up; created by the
+  # compose_service role (compose_service_external_networks)
   databases:
     external: true
   proxy:

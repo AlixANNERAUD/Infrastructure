@@ -11,6 +11,8 @@
       vars:
         compose_service_name: netbird
         compose_service_user: 991
+        compose_service_directories:
+          - data
         compose_service_templates:
           - source: config.yaml.j2
             destination: config.yaml

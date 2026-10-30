@@ -18,6 +18,7 @@ exclude_paths:
   - services/gatus_*/config.yml
   - roles/*/molecule/*/compose.yml
   - roles/*/molecule/*/config.yml
+  - roles/*/molecule/*/reloaded_*.yml
   - inventory/
   - requirements.yml
 

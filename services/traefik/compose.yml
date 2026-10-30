@@ -1,6 +1,14 @@
+# Container logs are unbounded by default and would fill the disk
+x-logging: &logging
+  driver: local
+  options:
+    max-size: "20m"
+    max-file: "3"
+
 services:
   traefik:
     image: "traefik:v3.7"
+    logging: *logging
     container_name: "traefik"
     restart: unless-stopped
     extra_hosts:
@@ -36,6 +44,10 @@ services:
       # must not be cut after the default 60s; idle connections still close
       # after the default 180s
       - "--entryPoints.web-secure.transport.respondingTimeouts.readTimeout=0"
+
+      # Cloudflare's forwarded headers are kept so backends see the visitor's address; the internal allowlist
+      # still checks the connection's address, so trusting them does not widen it
+      - "--entryPoints.web-secure.forwardedHeaders.trustedIPs=${TRAEFIK_TRUSTED_PROXIES}"
 
       - "--entryPoints.web-secure-federation.address=:8448"
       - "--entryPoints.web-secure-federation.http.tls=true"

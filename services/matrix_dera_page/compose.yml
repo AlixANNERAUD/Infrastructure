@@ -1,6 +1,14 @@
+# Container logs are unbounded by default and would fill the disk
+x-logging: &logging
+  driver: local
+  options:
+    max-size: "20m"
+    max-file: "3"
+
 services:
   synapse:
     image: docker.io/matrixdotorg/synapse:v1.163.2
+    logging: *logging
     # Since synapse does not retry to connect to the database, restart upon
     # failure
     restart: unless-stopped
@@ -22,8 +30,17 @@ services:
       - traefik.http.services.matrix-dera-page.loadbalancer.server.port=8008
       - traefik.http.services.matrix-dera-page.loadbalancer.server.scheme=http
 
+      # The admin API stays internal; its longer rule wins over the router above
+      - traefik.http.routers.synapse-admin-api.rule=Host(`matrix.dera.page`) && PathPrefix(`/_synapse/admin`)
+      - traefik.http.routers.synapse-admin-api.entrypoints=web-secure,web-secure-federation
+      - traefik.http.routers.synapse-admin-api.tls=true
+      - traefik.http.routers.synapse-admin-api.tls.certresolver=letsencrypt
+      - traefik.http.routers.synapse-admin-api.service=matrix-dera-page
+      - traefik.http.routers.synapse-admin-api.middlewares=internal-allowlist@file
+
   database:
     image: docker.io/postgres:18
+    logging: *logging
     restart: unless-stopped
     # Change that password, of course!
     environment:
@@ -42,6 +59,7 @@ services:
 
   well-known:
     image: nginx:alpine
+    logging: *logging
     restart: unless-stopped
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
@@ -58,6 +76,7 @@ services:
 
   pgbackups:
     image: prodrigestivill/postgres-backup-local
+    logging: *logging
     restart: always
     # user: postgres:postgres # Optional: see below
     volumes:
@@ -84,6 +103,7 @@ services:
   synapse-admin:
     hostname: synapse-admin
     image: ghcr.io/etkecc/ketesa:v1.5.2
+    logging: *logging
     restart: unless-stopped
     labels:
       - traefik.enable=true
@@ -92,7 +112,7 @@ services:
       - "traefik.http.middlewares.admin-slashless-redirect.redirectregex.regex=(/admin)$$"
       - "traefik.http.middlewares.admin-slashless-redirect.redirectregex.replacement=$${1}/"
       - "traefik.http.middlewares.admin-strip-prefix.stripprefix.prefixes=/admin"
-      - "traefik.http.routers.synapse-admin.middlewares=admin-slashless-redirect,admin-strip-prefix"
+      - "traefik.http.routers.synapse-admin.middlewares=internal-allowlist@file,admin-slashless-redirect,admin-strip-prefix"
 
       - traefik.http.routers.synapse-admin.entrypoints=web-secure
       - traefik.http.routers.synapse-admin.tls=true
@@ -105,4 +125,6 @@ services:
 networks:
   traefik:
     external: true
+  # Database side only: no route out of the Docker network
   internal:
+    internal: true
