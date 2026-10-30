@@ -48,3 +48,22 @@ jobs:
 
       - name: Validate Compose files
         run: .github/scripts/check-compose.sh
+
+  # Single check required by the branch ruleset: add new jobs to `needs`
+  required:
+    name: required
+    if: always()
+    needs: [ansible, compose]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check that all required jobs succeeded
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "Results: $RESULTS"
+          for result in $RESULTS; do
+            if [ "$result" != "success" ]; then
+              echo "A required job did not succeed"
+              exit 1
+            fi
+          done
