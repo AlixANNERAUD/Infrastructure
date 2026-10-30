@@ -82,10 +82,11 @@ http:
         - web-secure
       service: noop@internal
       middlewares:
-        - {{ ('redirect-' ~ redirect.name) | to_json }}
+  {# Before the redirect, which replies on its own #}
   {% if redirect.cloudflare_only | default(false) %}
         - cloudflare-only@file
   {% endif %}
+        - {{ ('redirect-' ~ redirect.name) | to_json }}
 {{ certificates(redirect.hosts, certificate_requests) }}
 {% endfor %}
 

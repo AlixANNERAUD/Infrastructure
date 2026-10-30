@@ -143,9 +143,21 @@ check(
 # Sites proxied by Cloudflare must refuse connections that skip it, and nothing else may
 cloudflare_networks = yaml.safe_load(Path("inventory/group_vars/all.yml").read_text())["cloudflare_networks"]
 cloudflare_routers = {"odoo-minitrainstore", "odoo-guenola-sahut", "redirect-minitrainstore", "redirect-guenola-sahut"}
+expected_cloudflare = {route["name"] for route in routes if route.get("cloudflare_only")} | {
+    f"redirect-{redirect['name']}" for redirect in redirects if redirect.get("cloudflare_only")
+}
+check(expected_cloudflare == cloudflare_routers, f"cloudflare_only is set on {sorted(expected_cloudflare)}")
+check(cloudflare_routers <= set(routers), f"routers missing: {sorted(cloudflare_routers - set(routers))}")
 for name, router in sorted(routers.items()):
     restricted = "cloudflare-only@file" in router.get("middlewares", [])
     check(restricted == (name in cloudflare_routers), f"router {name} Cloudflare restriction is {restricted}")
+# A redirect replies on its own, so every restriction must run before it
+for name, router in sorted(routers.items()):
+    chain = router.get("middlewares", [])
+    redirecting = [position for position, middleware in enumerate(chain) if middleware.startswith("redirect-") or middleware.endswith("-redirect@file")]
+    for restriction in ("cloudflare-only@file", "internal-allowlist@file"):
+        if restriction in chain and redirecting:
+            check(chain.index(restriction) < min(redirecting), f"router {name} runs {restriction} after a redirect")
 check(
     middlewares.get("cloudflare-only", {}).get("ipAllowList", {}).get("sourceRange") == cloudflare_networks,
     "middleware cloudflare-only does not allow exactly cloudflare_networks",
