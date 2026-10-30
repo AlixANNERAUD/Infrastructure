@@ -13,6 +13,7 @@
     - ../../vault/ansible/vault.yml
     - ../../vault/replication/vault.yml
   tasks:
+    # yamllint disable rule:line-length
     - name: Create the systemd service unit
       ansible.builtin.copy:
         dest: "/etc/systemd/system/{{ service_name }}.service"
@@ -31,6 +32,7 @@
 
           ExecStart=/usr/bin/ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new {{ bruxelles_user }}@{{ bruxelles_host }} 'midclt -K {{ bruxelles_api_key }} call replication.run {{ bruxelles_replication_identifier }}'
 
+    # yamllint enable rule:line-length
     - name: Create the systemd timer unit
       ansible.builtin.copy:
         dest: "/etc/systemd/system/{{ service_name }}.timer"

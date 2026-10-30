@@ -78,6 +78,7 @@
           - -addext
           - subjectAltName=DNS:vault.xila.dev
       when: not openbao_tls_files.results[0].stat.exists
+      changed_when: true
 
     - name: Protect OpenBao TLS files
       ansible.builtin.file:

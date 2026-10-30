@@ -20,12 +20,12 @@
   tasks:
     - name: Update packages
       ansible.builtin.apt:
-        update_cache: yes
+        update_cache: true
         upgrade: dist
         cache_valid_time: 3600
 
     - name: Create persistent Netplan configuration for custom IP
-      copy:
+      ansible.builtin.copy:
         dest: /etc/netplan/99-custom-loopback.yaml
         content: |
           network:
@@ -37,12 +37,13 @@
                 addresses:
                   - 192.168.2.16/32
         mode: "0644"
+      notify: Apply Netplan configuration
 
-    - name: Apply Netplan configuration
-      command: netplan apply
+    - name: Apply Netplan configuration now
+      ansible.builtin.meta: flush_handlers
 
     - name: Verify the IP is reachable locally
-      command: "ping -c 2 192.168.2.16"
+      ansible.builtin.command: "ping -c 2 192.168.2.16"
       changed_when: false
 
     - name: Update DNS records for Luxembourg
@@ -54,3 +55,8 @@
         record: "{{ item.record }}"
         value: "{{ item.value }}"
       loop: "{{ records }}"
+
+  handlers:
+    - name: Apply Netplan configuration
+      ansible.builtin.command: netplan apply
+      changed_when: true

@@ -25,7 +25,7 @@
       ansible.builtin.apt:
         name: cockpit
         state: present
-        update_cache: yes
+        update_cache: true
 
     - name: Ensure Cockpit system config directory exists
       ansible.builtin.file:
@@ -43,7 +43,7 @@
     - name: Ensure Cockpit socket is running
       ansible.builtin.systemd:
         name: cockpit.socket
-        enabled: yes
+        enabled: true
         state: started
 
     - name: Deploy Traefik dynamic routing file for Cockpit
