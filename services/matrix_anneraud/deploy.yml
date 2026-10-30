@@ -23,4 +23,3 @@
           DATABASE_NAME: "{{ database_name }}"
         compose_service_dns_records:
           - record: matrix.anneraud.fr
-          - record: element.anneraud.fr
