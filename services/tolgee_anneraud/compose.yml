@@ -7,7 +7,7 @@ x-logging: &logging
 
 services:
   app:
-    image: tolgee/tolgee:latest
+    image: tolgee/tolgee:v3.241.3
     logging: *logging
     restart: unless-stopped
     volumes:
@@ -47,7 +47,7 @@ services:
       - traefik.http.middlewares.weblate-redirection.redirectregex.replacement=https://translate.anneraud.fr/$$1
 
   database:
-    image: postgres:18
+    image: postgres:18.6
     logging: *logging
     restart: unless-stopped
     environment:
@@ -60,7 +60,7 @@ services:
       - internal
 
   pgbackups:
-    image: prodrigestivill/postgres-backup-local
+    image: prodrigestivill/postgres-backup-local:18-debian-d257e5d
     logging: *logging
     restart: always
     # user: postgres:postgres # Optional: see below

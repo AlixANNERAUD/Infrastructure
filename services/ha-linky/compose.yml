@@ -7,7 +7,7 @@ x-logging: &logging
 
 services:
   ha-linky:
-    image: ghcr.io/alixanneraud/ha-linky-standalone
+    image: ghcr.io/alixanneraud/ha-linky-standalone:latest@sha256:7035e0385337577b4124ed708abc0594ee73b252d50c82f182791d21cb351ed7
     logging: *logging
     container_name: ha-linky
     restart: unless-stopped

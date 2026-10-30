@@ -19,8 +19,11 @@ fi
 cp services/traefik/policy.yml "$directory/policy.yml"
 chmod -R a+rX "$directory"
 
+# Same image as the deployed Traefik, so Dependabot bumps both at once
+image=$(sed -n 's/^ *image: "\{0,1\}\(traefik:[^"]*\)"\{0,1\}$/\1/p' services/traefik/compose.yml)
+
 # The ACME server is unreachable on purpose: certificates are never requested
-docker run -d --name "$container" -p 127.0.0.1::8080 -v "$directory:/dynamic:ro" traefik:v3.7 \
+docker run -d --name "$container" -p 127.0.0.1::8080 -v "$directory:/dynamic:ro" "$image" \
     --api.insecure=true \
     --providers.file.directory=/dynamic \
     --certificatesresolvers.letsencrypt.acme.storage=/tmp/acme.json \
