@@ -51,10 +51,9 @@ services:
       GF_AUTH_GENERIC_OAUTH_API_URL: https://authentification.anneraud.fr/oidc/v1/userinfo
       GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH: >-
         contains(keys("urn:zitadel:iam:org:project:roles" || `{}`), 'vigie-admin') && 'Admin' || 'Viewer'
-      # Signing out of Grafana also ends the Zitadel session, then comes back to
-      # Grafana's login page (the post-logout URI registered for the application)
-      # yamllint disable-line rule:line-length
-      GF_AUTH_SIGNOUT_REDIRECT_URL: "https://authentification.anneraud.fr/oidc/v1/end_session?client_id=${GRAFANA_OAUTH_CLIENT_ID}&post_logout_redirect_uri=https%3A%2F%2Fvigie.anneraud.fr%2Flogin"
+      # With Zitadel login, signing out also ends the Zitadel session (empty
+      # without it, so the local admin signs out normally)
+      GF_AUTH_SIGNOUT_REDIRECT_URL: ${GRAFANA_SIGNOUT_REDIRECT_URL}
     volumes:
       - ./grafana/provisioning:/etc/grafana/provisioning:ro
       - ./grafana/dashboards:/etc/grafana/dashboards:ro

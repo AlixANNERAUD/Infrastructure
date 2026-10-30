@@ -104,6 +104,12 @@
           PROXY_NETWORK: "{{ proxy_network }}"
           GRAFANA_OAUTH_ENABLED: "{{ vigie_oauth_enabled }}"
           GRAFANA_OAUTH_CLIENT_ID: "{{ vigie_oauth_client_id }}"
+          # Ends the Zitadel session too, then comes back to Grafana's login page
+          # (the post-logout URI registered for the application)
+          GRAFANA_SIGNOUT_REDIRECT_URL: >-
+            {{ ('https://authentification.anneraud.fr/oidc/v1/end_session?client_id=' ~ vigie_oauth_client_id
+                ~ '&post_logout_redirect_uri=https%3A%2F%2Fvigie.anneraud.fr%2Flogin')
+               if vigie_oauth_enabled | bool else '' }}
         compose_service_dns_records:
           - record: vigie.anneraud.fr
             visibility: private
