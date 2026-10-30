@@ -8,7 +8,7 @@ services:
     security_opt:
       - no-new-privileges:true
     networks:
-      - traefik
+      - proxy
     environment:
       - TZ=Europe/Paris
       - CLOUDFLARE_EMAIL=${CLOUDFLARE_EMAIL}
@@ -18,7 +18,7 @@ services:
       - "--api.dashboard=true"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
-      - "--providers.docker.network=traefik"
+      - "--providers.docker.network=${PROXY_NETWORK}"
       - "--providers.file.directory=/etc/traefik/dynamic"
 
       - "--entryPoints.web.address=:80"
@@ -28,6 +28,9 @@ services:
 
       - "--entryPoints.web-secure.address=:443"
       - "--entryPoints.web-secure.http.tls=true"
+      - "--entryPoints.web-secure.http.tls.certResolver=letsencrypt"
+      # Applies to label and file routes alike
+      - "--entryPoints.web-secure.http.middlewares=security-headers@file"
       # Netbird's gRPC streams last as long as a peer is connected, so requests
       # must not be cut after the default 60s; idle connections still close
       # after the default 180s
@@ -42,33 +45,35 @@ services:
       # - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
       - "--certificatesresolvers.letsencrypt.acme.dnsChallenge.provider=cloudflare"
       - "--certificatesresolvers.letsencrypt.acme.dnsChallenge.delayBeforeCheck=10"
+
+      # Metrics are routed manually, behind the internal allowlist
+      - "--metrics.prometheus=true"
+      - "--metrics.prometheus.manualRouting=true"
+      - "--metrics.prometheus.addRoutersLabels=true"
     ports:
       - "80:80"
       - "443:443"
-      - "8080:8080"
-      - "8448:8448" # Matrix federation port
+      - "${TRAEFIK_FEDERATION_PUBLISH}"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      # Add the following volumes
-      - "./certificates/:/certs:ro"
       - "./dynamic:/etc/traefik/dynamic:ro"
-        # ...Existing volumes...
       - "./letsencrypt:/letsencrypt"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.dashboard.rule=Host(`traefik.luxembourg.anneraud.fr`)"
+      - "traefik.http.routers.dashboard.rule=Host(`${TRAEFIK_DASHBOARD_HOST}`)"
       - "traefik.http.routers.dashboard.entrypoints=web-secure"
       - "traefik.http.routers.dashboard.service=api@internal"
-      # Add the following label
       - "traefik.http.routers.dashboard.tls=true"
       - "traefik.http.routers.dashboard.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.dashboard.middlewares=internal-allowlist@file"
 
-      # Allowlist middleware configuration
-      - "traefik.http.middlewares.internal-allowlist.ipallowlist.sourcerange=192.168.0.0/24,100.64.0.0/24,100.128.0.0/24,fd00::/8"
-
-      # Apply the middleware to the dashboard router
-      - "traefik.http.routers.dashboard.middlewares=internal-allowlist@docker"
+      - "traefik.http.routers.metrics.rule=Host(`${TRAEFIK_DASHBOARD_HOST}`) && PathPrefix(`/metrics`)"
+      - "traefik.http.routers.metrics.entrypoints=web-secure"
+      - "traefik.http.routers.metrics.service=prometheus@internal"
+      - "traefik.http.routers.metrics.tls=true"
+      - "traefik.http.routers.metrics.middlewares=internal-allowlist@file"
 
 networks:
-  traefik:
-    name: traefik
+  proxy:
+    name: "${PROXY_NETWORK}"
+    external: true

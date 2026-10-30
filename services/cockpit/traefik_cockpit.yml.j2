@@ -8,7 +8,7 @@ http:
         certResolver: letsencrypt
       service: cockpit-service
       middlewares:
-        - internal-allowlist@docker
+        - internal-allowlist@file
 
   services:
     cockpit-service:

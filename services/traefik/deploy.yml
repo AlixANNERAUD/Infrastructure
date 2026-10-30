@@ -5,15 +5,27 @@
   vars_files:
     - ../../vault/ansible/vault.yml
     - ../../vault/cloudflare/vault.yml
+  pre_tasks:
+    - name: Create the proxy network
+      community.docker.docker_network:
+        name: "{{ proxy_network }}"
+
   roles:
     - role: compose_service
       vars:
         compose_service_name: traefik
+        compose_service_directory: "{{ traefik_directory }}"
         compose_service_directories:
           - dynamic
+        compose_service_files:
+          - source: policy.yml
+            destination: dynamic/policy.yml
         compose_service_environment:
           CLOUDFLARE_EMAIL: "{{ cloudflare_email }}"
           CLOUDFLARE_API_KEY: "{{ cloudflare_api_key }}"
+          PROXY_NETWORK: "{{ proxy_network }}"
+          TRAEFIK_DASHBOARD_HOST: "{{ traefik_dashboard_host }}"
+          TRAEFIK_FEDERATION_PUBLISH: "{{ traefik_federation_publish }}"
         compose_service_dns_records:
-          - record: traefik.luxembourg.anneraud.fr
+          - record: "{{ traefik_dashboard_host }}"
             visibility: private

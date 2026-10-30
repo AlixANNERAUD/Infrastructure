@@ -10,6 +10,7 @@ for file in services/*/compose.yml; do
         case "$name" in
             *PORT | *_ID) echo "$name=1000" ;;
             *PATH) echo "$name=/placeholder" ;;
+            *_PUBLISH) echo "$name=8448:8448" ;;
             *) echo "$name=placeholder" ;;
         esac
     done > "$env_file"
