@@ -9,6 +9,9 @@
     cockpit_conf_dir: "/etc/cockpit"
     cockpit_conf_file: "{{ cockpit_conf_dir }}/cockpit.conf"
 
+    # Traefik reaches Cockpit through host.docker.internal, which is the docker0 address
+    cockpit_listen_address: "{{ ansible_facts['docker0']['ipv4']['address'] }}"
+
     traefik_dynamic_config_dir: "/opt/traefik/dynamic"
     traefik_cockpit_config_file: "{{ traefik_dynamic_config_dir }}/cockpit.yml"
   vars_files:
@@ -40,6 +43,24 @@
         mode: "0644"
       notify: Restart Cockpit Service
 
+    - name: Ensure Cockpit socket override directory exists
+      ansible.builtin.file:
+        path: /etc/systemd/system/cockpit.socket.d
+        state: directory
+        mode: "0755"
+
+    # Cockpit serves plain HTTP behind Traefik, so keep it off public interfaces
+    - name: Listen only on the Docker bridge
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/cockpit.socket.d/listen.conf
+        content: |
+          [Socket]
+          ListenStream=
+          ListenStream={{ cockpit_listen_address }}:9090
+          FreeBind=yes
+        mode: "0644"
+      notify: Restart Cockpit Socket
+
     - name: Ensure Cockpit socket is running
       ansible.builtin.systemd:
         name: cockpit.socket
@@ -62,6 +83,12 @@
         value: "{{ local_dns_host }}"
 
   handlers:
+    - name: Restart Cockpit Socket
+      ansible.builtin.systemd:
+        name: cockpit.socket
+        state: restarted
+        daemon_reload: true
+
     - name: Restart Cockpit Service
       ansible.builtin.systemd:
         name: cockpit.service
