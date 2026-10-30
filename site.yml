@@ -9,6 +9,8 @@
 - name: Cockpit
   ansible.builtin.import_playbook: services/cockpit/deploy.yml
 
+- name: Deployment (Semaphore)
+  ansible.builtin.import_playbook: services/deploiement/deploy.yml
 - name: Gatus (anneraud.fr)
   ansible.builtin.import_playbook: services/gatus_anneraud/deploy.yml
 - name: Gatus (dera.page)

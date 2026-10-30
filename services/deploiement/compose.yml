@@ -1,0 +1,32 @@
+# Container logs are unbounded by default and would fill the disk
+x-logging: &logging
+  driver: local
+  options:
+    max-size: "20m"
+    max-file: "3"
+
+services:
+  semaphore:
+    image: semaphoreui/semaphore:v2.19.17
+    logging: *logging
+    restart: unless-stopped
+    user: ${USER_ID}:${GROUP_ID}
+    environment:
+      SEMAPHORE_DB_DIALECT: sqlite
+      SEMAPHORE_ADMIN: ${SEMAPHORE_ADMIN}
+      SEMAPHORE_ADMIN_NAME: ${SEMAPHORE_ADMIN_NAME}
+      SEMAPHORE_ADMIN_EMAIL: ${SEMAPHORE_ADMIN_EMAIL}
+      SEMAPHORE_ADMIN_PASSWORD: ${SEMAPHORE_ADMIN_PASSWORD}
+      SEMAPHORE_ACCESS_KEY_ENCRYPTION: ${SEMAPHORE_ACCESS_KEY_ENCRYPTION}
+      SEMAPHORE_WEB_ROOT: ${SEMAPHORE_WEB_ROOT}
+    volumes:
+      - ./data:/var/lib/semaphore
+      - ./config:/etc/semaphore
+      - ./gitconfig:/etc/gitconfig:ro
+      - ./git-credentials:/etc/git-credentials:ro
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true

@@ -25,6 +25,7 @@ Hosts and the service-to-host mapping are in [inventory/hosts.yml](inventory/hos
 | [Archive](https://archive.anneraud.fr/)                                | Document management (Paperless-ngx)          | Private | Bruxelles  | TrueNAS Apps | ![Status](<https://etat.anneraud.fr/api/v1/endpoints/services_archive-(paperless-ngx)/uptimes/30d/badge.svg>)                      |
 | [Statistiques](https://s.anneraud.fr/)                                 | Analytics (Umami)                            | Public  | Bruxelles  | TrueNAS Apps | ![Status](<https://etat.anneraud.fr/api/v1/endpoints/services_statistiques-(umami)/uptimes/30d/badge.svg>)                         |
 | [Notes](https://notes.anneraud.fr/)                                    | Documentation (Docmost)                      | Private | Bruxelles  | Ansible      | ![Status](<https://etat.anneraud.fr/api/v1/endpoints/services_notes-(docmost)/uptimes/30d/badge.svg>)                              |
+| [Déploiement](https://deploiement.anneraud.fr/)                         | Ansible web UI (Semaphore)                   | Private | Bruxelles  | Ansible      | ![Status](<https://etat.anneraud.fr/api/v1/endpoints/administration_déploiement-(semaphore)/uptimes/30d/badge.svg>) |
 | [Assistant](https://assistant.anneraud.fr/)                            | AI assistant (Open WebUI)                    | Private | Bruxelles  | TrueNAS Apps | ![Status](<https://etat.anneraud.fr/api/v1/endpoints/services_assistant-(open-webui)/uptimes/30d/badge.svg>)                       |
 | [Recherche](https://recherche.anneraud.fr/)                            | Search engine (SearXNG)                      | Private | Bruxelles  | TrueNAS Apps | ![Status](<https://etat.anneraud.fr/api/v1/endpoints/services_recherche-(searxng)/uptimes/30d/badge.svg>)                           |
 | [Authentification](https://authentification.anneraud.fr/)              | Identity provider (Zitadel)                  | Private | Bruxelles  | Ansible      | ![Status](<https://etat.anneraud.fr/api/v1/endpoints/services_authentification-(zitadel)/uptimes/30d/badge.svg>)                   |
@@ -81,7 +82,7 @@ mise test                                        # Molecule scenarios of the rol
 
 ## Ansible account
 
-Ansible connects to every host as `ansible`: SSH key only (`~/.ssh/ansible.pub`, accepted from the networks in `inventory/group_vars/all.yml`), passwordless sudo, locked password. A hardware-backed key (`ssh-keygen -t ed25519-sk`) is recommended.
+Ansible connects to every host as `ansible`: SSH keys only, passwordless sudo, locked password. The authorized keys (`automation_public_keys` in `inventory/group_vars/all.yml`) are the laptop's (`automation_laptop_public_key`, written in the file so that Semaphore can run the bootstrap too) plus the other controllers' keys listed in `automation_additional_public_keys` (Semaphore's, see below). Each is accepted only from the networks in `automation_ssh_sources`, and no other key is kept in `authorized_keys`. The exception is on Bruxelles (TrueNAS): the controllers' keys, which connect from containers on the `proxy` network, are also accepted from that network's current subnet. To rotate the laptop's key, generate a new one (`ssh-keygen -t ed25519-sk` for a hardware-backed key is recommended), replace `automation_laptop_public_key` with its public key and run `mise deploy hosts/bootstrap.yml` on every host (and update the TrueNAS Authorized Keys line it prints), using the old key for that run.
 
 Set it up, or update it, with:
 
@@ -92,7 +93,7 @@ mise deploy hosts/bootstrap.yml --limit <host> -u <you> --ask-become-pass     # 
 
 The playbook also hardens `sshd` (no passwords, no root login, only `ansible` and `ssh_administrators`). It refuses to run if the current connection doesn't come from an allowed network. When a host can't be reached, or sudo needs a password nobody provided, it prints the commands to run on that host by hand and skips it.
 
-**TrueNAS (Bruxelles)** manages users and `sshd` in its own interface, which would undo changes made over SSH. The playbook only checks it (reachable, the key with its `from=` restriction, passwordless sudo, password login off) and prints what to change in the interface.
+**TrueNAS (Bruxelles)** manages users and `sshd` in its own interface, which would undo changes made over SSH. The playbook only checks it (reachable, every key with its `from=` restriction, passwordless sudo, password login off) and prints what to change in the interface.
 
 ### Replication
 
@@ -100,6 +101,32 @@ The playbook also hardens `sshd` (no passwords, no root login, only `ansible` an
 
 1. Deploy: `mise deploy hosts/replication.yml`. Until the `replication` user exists in TrueNAS, it explains how to create it.
 2. Paste the `command="…",restrict ssh-ed25519 …` lines it prints into that user's *Authorized Keys*; it prints them only while they are missing.
+
+## Deployment with Semaphore
+
+[Semaphore](https://semaphoreui.com/) (`services/deploiement`, https://deploiement.anneraud.fr, private) runs the playbooks from Bruxelles. It is deployed with `mise deploy services/deploiement/deploy.yml`, which also generates the SSH key Semaphore connects to the hosts with (`keys/ansible` in the service folder) and prints its public key. Its secrets are in `vault/deploiement/vault.yml`: the admin account (`deploiement_admin_login`, `deploiement_admin_name`, `deploiement_admin_email`, `deploiement_admin_password`), `deploiement_access_key_encryption` and `deploiement_vault_repository_token`. The last one lets Semaphore clone the private `Infrastructure_vault` submodule: create it in GitHub > Settings > Developer settings > Fine-grained personal access tokens, with *Only select repositories* > `Infrastructure_vault` and the repository permission *Contents: Read-only*, an expiry, and a reminder to rotate it before then (update the vault and run the deployment again). The deployment gives it to git in the container through a credential helper limited to that repository (`gitconfig` and `git-credentials` in the service folder, mode `0600`); without it, the deployment still works and prints this step. Generate the encryption key with `head -c32 /dev/urandom | base64` (it encrypts the keys stored in Semaphore: losing it makes them unreadable). The `SEMAPHORE_ADMIN_*` variables only create the admin on the first start: changing them in the vault later does not change the account, use the interface. The database is an embedded SQLite file in `data/` of the service folder. `keys/ansible` on the host stays there as the recovery copy of Semaphore's private key (mode `0600`, owned by the container user). Keep it: if it is deleted, the next deploy generates a different key pair, which has to be authorized and pasted again.
+
+Once, to authorize Semaphore on the hosts:
+
+1. Add the printed public key to `automation_additional_public_keys` in `inventory/group_vars/all.yml`, then run `mise deploy hosts/bootstrap.yml`.
+2. On TrueNAS, add the same key as a line of the `ansible` user's *Authorized Keys* (bootstrap prints the exact lines). Semaphore's SSH connections to Bruxelles itself come from its container's address on the `proxy` network (not NATed), which has no fixed subnet: on Bruxelles its key is accepted from the LAN and VPN plus the current subnet of `proxy`, read when bootstrap runs. If the `proxy` network is ever recreated, run `mise deploy hosts/bootstrap.yml --limit bruxelles` again and update that line. On the other hosts, the key is accepted from the LAN and VPN only.
+
+Once, in the Semaphore interface:
+
+1. Create the project `Infrastructure`.
+2. Key store, add:
+   - `ansible`: type SSH, login `ansible`, the content of `keys/ansible` (read it on Bruxelles, it is never committed);
+   - `vault`: type Login with password, empty login, the Ansible Vault password (it is only used to decrypt the vault files);
+   - `none`: type None, to clone the public repository.
+3. Repositories: `https://github.com/AlixANNERAUD/Infrastructure.git`, branch `main`, key `none` (the repository is public). Semaphore updates submodules when it clones; the private vault submodule is cloned with the read-only token that the deployment gives git in the container (see above), nothing to configure here. It installs the collections of the root `requirements.yml` by itself.
+4. Inventory: type File, path `inventory/hosts.yml` (relative to the repository), SSH key `ansible`. Ansible reads `host_vars` and `group_vars` next to the inventory file, so `inventory/host_vars/` and `inventory/group_vars/` are picked up.
+5. Task templates, for `site.yml` and for each `services/<service>/deploy.yml` (and `hosts/*.yml` if wanted), each in two variants, with the vault password `vault`:
+   - preview: CLI args `["--check", "--diff"]`;
+   - run: no extra arguments.
+
+Semaphore runs the ansible-core bundled in its image (2.20) while CI lints with 2.21: check the first `--check` run for differences.
+
+Zitadel provisioning (OpenTofu) still runs from the laptop.
 
 ## Structure
 

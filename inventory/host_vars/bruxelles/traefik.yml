@@ -192,6 +192,10 @@ traefik_routes:
     hosts: [mcphub.anneraud.fr]
     url: http://mcphub-mcphub-1:3000
     internal: true
+  - name: semaphore
+    hosts: [deploiement.anneraud.fr]
+    url: http://deploiement-semaphore-1:3000
+    internal: true
   - name: openbao
     hosts: [vault.xila.dev]
     url: https://vault_xila-openbao-1:8200
