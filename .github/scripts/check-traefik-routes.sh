@@ -129,6 +129,17 @@ for route in routes:
         allowlisted = "internal-allowlist@file" in routers.get(name, {}).get("middlewares", [])
         check(allowlisted == route["internal"], f"router {name} internal allowlist is {allowlisted}")
 
+# Sites proxied by Cloudflare must refuse connections that skip it, and nothing else may
+cloudflare_networks = yaml.safe_load(Path("inventory/group_vars/all.yml").read_text())["cloudflare_networks"]
+cloudflare_routers = {"odoo-minitrainstore", "odoo-guenola-sahut", "redirect-minitrainstore", "redirect-guenola-sahut"}
+for name, router in sorted(routers.items()):
+    restricted = "cloudflare-only@file" in router.get("middlewares", [])
+    check(restricted == (name in cloudflare_routers), f"router {name} Cloudflare restriction is {restricted}")
+check(
+    middlewares.get("cloudflare-only", {}).get("ipAllowList", {}).get("sourceRange") == cloudflare_networks,
+    "middleware cloudflare-only does not allow exactly cloudflare_networks",
+)
+
 if failures:
     print("\n".join(failures))
     sys.exit(1)

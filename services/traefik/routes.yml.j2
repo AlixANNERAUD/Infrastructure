@@ -40,9 +40,14 @@ http:
       entryPoints:
         - web-secure
       service: {{ route.name | to_json }}
-  {% if route.internal %}
+  {% if route.internal or route.cloudflare_only | default(false) %}
       middlewares:
+    {% if route.internal %}
         - internal-allowlist@file
+    {% endif %}
+    {% if route.cloudflare_only | default(false) %}
+        - cloudflare-only@file
+    {% endif %}
   {% endif %}
 {{ certificates(route.hosts, certificate_requests) }}
   {% for path in route.paths | default([]) %}
@@ -55,10 +60,13 @@ http:
     {% else %}
       service: {{ (route.name ~ '-' ~ loop.index) | to_json }}
     {% endif %}
-    {% if route.internal or path.redirect is defined %}
+    {% if route.internal or route.cloudflare_only | default(false) or path.redirect is defined %}
       middlewares:
       {% if route.internal %}
         - internal-allowlist@file
+      {% endif %}
+      {% if route.cloudflare_only | default(false) %}
+        - cloudflare-only@file
       {% endif %}
       {% if path.redirect is defined %}
         - {{ (route.name ~ '-' ~ loop.index ~ '-redirect') | to_json }}
@@ -75,6 +83,9 @@ http:
       service: noop@internal
       middlewares:
         - {{ ('redirect-' ~ redirect.name) | to_json }}
+  {% if redirect.cloudflare_only | default(false) %}
+        - cloudflare-only@file
+  {% endif %}
 {{ certificates(redirect.hosts, certificate_requests) }}
 {% endfor %}
 
@@ -98,6 +109,16 @@ http:
 {% endfor %}
 
   middlewares:
+{# Sites proxied by Cloudflare refuse connections that skip it #}
+{% set cloudflare_users = (traefik_routes + traefik_redirects) | selectattr('cloudflare_only', 'defined') | selectattr('cloudflare_only') | list %}
+{% if cloudflare_users %}
+    cloudflare-only:
+      ipAllowList:
+        sourceRange:
+  {% for network in cloudflare_networks %}
+          - {{ network | to_json }}
+  {% endfor %}
+{% endif %}
 {% for route in traefik_routes %}
   {% for path in route.paths | default([]) %}
     {% if path.redirect is defined %}
