@@ -60,9 +60,9 @@ http:
     {% else %}
       service: {{ (route.name ~ '-' ~ loop.index) | to_json }}
     {% endif %}
-    {% if route.internal or route.cloudflare_only | default(false) or path.redirect is defined %}
+    {% if path.internal | default(route.internal) or route.cloudflare_only | default(false) or path.redirect is defined %}
       middlewares:
-      {% if route.internal %}
+      {% if path.internal | default(route.internal) %}
         - internal-allowlist@file
       {% endif %}
       {% if route.cloudflare_only | default(false) %}

@@ -22,6 +22,14 @@ services:
       - traefik.http.services.matrix-dera-page.loadbalancer.server.port=8008
       - traefik.http.services.matrix-dera-page.loadbalancer.server.scheme=http
 
+      # The admin API stays internal; its longer rule wins over the router above
+      - traefik.http.routers.synapse-admin-api.rule=Host(`matrix.dera.page`) && PathPrefix(`/_synapse/admin`)
+      - traefik.http.routers.synapse-admin-api.entrypoints=web-secure,web-secure-federation
+      - traefik.http.routers.synapse-admin-api.tls=true
+      - traefik.http.routers.synapse-admin-api.tls.certresolver=letsencrypt
+      - traefik.http.routers.synapse-admin-api.service=matrix-dera-page
+      - traefik.http.routers.synapse-admin-api.middlewares=internal-allowlist@file
+
   database:
     image: docker.io/postgres:18
     restart: unless-stopped
@@ -91,7 +99,7 @@ services:
       - "traefik.http.middlewares.admin-slashless-redirect.redirectregex.regex=(/admin)$$"
       - "traefik.http.middlewares.admin-slashless-redirect.redirectregex.replacement=$${1}/"
       - "traefik.http.middlewares.admin-strip-prefix.stripprefix.prefixes=/admin"
-      - "traefik.http.routers.synapse-admin.middlewares=admin-slashless-redirect,admin-strip-prefix"
+      - "traefik.http.routers.synapse-admin.middlewares=internal-allowlist@file,admin-slashless-redirect,admin-strip-prefix"
 
       - traefik.http.routers.synapse-admin.entrypoints=web-secure
       - traefik.http.routers.synapse-admin.tls=true

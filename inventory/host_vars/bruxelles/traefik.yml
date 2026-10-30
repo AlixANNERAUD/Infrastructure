@@ -136,6 +136,10 @@ traefik_routes:
     hosts: [matrix.anneraud.fr]
     url: http://matrix_anneraud-synapse-1:8008
     internal: false
+    paths:
+      - prefix: /_synapse/admin
+        url: http://matrix_anneraud-synapse-1:8008
+        internal: true
   # Matrix delegation for @…:anneraud.fr; the rest of anneraud.fr redirects to www
   - name: matrix-delegation
     hosts: [anneraud.fr]
