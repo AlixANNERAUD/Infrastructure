@@ -68,11 +68,29 @@ jobs:
         working-directory: roles/compose_service
         run: uv run molecule test
 
+  traefik-routes:
+    name: Traefik routes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - uses: astral-sh/setup-uv@v10.3.3
+        with:
+          enable-cache: true
+
+      - name: Install tools
+        run: |
+          uv sync --locked
+          uv run ansible-galaxy collection install -r requirements.yml
+
+      - name: Load the rendered routes in Traefik
+        run: .github/scripts/check-traefik-routes.sh
+
   # Single check required by the branch ruleset: add new jobs to `needs`
   required:
     name: required
     if: always()
-    needs: [ansible, compose, molecule]
+    needs: [ansible, compose, molecule, traefik-routes]
     runs-on: ubuntu-latest
     steps:
       - name: Check that all required jobs succeeded
