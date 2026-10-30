@@ -1,0 +1,11 @@
+apiVersion: 1
+
+providers:
+  - name: Vigie
+    folder: Vigie
+    type: file
+    allowUiUpdates: false
+    # Dashboards are reloaded from the folder, without a restart
+    updateIntervalSeconds: 30
+    options:
+      path: /etc/grafana/dashboards

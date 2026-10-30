@@ -1,0 +1,14 @@
+---
+# Vigie (services/vigie): VictoriaMetrics and Grafana monitoring Traefik
+
+# How often Grafana evaluates the alert rules
+vigie_alert_evaluation_interval: 1m
+
+# Prefixes of the Traefik services left out of the latency alert: they hold
+# long requests on purpose (VPN streams, uploads, editors, event streams, sync)
+vigie_latency_excluded_services:
+  - netbird
+  - nextcloud
+  - collabora
+  - home-assistant
+  - synapse

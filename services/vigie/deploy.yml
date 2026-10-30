@@ -1,0 +1,37 @@
+---
+- name: Deploy Vigie
+  hosts: vigie
+  become: true
+  vars_files:
+    - ../../vault/ansible/vault.yml
+    - ../../vault/vigie/vault.yml
+    - ../../vault/cloudflare/vault.yml
+  roles:
+    - role: compose_service
+      vars:
+        compose_service_name: vigie
+        # Grafana's own user in its image; VictoriaMetrics runs as it too
+        compose_service_user: 472
+        compose_service_directories:
+          - victoriametrics
+          - grafana
+          - grafana/data
+        compose_service_templates:
+          - source: scrape.yml.j2
+            destination: scrape.yml
+          - source: grafana/alerting.yml.j2
+            destination: grafana/provisioning/alerting/alerting.yml
+        compose_service_files:
+          - source: grafana/datasources.yml
+            destination: grafana/provisioning/datasources/datasources.yml
+          - source: grafana/dashboards.yml
+            destination: grafana/provisioning/dashboards/dashboards.yml
+          - source: grafana/dashboards/traefik.json
+            destination: grafana/dashboards/traefik.json
+            restart: false   # Grafana reloads the dashboards folder itself
+        compose_service_environment:
+          GRAFANA_ADMIN_PASSWORD: "{{ vigie_grafana_admin_password }}"
+          PROXY_NETWORK: "{{ proxy_network }}"
+        compose_service_dns_records:
+          - record: vigie.anneraud.fr
+            visibility: private

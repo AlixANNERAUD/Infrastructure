@@ -1,0 +1,120 @@
+# Grafana alerting, rendered by deploy.yml: Traefik alert rules sent to Home Assistant
+{% set excluded = '(' ~ vigie_latency_excluded_services | join('|') ~ ').*' %}
+apiVersion: 1
+
+contactPoints:
+  - orgId: 1
+    name: Home Assistant
+    receivers:
+      - uid: home-assistant
+        type: webhook
+        settings:
+          url: https://maison.anneraud.fr/api/webhook/{{ vigie_home_assistant_webhook_id }}
+          httpMethod: POST
+
+policies:
+  - orgId: 1
+    receiver: Home Assistant
+    group_by: [alertname, service]
+    repeat_interval: 4h
+
+groups:
+  - orgId: 1
+    name: Traefik
+    folder: Vigie
+    interval: {{ vigie_alert_evaluation_interval }}
+    rules:
+      # Series only exist once a service has answered, so missing data is normal
+      - uid: traefik-server-errors
+        title: Traefik server errors
+        condition: threshold
+        for: 10m
+        noDataState: OK
+        execErrState: Error
+        data:
+          - refId: query
+            relativeTimeRange: {from: 600, to: 0}
+            datasourceUid: victoriametrics
+            model:
+              refId: query
+              instant: true
+              range: false
+              # Share of 5xx answers over 10 minutes, for services with at least 20 requests
+              expr: >-
+                (
+                  sum by (host, service) (increase(traefik_service_requests_total{code=~"5.."}[10m]))
+                  / sum by (host, service) (increase(traefik_service_requests_total[10m]))
+                )
+                and on (host, service)
+                sum by (host, service) (increase(traefik_service_requests_total[10m])) >= 20
+          - refId: threshold
+            datasourceUid: __expr__
+            model:
+              refId: threshold
+              type: threshold
+              expression: query
+              conditions:
+                - evaluator: {type: gt, params: [0.05]}
+        annotations:
+          summary: "{% raw %}{{ $labels.service }} on {{ $labels.host }} answers {{ humanizePercentage $values.query.Value }} of its requests with a server error{% endraw %}"
+
+      - uid: traefik-slow-responses
+        title: Traefik slow responses
+        condition: threshold
+        for: 15m
+        noDataState: OK
+        execErrState: Error
+        data:
+          - refId: query
+            relativeTimeRange: {from: 900, to: 0}
+            datasourceUid: victoriametrics
+            model:
+              refId: query
+              instant: true
+              range: false
+              # 95th percentile response time over 15 minutes, for services with at least 20 requests,
+              # leaving out the services that hold long requests on purpose
+              expr: >-
+                histogram_quantile(0.95, sum by (host, service, le) (
+                  rate(traefik_service_request_duration_seconds_bucket{service!~"{{ excluded }}"}[15m])
+                ))
+                and on (host, service)
+                sum by (host, service) (increase(traefik_service_request_duration_seconds_count{service!~"{{ excluded }}"}[15m])) >= 20
+          - refId: threshold
+            datasourceUid: __expr__
+            model:
+              refId: threshold
+              type: threshold
+              expression: query
+              conditions:
+                - evaluator: {type: gt, params: [2]}
+        annotations:
+          summary: "{% raw %}{{ $labels.service }} on {{ $labels.host }} answers 5 % of its requests in more than {{ humanizeDuration $values.query.Value }}{% endraw %}"
+
+      # VictoriaMetrics records up = 0 when a Traefik instance cannot be scraped;
+      # no up series at all means scraping itself is broken
+      - uid: traefik-metrics-missing
+        title: Traefik metrics missing
+        condition: threshold
+        for: 10m
+        noDataState: Alerting
+        execErrState: Error
+        data:
+          - refId: query
+            relativeTimeRange: {from: 600, to: 0}
+            datasourceUid: victoriametrics
+            model:
+              refId: query
+              instant: true
+              range: false
+              expr: up{job=~"traefik-.*"}
+          - refId: threshold
+            datasourceUid: __expr__
+            model:
+              refId: threshold
+              type: threshold
+              expression: query
+              conditions:
+                - evaluator: {type: lt, params: [1]}
+        annotations:
+          summary: "{% raw %}Traefik on {{ $labels.host }} cannot be scraped{% endraw %}"

@@ -1,0 +1,22 @@
+# VictoriaMetrics scrape configuration, rendered by deploy.yml
+global:
+  scrape_interval: 30s
+
+scrape_configs:
+  # Luxembourg's Traefik, on its internal metrics entrypoint in the proxy network
+  - job_name: traefik-luxembourg
+    metrics_path: /metrics
+    scheme: http
+    static_configs:
+      - targets: ["traefik:8082"]
+        labels:
+          host: luxembourg
+
+  # Bruxelles' Traefik over Netbird, behind its internal allowlist
+  - job_name: traefik-bruxelles
+    metrics_path: /metrics
+    scheme: https
+    static_configs:
+      - targets: ["{{ hostvars['bruxelles'].traefik_dashboard_host }}"]
+        labels:
+          host: bruxelles
