@@ -1,0 +1,115 @@
+---
+- name: Deploy Vigie
+  hosts: vigie
+  become: true
+  vars_files:
+    - ../../vault/ansible/vault.yml
+    - ../../vault/vigie/vault.yml
+    - ../../vault/cloudflare/vault.yml
+  pre_tasks:
+    # Grafana's login through Zitadel is optional: without the Zitadel
+    # credentials the deploy goes on with the break-glass admin login only
+    - name: Look for the Zitadel vault
+      ansible.builtin.stat:
+        path: "{{ playbook_dir }}/../../vault/zitadel/vault.yml"
+      register: vigie_zitadel_vault
+      delegate_to: localhost
+      become: false
+
+    - name: Load the Zitadel vault
+      ansible.builtin.include_vars:
+        file: "{{ playbook_dir }}/../../vault/zitadel/vault.yml"
+      when: vigie_zitadel_vault.stat.exists
+      no_log: true
+
+    # A failed provisioning keeps the login of the previous deploy rather than switching it off
+    - name: Read the environment of the previous deploy
+      ansible.builtin.slurp:
+        path: "{{ services_root }}/vigie/.env"
+      register: vigie_previous_environment_file
+      failed_when: false
+      no_log: true   # also holds the Grafana admin password
+
+    - name: Keep the previous Zitadel login values
+      ansible.builtin.set_fact:
+        vigie_previous_oauth_enabled: >-
+          {{ vigie_previous_lines | select('match', '^GRAFANA_OAUTH_ENABLED=') | map('regex_replace', '^[^=]*=', '') | first | default('false') }}
+        vigie_previous_oauth_client_id: >-
+          {{ vigie_previous_lines | select('match', '^GRAFANA_OAUTH_CLIENT_ID=') | map('regex_replace', '^[^=]*=', '') | first | default('') }}
+      vars:
+        vigie_previous_lines: "{{ (vigie_previous_environment_file.content | default('') | b64decode).splitlines() }}"
+      no_log: true
+
+    - name: Provision the Grafana application in Zitadel
+      block:
+        - name: Run the Zitadel applications role
+          ansible.builtin.include_role:
+            name: zitadel_applications
+            apply:
+              become: false
+
+        - name: Use the provisioned Zitadel login
+          ansible.builtin.set_fact:
+            vigie_oauth_enabled: "{{ zitadel_applications_provisioned | string | lower }}"
+            vigie_oauth_client_id: "{{ zitadel_applications_client_ids.grafana | default('') }}"
+
+        # Only when the apply changed the applications, so the state changed too
+        - name: Remind to commit the state
+          ansible.builtin.debug:
+            msg: Commit vault/zitadel/opentofu.tfstate in the vault repository.
+          when: vigie_zitadel_state_changed
+          vars:
+            vigie_zitadel_state_changed: "{{ zitadel_applications_apply.changed | default(false) }}"
+
+      rescue:
+        - name: Keep the Zitadel login of the previous deploy
+          ansible.builtin.set_fact:
+            vigie_oauth_enabled: "{{ vigie_previous_oauth_enabled if vigie_previous_oauth_client_id | length > 0 else 'false' }}"
+            vigie_oauth_client_id: "{{ vigie_previous_oauth_client_id }}"
+
+        - name: Report that Zitadel provisioning failed
+          ansible.builtin.debug:
+            msg: >-
+              Zitadel provisioning failed:
+              {{ 'Grafana keeps the Zitadel login of the previous deploy' if vigie_oauth_enabled == 'true' else 'Grafana OAuth stays off' }}
+              and the local admin login still works. A missing tofu means the playbook was not
+              run with mise (mise deploy services/vigie/deploy.yml). First line of the error:
+              {{ (ansible_failed_result.msg | default('unknown error') | string).splitlines() | first | default('unknown error') }}
+
+  roles:
+    - role: compose_service
+      vars:
+        compose_service_name: vigie
+        # Grafana's own user in its image; VictoriaMetrics runs as it too
+        compose_service_user: 472
+        compose_service_directories:
+          - victoriametrics
+          - grafana
+          - grafana/data
+        compose_service_templates:
+          - source: scrape.yml.j2
+            destination: scrape.yml
+          - source: grafana/alerting.yml.j2
+            destination: grafana/provisioning/alerting/alerting.yml
+        compose_service_files:
+          - source: grafana/datasources.yml
+            destination: grafana/provisioning/datasources/datasources.yml
+          - source: grafana/dashboards.yml
+            destination: grafana/provisioning/dashboards/dashboards.yml
+          - source: grafana/dashboards/traefik.json
+            destination: grafana/dashboards/traefik.json
+            restart: false   # Grafana reloads the dashboards folder itself
+        compose_service_environment:
+          GRAFANA_ADMIN_PASSWORD: "{{ vigie_grafana_admin_password }}"
+          PROXY_NETWORK: "{{ proxy_network }}"
+          GRAFANA_OAUTH_ENABLED: "{{ vigie_oauth_enabled }}"
+          GRAFANA_OAUTH_CLIENT_ID: "{{ vigie_oauth_client_id }}"
+          # Ends the Zitadel session too, then comes back to Grafana's login page
+          # (the post-logout URI registered for the application)
+          GRAFANA_SIGNOUT_REDIRECT_URL: >-
+            {{ ('https://authentification.anneraud.fr/oidc/v1/end_session?client_id=' ~ vigie_oauth_client_id
+                ~ '&post_logout_redirect_uri=https%3A%2F%2Fvigie.anneraud.fr%2Flogin')
+               if vigie_oauth_enabled | bool else '' }}
+        compose_service_dns_records:
+          - record: vigie.anneraud.fr
+            visibility: private

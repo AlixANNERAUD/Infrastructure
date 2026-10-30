@@ -1,6 +1,6 @@
 ---
 # Deploy every service. Limit to one host with --limit, for example:
-#   uv run ansible-playbook site.yml --limit bruxelles
+#   mise exec -- uv run ansible-playbook site.yml --limit bruxelles
 # DNS zones are applied with dns/*.yml
 
 # Reverse proxy first: the other Luxembourg services are routed through it
@@ -13,6 +13,8 @@
   ansible.builtin.import_playbook: services/gatus_anneraud/deploy.yml
 - name: Gatus (dera.page)
   ansible.builtin.import_playbook: services/gatus_dera_page/deploy.yml
+- name: Vigie
+  ansible.builtin.import_playbook: services/vigie/deploy.yml
 - name: HA-Linky
   ansible.builtin.import_playbook: services/ha-linky/deploy.yml
 - name: Matrix (anneraud.fr)

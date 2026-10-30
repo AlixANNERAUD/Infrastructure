@@ -129,11 +129,29 @@ jobs:
       - name: Load the rendered routes in Traefik
         run: .github/scripts/check-traefik-routes.sh
 
+  vigie:
+    name: Vigie
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - uses: astral-sh/setup-uv@v10.3.3
+        with:
+          enable-cache: true
+
+      - name: Install tools
+        run: |
+          uv sync --locked
+          uv run ansible-galaxy collection install -r requirements.yml
+
+      - name: Provision VictoriaMetrics and Grafana and evaluate the alerts
+        run: .github/scripts/check-vigie.sh
+
   # Single check required by the branch ruleset: add new jobs to `needs`
   required:
     name: required
     if: always()
-    needs: [ansible, compose, molecule, molecule-zitadel, opentofu, traefik-routes]
+    needs: [ansible, compose, molecule, molecule-zitadel, opentofu, traefik-routes, vigie]
     runs-on: ubuntu-latest
     steps:
       - name: Check that all required jobs succeeded

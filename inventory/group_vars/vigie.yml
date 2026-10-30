@@ -1,0 +1,23 @@
+---
+# Vigie (services/vigie): VictoriaMetrics and Grafana monitoring Traefik
+
+# How often Grafana evaluates the alert rules
+vigie_alert_evaluation_interval: 1m
+
+# Prefixes of the Traefik services (nextcloud@file, matrix-dera-page@docker…)
+# left out of the latency alert: they hold long requests on purpose (VPN
+# streams, uploads, editors, event streams, Matrix /sync long polling, media
+# streams and downloads)
+vigie_latency_excluded_services:
+  - netbird          # netbird-*@docker on Luxembourg
+  - nextcloud
+  - collabora
+  - home-assistant
+  - synapse          # synapse@file on Bruxelles
+  - matrix           # matrix-dera-page@docker on Luxembourg, matrix-delegation@file
+  - jellyfin
+  - camera           # camera-nicosie, camera-skopje, camera-amsterdam
+  - metube
+  - qbittorrent
+  - meshcentral      # remote desktop sessions
+  - open-webui       # streamed model answers

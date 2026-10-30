@@ -16,6 +16,7 @@ exclude_paths:
   - services/*/compose.yml
   - services/traefik/policy.yml
   - services/gatus_*/config.yml
+  - services/vigie/grafana/*.yml
   - roles/*/molecule/*/compose.yml
   - roles/*/molecule/*/config.yml
   - roles/*/molecule/*/reloaded_*.yml
