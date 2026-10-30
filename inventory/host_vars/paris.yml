@@ -1,0 +1,6 @@
+---
+# Desktop client
+ansible_host: local.paris.anneraud.fr
+ansible_user: ansible
+local_dns_host: local.paris.anneraud.fr
+bruxelles_replication_identifier: "6"

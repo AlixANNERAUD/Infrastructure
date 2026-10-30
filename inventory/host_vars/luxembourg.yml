@@ -1,0 +1,10 @@
+---
+# Cloud VM with a public IP
+ansible_host: local.luxembourg.anneraud.fr
+ansible_user: ansible
+local_dns_host: local.luxembourg.anneraud.fr
+global_dns_host: global.luxembourg.anneraud.fr
+
+# Compose stacks live in /opt, behind Traefik
+services_root: /opt
+proxy_network: traefik

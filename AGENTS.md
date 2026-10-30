@@ -7,7 +7,8 @@ Ansible playbooks and Docker Compose files that deploy Alix's self-hosted servic
 - `services/<service>/` — one folder per service: `deploy.yml` (playbook), `compose.yml`, and any `*.j2` templates or config it copies.
 - `hosts/<host>/` — host-level playbooks (packages, networking, DNS for the host itself).
 - `services/cloudflare/update_dns_*.yml` — DNS zones not owned by a single service.
-- `inventory.yml` — hosts and their `local_dns_host` / `global_dns_host`.
+- `inventory/hosts.yml` — hosts, plus one group per service naming the host it runs on (`tolgee_anneraud: {hosts: {luxembourg:}}`). Group names use underscores (`ha_linky`).
+- `inventory/host_vars/<host>.yml` — per-host settings: connection, `local_dns_host` / `global_dns_host`, `services_root`, `proxy_network`. Put host facts here, not in playbooks.
 - `vault/` — **private submodule** (`Infrastructure_vault`) with Ansible Vault files, one per service: `vault/<service>/vault.yml`, plus `vault/ansible/vault.yml` (sudo password) and `vault/cloudflare/vault.yml`.
 - `services/website/website` — separate submodule; not part of this repo's code.
 

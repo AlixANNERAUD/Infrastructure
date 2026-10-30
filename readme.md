@@ -4,7 +4,7 @@ This repository contains the infrastructure code and documentation for deploying
 
 ## Inventory
 
-See [documentation/inventory.md](documentation/inventory.md)
+Hosts and the service-to-host mapping are in [inventory/hosts.yml](inventory/hosts.yml); per-host settings are in [inventory/host_vars/](inventory/host_vars/).
 
 ## Services
 
