@@ -100,6 +100,23 @@
     - ../../vault/ansible/vault.yml
     - ../../vault/replication/vault.yml
   tasks:
+    - name: Look up the replication user
+      ansible.builtin.getent:
+        database: passwd
+        key: "{{ replication_user }}"
+        fail_key: false
+
+    - name: Explain how to create the replication user
+      ansible.builtin.debug:
+        msg:
+          - "Create the {{ replication_user }} user in the TrueNAS interface (Credentials > Users), then run this playbook again:"
+          - Home folder on the pool, shell /usr/bin/sh (not nologin, the forced command runs through it), no sudo, password login disabled
+      when: ansible_facts.getent_passwd[replication_user] is none
+
+    - name: Skip Bruxelles until the replication user exists
+      ansible.builtin.meta: end_host
+      when: ansible_facts.getent_passwd[replication_user] is none
+
     - name: Create the replication folder
       ansible.builtin.file:
         path: "{{ replication_directory }}"
@@ -132,10 +149,26 @@
           esac
           exec midclt -K "$(cat {{ replication_directory }}/api_key)" call replication.run "$1"
 
-    - name: Show the SSH keys to set on the replication user in TrueNAS
-      ansible.builtin.debug:
-        msg: >-
+    - name: Read the replication user's authorized keys
+      ansible.builtin.slurp:
+        src: "{{ ansible_facts.getent_passwd[replication_user][4] }}/.ssh/authorized_keys"
+      register: replication_authorized_keys
+      failed_when: false
+
+    - name: Build the expected authorized keys
+      ansible.builtin.set_fact:
+        replication_expected_keys: "{{ replication_expected_keys | default([]) + [replication_key_line] }}"
+      vars:
+        replication_key_line: >-
           command="{{ replication_directory }}/run-replication.sh {{ hostvars[item].bruxelles_replication_identifier }}",restrict
           {{ hostvars[item].replication_public_key.content | b64decode | trim }}
       loop: "{{ groups['replication'] }}"
       when: hostvars[item].replication_public_key is defined
+
+    - name: Explain which keys to add in the TrueNAS interface
+      ansible.builtin.debug:
+        msg: "{{ ['Add these lines to Credentials > Users > ' ~ replication_user ~ ' > Authorized Keys:'] + replication_missing_keys }}"
+      vars:
+        replication_current_keys: "{{ replication_authorized_keys.content | default('') | b64decode }}"
+        replication_missing_keys: "{{ replication_expected_keys | default([]) | reject('in', replication_current_keys) | list }}"
+      when: replication_missing_keys | length > 0

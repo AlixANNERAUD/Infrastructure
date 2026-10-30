@@ -95,17 +95,16 @@ uv run ansible-playbook hosts/bootstrap.yml --limit <host>                      
 uv run ansible-playbook hosts/bootstrap.yml --limit <host> -u <you> --ask-become-pass     # new host, added to the inventory first
 ```
 
-The playbook also hardens `sshd` (no passwords, no root login, only `ansible` and `ssh_administrators`). It refuses to run if the current connection doesn't come from an allowed network.
+The playbook also hardens `sshd` (no passwords, no root login, only `ansible` and `ssh_administrators`). It refuses to run if the current connection doesn't come from an allowed network. When a host can't be reached, or sudo needs a password nobody provided, it prints the commands to run on that host by hand and skips it.
 
-**TrueNAS (Bruxelles)** manages users and `sshd` in its own interface, so the playbook skips it. In *Credentials → Users*, the `ansible` user has the public key, *Allowed sudo commands with no password* set to `ALL`, and password login disabled; in *System → Services → SSH*, password login is off.
+**TrueNAS (Bruxelles)** manages users and `sshd` in its own interface, which would undo changes made over SSH. The playbook only checks it (reachable, the key with its `from=` restriction, passwordless sudo, password login off) and prints what to change in the interface.
 
 ### Replication
 
 `services/replication/deploy.yml` gives each client in the `replication` group a `replication` account and key, and installs a forced command on Bruxelles that runs one TrueNAS replication task, so the TrueNAS API key never leaves Bruxelles. Once, before deploying it:
 
-1. In TrueNAS, create a `replication` user with a home folder on the pool and `/usr/bin/sh` as shell (not `nologin`, the forced command runs through it), without sudo.
-2. Deploy: `uv run ansible-playbook services/replication/deploy.yml`.
-3. Paste the `command="…",restrict ssh-ed25519 …` lines it prints into that user's *Authorized Keys*.
+1. Deploy: `uv run ansible-playbook services/replication/deploy.yml`. Until the `replication` user exists in TrueNAS, it explains how to create it.
+2. Paste the `command="…",restrict ssh-ed25519 …` lines it prints into that user's *Authorized Keys*; it prints them only while they are missing.
 
 ## Structure
 
