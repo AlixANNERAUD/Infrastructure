@@ -22,7 +22,7 @@
       account_email: "{{ cloudflare_email }}"
       account_api_key: "{{ cloudflare_api_key }}"
   tasks:
-    - name: Update CNAME records for minitrainstore.fr 
+    - name: Update CNAME records for minitrainstore.fr
       community.general.cloudflare_dns:
         type: CNAME
         record: "{{ item.record }}"

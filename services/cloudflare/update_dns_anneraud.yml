@@ -132,6 +132,7 @@
         value: mta-gw.infomaniak.ch
     txt_records:
       - record: 20241222._domainkey.anneraud.fr
+        # yamllint disable-line rule:line-length
         value: "v=DKIM1; t=s; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuMEJm6DiNo3yVRVG989jS40rQmF18RHss/tvyR+JQijkRXdc4iGKvRYU3IvIUqdFXzmZezrUCaCGw4GP82esoFjZu9kS8uOGWlzvbFmh1n0nN1b+Oovfqyd31OC8eXCY+sPufWT18pWyh/ApIaCXPObKDySE9FlguxUZbohSoujr5h7riXsiGFSPeesNl+p50k/U+1jCZmnke78YIeID118xmy45KVGwXjSXrRwvYafaZAZ/1zG6NYh5Mrk/upnnBsXJcxIo7M4sKny8FQIdbq6kg8MQianhJ0z1wkHomIginm6I6596M1Ph1kmJR+Vt7a8sVjCpfACjUscQusK6HQIDAQAB"
       - record: 20250513._domainkey.3341891.anneraud.fr
         value: "v=DKIM1; t=s; p="
@@ -140,6 +141,7 @@
       - record: anneraud.fr
         value: "v=spf1 include:spf.infomaniak.ch -all"
       - record: _dmarc.anneraud.fr
+        # yamllint disable-line rule:line-length
         value: "v=DMARC1; p=reject; rua=mailto:5715c191ce054df6be0a31b9dbc29be5@dmarc-reports.cloudflare.net,mailto:alix@anneraud.fr; ruf=mailto:alix@anneraud.fr; fo=1; pct=100; adkim=s; aspf=s"
   vars_files:
     - ../../vault/cloudflare/vault.yml

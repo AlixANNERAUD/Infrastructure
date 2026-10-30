@@ -27,15 +27,15 @@
 
     - name: Update packages
       ansible.builtin.apt:
-        update_cache: yes
+        update_cache: true
         upgrade: dist
         cache_valid_time: 3600
 
     - name: Install netbird
       ansible.builtin.apt:
         name: netbird
-        state: latest
-        update_cache: yes
+        state: latest  # noqa: package-latest - this playbook is meant to upgrade Netbird
+        update_cache: true
 
     - name: Update DNS records for Pristina
       community.general.cloudflare_dns:

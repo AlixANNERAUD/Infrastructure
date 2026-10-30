@@ -7,6 +7,7 @@
     bao_addr: https://vault.xila.dev
     signing_sha: a50520f1402d8374fb8c7f614fed91bd512d0ac6
     bao_token_path: "{{ lookup('ansible.builtin.env', 'BAO_TOKEN_PATH') | default(lookup('ansible.builtin.env', 'HOME') + '/.vault-token', true) }}"
+    # yamllint disable-line rule:line-length
     bao_token: "{{ lookup('ansible.builtin.env', 'BAO_TOKEN') | default(lookup('ansible.builtin.file', bao_token_path, errors='ignore'), true) | default('', true) | trim }}"
     signing_policy: |
       path "transit/sign/xila-applications" {

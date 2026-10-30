@@ -57,10 +57,24 @@ See [documentation/inventory.md](documentation/inventory.md)
 
 ## Deployment
 
+Install the pinned tools (Ansible, ansible-lint, yamllint) and Ansible collections with [uv](https://docs.astral.sh/uv/):
+
+```bash
+uv sync
+uv run ansible-galaxy collection install -r requirements.yml
+```
+
 Deploy a service playbook with Ansible:
 
 ```bash
-ansible-playbook -i inventory.yml --ask-become-pass services/<service_name>/deploy.yml
+uv run ansible-playbook --ask-become-pass services/<service_name>/deploy.yml
+```
+
+Lint before committing:
+
+```bash
+uv run yamllint .
+uv run ansible-lint
 ```
 
 ## Structure
