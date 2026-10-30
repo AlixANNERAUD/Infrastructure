@@ -1,0 +1,103 @@
+---
+- name: Reset the provisioning facts
+  ansible.builtin.set_fact:
+    zitadel_applications_provisioned: false
+    zitadel_applications_client_ids: {}
+    zitadel_applications_client_secrets: {}
+    zitadel_applications_configured_in: {}
+  delegate_to: localhost
+  run_once: true
+
+- name: Explain how to create the Zitadel credentials
+  ansible.builtin.debug:
+    msg:
+      - "Zitadel applications are not provisioned: the automation token or the state passphrase is missing. Once:"
+      - "1. Zitadel console (https://authentification.anneraud.fr) → Users → Service Users → New, then give it the ORG_OWNER role"
+      - "2. On that user, Personal Access Tokens → New, and copy the token"
+      - "3. ansible-vault edit vault/zitadel/vault.yml: set zitadel_automation_token to the token and zitadel_state_passphrase
+        to a new random passphrase of at least 16 characters (openssl rand -base64 32)"
+  delegate_to: localhost
+  run_once: true
+  when: zitadel_applications_token | length == 0 or zitadel_applications_state_passphrase | length == 0
+
+- name: Provision the applications
+  when:
+    - zitadel_applications_token | length > 0
+    - zitadel_applications_state_passphrase | length > 0
+  delegate_to: localhost
+  run_once: true
+  block:
+    # community.general.terraform needs the binary's full path
+    - name: Find OpenTofu
+      ansible.builtin.command:
+        argv: [which, tofu]
+      register: zitadel_applications_binary
+      changed_when: false
+      failed_when: false
+
+    - name: Check that OpenTofu is installed
+      ansible.builtin.assert:
+        that: zitadel_applications_binary.rc == 0
+        fail_msg: OpenTofu is not installed; run mise install at the root of the repository.
+        quiet: true
+
+    - name: Apply the OpenTofu configuration
+      block:
+        # Variables on the command line override applications.auto.tfvars;
+        # a file keeps the applications map out of the process list
+        - name: Create the variables file
+          ansible.builtin.tempfile:
+            suffix: .tfvars.json
+          register: zitadel_applications_variables_file
+          changed_when: false
+
+        - name: Write the variables file
+          ansible.builtin.copy:
+            dest: "{{ zitadel_applications_variables_file.path }}"
+            content: "{{ zitadel_applications_variables | to_json }}"
+            mode: "0600"
+          changed_when: false
+
+        # tofu apply re-reads the variables to compare them with the plan's, so
+        # it gets the file too; the token and the passphrase only go through the
+        # environment, as does state_path, which tofu init needs for the backend
+        - name: Run tofu apply
+          community.general.terraform:
+            project_path: "{{ zitadel_applications_project_path }}"
+            binary_path: "{{ zitadel_applications_binary.stdout }}"
+            variables_files:
+              - "{{ zitadel_applications_variables_file.path }}"
+            force_init: true
+            init_reconfigure: true
+            state: present
+          environment: >-
+            {{ {'TF_VAR_zitadel_token': zitadel_applications_token,
+                'TF_VAR_state_passphrase': zitadel_applications_state_passphrase,
+                'TF_CLI_ARGS_apply': '-var-file=' ~ zitadel_applications_variables_file.path,
+                'TF_REGISTRY_CLIENT_TIMEOUT': '120'}
+               | combine({'TF_VAR_state_path': zitadel_applications_variables.state_path}
+                         if zitadel_applications_variables.state_path is defined else {}) }}
+          register: zitadel_applications_apply
+          no_log: true
+
+      # no_log hides the failure; OpenTofu redacts sensitive values from its errors
+      rescue:
+        - name: Report the OpenTofu error
+          ansible.builtin.fail:
+            msg: "{{ zitadel_applications_apply.msg | default('tofu apply failed') }}"
+
+      always:
+        - name: Remove the variables file
+          ansible.builtin.file:
+            path: "{{ zitadel_applications_variables_file.path }}"
+            state: absent
+          changed_when: false
+          when: zitadel_applications_variables_file.path is defined
+
+    - name: Set the provisioning facts
+      ansible.builtin.set_fact:
+        zitadel_applications_provisioned: true
+        zitadel_applications_client_ids: "{{ zitadel_applications_apply.outputs.client_ids.value }}"
+        zitadel_applications_client_secrets: "{{ zitadel_applications_apply.outputs.client_secrets.value }}"
+        zitadel_applications_configured_in: "{{ zitadel_applications_apply.outputs.configured_in.value }}"
+      no_log: true

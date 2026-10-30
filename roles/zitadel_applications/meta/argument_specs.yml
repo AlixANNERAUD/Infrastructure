@@ -1,0 +1,23 @@
+---
+argument_specs:
+  main:
+    short_description: Provision Zitadel projects, roles and OIDC applications with OpenTofu
+    description:
+      - Runs tofu apply on opentofu/zitadel from the controller, then sets the facts zitadel_applications_provisioned,
+        zitadel_applications_client_ids, zitadel_applications_client_secrets and zitadel_applications_configured_in.
+      - Without a token or a state passphrase, prints the one-time manual step and sets zitadel_applications_provisioned to false.
+    options:
+      zitadel_applications_token:
+        type: str
+        no_log: true
+        description: Personal access token of a Zitadel service account with the ORG_OWNER role.
+      zitadel_applications_state_passphrase:
+        type: str
+        no_log: true
+        description: Passphrase of the encrypted OpenTofu state, at least 16 characters.
+      zitadel_applications_project_path:
+        type: path
+        description: Folder of the OpenTofu configuration.
+      zitadel_applications_variables:
+        type: dict
+        description: Extra OpenTofu variables (zitadel_domain, zitadel_port, zitadel_insecure, state_path, applications).

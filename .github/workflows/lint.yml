@@ -68,6 +68,49 @@ jobs:
         working-directory: roles/compose_service
         run: uv run molecule test
 
+  opentofu:
+    name: tofu fmt and validate
+    runs-on: ubuntu-latest
+    env:
+      # The registry answers slowly at times; OpenTofu's default timeout is 10 s
+      TF_REGISTRY_CLIENT_TIMEOUT: "120"
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      # Installs the OpenTofu version pinned in mise.toml
+      - uses: jdx/mise-action@v5.2.4
+
+      - name: Check formatting
+        run: tofu fmt -check -recursive opentofu
+
+      - name: Validate the Zitadel configuration
+        working-directory: opentofu/zitadel
+        run: tofu init -backend=false && tofu validate
+
+  molecule-zitadel:
+    name: molecule (zitadel_applications)
+    runs-on: ubuntu-latest
+    env:
+      # The registry answers slowly at times; OpenTofu's default timeout is 10 s
+      TF_REGISTRY_CLIENT_TIMEOUT: "120"
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - uses: astral-sh/setup-uv@v10.3.3
+        with:
+          enable-cache: true
+
+      - uses: jdx/mise-action@v5.2.4
+
+      - name: Install tools
+        run: |
+          uv sync --locked
+          uv run ansible-galaxy collection install -r requirements.yml
+
+      - name: Test the zitadel_applications role
+        working-directory: roles/zitadel_applications
+        run: uv run molecule test
+
   traefik-routes:
     name: Traefik routes
     runs-on: ubuntu-latest
@@ -90,7 +133,7 @@ jobs:
   required:
     name: required
     if: always()
-    needs: [ansible, compose, molecule, traefik-routes]
+    needs: [ansible, compose, molecule, molecule-zitadel, opentofu, traefik-routes]
     runs-on: ubuntu-latest
     steps:
       - name: Check that all required jobs succeeded

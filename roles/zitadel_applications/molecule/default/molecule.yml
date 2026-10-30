@@ -1,0 +1,49 @@
+---
+# Runs the role on the local machine (or CI runner) against a throwaway
+# Zitadel; needs Docker with the Compose plugin and OpenTofu (mise install).
+driver:
+  name: default
+  options:
+    managed: false
+platforms:
+  - name: instance
+provisioner:
+  name: ansible
+  env:
+    ANSIBLE_COLLECTIONS_PATH: ${MOLECULE_PROJECT_DIRECTORY}/../../.ansible/collections
+    ANSIBLE_ROLES_PATH: ${MOLECULE_PROJECT_DIRECTORY}/..
+  inventory:
+    host_vars:
+      instance:
+        ansible_connection: local
+        ansible_python_interpreter: "{{ ansible_playbook_python }}"
+        # The repository's configuration, with a state file in the ephemeral directory
+        zitadel_applications_project_path: "{{ lookup('ansible.builtin.env', 'MOLECULE_PROJECT_DIRECTORY') }}/../../opentofu/zitadel"
+        zitadel_applications_test_directory: "{{ lookup('ansible.builtin.env', 'MOLECULE_EPHEMERAL_DIRECTORY') }}/zitadel"
+        # Zitadel writes the first-instance service account's token here
+        zitadel_applications_test_bootstrap_directory: "{{ zitadel_applications_test_directory }}/bootstrap"
+        zitadel_applications_test_token_path: "{{ zitadel_applications_test_bootstrap_directory }}/automation.pat"
+        zitadel_applications_test_state_path: "{{ zitadel_applications_test_directory }}/opentofu.tfstate"
+        zitadel_applications_test_url: http://localhost:18080
+        # Throwaway value, only protects the test state
+        zitadel_applications_test_state_passphrase: molecule-throwaway-passphrase
+        zitadel_applications_test_applications: >-
+          {{ (lookup('ansible.builtin.file', lookup('ansible.builtin.env', 'MOLECULE_SCENARIO_DIRECTORY') ~ '/applications.tfvars.json')
+              | from_json).applications }}
+        zitadel_applications_test_variables:
+          zitadel_domain: localhost
+          zitadel_port: "18080"
+          zitadel_insecure: true
+          state_path: "{{ zitadel_applications_test_state_path }}"
+          applications: "{{ zitadel_applications_test_applications }}"
+scenario:
+  test_sequence:
+    - cleanup
+    - syntax
+    - prepare
+    - converge
+    - idempotence
+    - verify
+    - cleanup
+    # No playbook: only resets Molecule's state, so that the next run prepares again
+    - destroy

@@ -1,0 +1,156 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: false
+  vars:
+    zitadel_applications_test_token: "{{ lookup('ansible.builtin.file', zitadel_applications_test_token_path) }}"
+    zitadel_applications_test_changed_uri: https://grafana-changed.molecule.example/login/generic_oauth
+  tasks:
+    - name: Run the role
+      ansible.builtin.include_role:
+        name: zitadel_applications
+      vars:
+        zitadel_applications_token: "{{ zitadel_applications_test_token }}"
+        zitadel_applications_state_passphrase: "{{ zitadel_applications_test_state_passphrase }}"
+        zitadel_applications_variables: "{{ zitadel_applications_test_variables }}"
+
+    - name: Check the facts
+      ansible.builtin.assert:
+        that:
+          - zitadel_applications_provisioned
+          - zitadel_applications_client_ids.keys() | sort == ['grafana', 'nextcloud']
+          - zitadel_applications_client_ids.values() | select | list | length == 2
+          - zitadel_applications_client_secrets.keys() | list == ['nextcloud']
+          - zitadel_applications_client_secrets.nextcloud | length > 0
+          - "zitadel_applications_configured_in == {'nextcloud': 'Nextcloud → Administration → OpenID Connect'}"
+        quiet: true
+
+    - name: Remember the client ids
+      ansible.builtin.set_fact:
+        zitadel_applications_test_client_ids: "{{ zitadel_applications_client_ids }}"
+
+    - name: Find the project in Zitadel
+      ansible.builtin.uri:
+        url: "{{ zitadel_applications_test_url }}/management/v1/projects/_search"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ zitadel_applications_test_token }}"
+        body_format: json
+        body:
+          queries:
+            - nameQuery:
+                name: Molecule
+                method: TEXT_QUERY_METHOD_EQUALS
+      register: zitadel_applications_test_projects
+      no_log: true
+
+    - name: Check that there is one project
+      ansible.builtin.assert:
+        that: zitadel_applications_test_projects.json.result | default([]) | length == 1
+
+    - name: List the project's roles
+      ansible.builtin.uri:
+        url: "{{ zitadel_applications_test_url }}/management/v1/projects/{{ zitadel_applications_test_project_id }}/roles/_search"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ zitadel_applications_test_token }}"
+        body_format: json
+        body: {}
+      vars:
+        zitadel_applications_test_project_id: "{{ zitadel_applications_test_projects.json.result[0].id }}"
+      register: zitadel_applications_test_roles
+      no_log: true
+
+    - name: Check the project's roles
+      ansible.builtin.assert:
+        that: zitadel_applications_test_roles.json.result | map(attribute='key') | list == ['vigie-admin']
+
+    - name: List the project's applications
+      ansible.builtin.uri:
+        url: "{{ zitadel_applications_test_url }}/management/v1/projects/{{ zitadel_applications_test_projects.json.result[0].id }}/apps/_search"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ zitadel_applications_test_token }}"
+        body_format: json
+        body: {}
+      register: zitadel_applications_test_applications_found
+      no_log: true
+
+    - name: Check the project's applications
+      ansible.builtin.assert:
+        that:
+          - applications.keys() | sort == ['grafana', 'nextcloud']
+          - applications.grafana.clientId == zitadel_applications_test_client_ids.grafana
+          - applications.grafana.redirectUris == ['https://grafana.molecule.example/login/generic_oauth']
+          - applications.grafana.postLogoutRedirectUris == ['https://grafana.molecule.example/login']
+          - applications.grafana.authMethodType == 'OIDC_AUTH_METHOD_TYPE_NONE'
+          - applications.nextcloud.clientId == zitadel_applications_test_client_ids.nextcloud
+          - applications.nextcloud.redirectUris == ['https://nextcloud.molecule.example/apps/user_oidc/code']
+          - applications.nextcloud.authMethodType | default('OIDC_AUTH_METHOD_TYPE_BASIC') == 'OIDC_AUTH_METHOD_TYPE_BASIC'
+      vars:
+        applications: "{{ zitadel_applications_test_applications_found.json.result | items2dict(key_name='name', value_name='oidcConfig') }}"
+
+    - name: Check that the state file exists
+      ansible.builtin.stat:
+        path: "{{ zitadel_applications_test_state_path }}"
+      register: zitadel_applications_test_state
+
+    - name: Count the client secret in the state file
+      ansible.builtin.command:
+        argv: [grep, --count, --fixed-strings, --, "{{ zitadel_applications_client_secrets.nextcloud }}", "{{ zitadel_applications_test_state_path }}"]
+      register: zitadel_applications_test_secret_count
+      changed_when: false
+      failed_when: zitadel_applications_test_secret_count.rc > 1
+      no_log: true
+
+    - name: Check that the state is encrypted
+      ansible.builtin.assert:
+        that:
+          - zitadel_applications_test_state.stat.exists
+          - zitadel_applications_test_secret_count.stdout == '0'
+          - "'encrypted_data' in lookup('ansible.builtin.file', zitadel_applications_test_state_path)"
+
+    - name: Run the role with a changed redirect URI
+      ansible.builtin.include_role:
+        name: zitadel_applications
+      vars:
+        zitadel_applications_token: "{{ zitadel_applications_test_token }}"
+        zitadel_applications_state_passphrase: "{{ zitadel_applications_test_state_passphrase }}"
+        zitadel_applications_variables: >-
+          {{ zitadel_applications_test_variables | combine({'applications': {'grafana': {'redirect_uris': [zitadel_applications_test_changed_uri]}}},
+             recursive=true) }}
+
+    - name: Read the changed application
+      ansible.builtin.uri:
+        url: "{{ zitadel_applications_test_url }}/management/v1/projects/{{ zitadel_applications_test_projects.json.result[0].id }}/apps/_search"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ zitadel_applications_test_token }}"
+        body_format: json
+        body: {}
+      register: zitadel_applications_test_changed
+      no_log: true
+
+    - name: Check that the application was updated in place
+      ansible.builtin.assert:
+        that:
+          - zitadel_applications_client_ids == zitadel_applications_test_client_ids
+          - grafana.clientId == zitadel_applications_test_client_ids.grafana
+          - grafana.redirectUris == [zitadel_applications_test_changed_uri]
+      vars:
+        grafana: "{{ (zitadel_applications_test_changed.json.result | selectattr('name', 'equalto', 'grafana') | first).oidcConfig }}"
+
+    - name: Run the role without a token
+      ansible.builtin.include_role:
+        name: zitadel_applications
+      vars:
+        zitadel_applications_token: ""
+        zitadel_applications_state_passphrase: "{{ zitadel_applications_test_state_passphrase }}"
+        zitadel_applications_variables: "{{ zitadel_applications_test_variables }}"
+
+    - name: Check that the role skipped provisioning
+      ansible.builtin.assert:
+        that:
+          - not zitadel_applications_provisioned
+          - zitadel_applications_client_ids == {}
+          - zitadel_applications_client_secrets == {}

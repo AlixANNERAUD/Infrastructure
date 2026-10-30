@@ -1,0 +1,45 @@
+---
+- name: Prepare
+  hosts: all
+  gather_facts: false
+  tasks:
+    # Zitadel runs as an unprivileged user that must write the token here
+    - name: Create the bootstrap folder
+      ansible.builtin.file:
+        path: "{{ zitadel_applications_test_bootstrap_directory }}"
+        state: directory
+        mode: "0777"
+
+    - name: Start the throwaway Zitadel
+      community.docker.docker_compose_v2:
+        project_src: "{{ lookup('ansible.builtin.env', 'MOLECULE_SCENARIO_DIRECTORY') }}"
+        state: present
+      environment:
+        ZITADEL_BOOTSTRAP_DIRECTORY: "{{ zitadel_applications_test_bootstrap_directory }}"
+
+    - name: Wait for Zitadel to be ready
+      ansible.builtin.uri:
+        url: "{{ zitadel_applications_test_url }}/debug/ready"
+      register: zitadel_applications_test_ready
+      until: zitadel_applications_test_ready.status == 200
+      retries: 60
+      delay: 5
+
+    - name: Wait for the service account's token
+      ansible.builtin.wait_for:
+        path: "{{ zitadel_applications_test_token_path }}"
+        search_regex: "."
+        timeout: 60
+
+    - name: Read the service account's token
+      ansible.builtin.slurp:
+        src: "{{ zitadel_applications_test_token_path }}"
+      register: zitadel_applications_test_token
+      no_log: true
+
+    - name: Check that the token is usable
+      ansible.builtin.uri:
+        url: "{{ zitadel_applications_test_url }}/auth/v1/users/me"
+        headers:
+          Authorization: "Bearer {{ zitadel_applications_test_token.content | b64decode | trim }}"
+      no_log: true

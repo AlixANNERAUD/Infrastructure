@@ -1,3 +1,6 @@
 .vscode/
 .ansible/
 .venv/
+
+# OpenTofu providers and modules, installed by tofu init
+.terraform/
