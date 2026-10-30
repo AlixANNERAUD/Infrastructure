@@ -79,6 +79,11 @@ check(
     routers.get("umami", {}).get("rule") == "Host(`s.anneraud.fr`) || Host(`s.guenola-sahut.fr`)",
     "router umami has the wrong rule",
 )
+# A route with a prefix only takes that path, so the rest of its host keeps its other routers (here a redirect)
+check(
+    routers.get("matrix-delegation", {}).get("rule") == "(Host(`anneraud.fr`)) && PathPrefix(`/.well-known/matrix`)",
+    "router matrix-delegation has the wrong rule",
+)
 
 
 def domains(name):

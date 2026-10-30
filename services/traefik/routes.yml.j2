@@ -32,7 +32,11 @@ http:
   routers:
 {% for route in traefik_routes %}
     {{ route.name | to_json }}:
+    {% if route.prefix is defined %}
+      rule: {{ ('(' ~ host_rule(route.hosts) ~ ') && PathPrefix(`' ~ route.prefix ~ '`)') | to_json }}
+    {% else %}
       rule: {{ host_rule(route.hosts) | to_json }}
+    {% endif %}
       entryPoints:
         - web-secure
       service: {{ route.name | to_json }}
