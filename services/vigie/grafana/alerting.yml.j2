@@ -15,7 +15,7 @@ contactPoints:
 policies:
   - orgId: 1
     receiver: Home Assistant
-    group_by: [alertname, service]
+    group_by: [alertname, service, host]
     repeat_interval: 4h
 
 groups:
@@ -66,20 +66,20 @@ groups:
         execErrState: Error
         data:
           - refId: query
-            relativeTimeRange: {from: 900, to: 0}
+            relativeTimeRange: {from: 300, to: 0}
             datasourceUid: victoriametrics
             model:
               refId: query
               instant: true
               range: false
-              # 95th percentile response time over 15 minutes, for services with at least 20 requests,
+              # 95th percentile response time over 5 minutes, for services with at least 20 requests,
               # leaving out the services that hold long requests on purpose
               expr: >-
                 histogram_quantile(0.95, sum by (host, service, le) (
-                  rate(traefik_service_request_duration_seconds_bucket{service!~"{{ excluded }}"}[15m])
+                  rate(traefik_service_request_duration_seconds_bucket{service!~"{{ excluded }}"}[5m])
                 ))
                 and on (host, service)
-                sum by (host, service) (increase(traefik_service_request_duration_seconds_count{service!~"{{ excluded }}"}[15m])) >= 20
+                sum by (host, service) (increase(traefik_service_request_duration_seconds_count{service!~"{{ excluded }}"}[5m])) >= 20
           - refId: threshold
             datasourceUid: __expr__
             model:
@@ -117,4 +117,4 @@ groups:
               conditions:
                 - evaluator: {type: lt, params: [1]}
         annotations:
-          summary: "{% raw %}Traefik on {{ $labels.host }} cannot be scraped{% endraw %}"
+          summary: "{% raw %}{{ if $labels.host }}Traefik on {{ $labels.host }} cannot be scraped{{ else }}No Traefik metrics at all: VictoriaMetrics scrapes nothing{{ end }}{% endraw %}"

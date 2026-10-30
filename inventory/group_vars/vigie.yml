@@ -4,11 +4,18 @@
 # How often Grafana evaluates the alert rules
 vigie_alert_evaluation_interval: 1m
 
-# Prefixes of the Traefik services left out of the latency alert: they hold
-# long requests on purpose (VPN streams, uploads, editors, event streams, sync)
+# Prefixes of the Traefik services (nextcloud@file, matrix-dera-page@docker…)
+# left out of the latency alert: they hold long requests on purpose (VPN
+# streams, uploads, editors, event streams, Matrix /sync long polling, media
+# streams and downloads)
 vigie_latency_excluded_services:
-  - netbird
+  - netbird          # netbird-*@docker on Luxembourg
   - nextcloud
   - collabora
   - home-assistant
-  - synapse
+  - synapse          # synapse@file on Bruxelles
+  - matrix           # matrix-dera-page@docker on Luxembourg, matrix-delegation@file
+  - jellyfin
+  - camera           # camera-nicosie, camera-skopje, camera-amsterdam
+  - metube
+  - qbittorrent

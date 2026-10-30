@@ -86,16 +86,24 @@ compose up -d --wait --quiet-pull
 metrics="http://$(compose port victoriametrics 8428)"
 grafana="http://admin:$password@$(compose port grafana 3000)"
 
+ready=false
 for _ in $(seq 60); do
     if curl -fs "$metrics/health" > /dev/null && curl -fs "$grafana/api/health" > /dev/null; then
+        ready=true
         break
     fi
     sleep 2
 done
+if [ "$ready" != true ]; then
+    echo "VictoriaMetrics or Grafana did not become healthy within 2 minutes"
+    exit 1
+fi
 
 # Sample Traefik counters for the last 8 minutes, one point every 30 s:
 # app@file answers 9 % of its requests with a 5xx (the error rule must fire)
-# and quickly (the latency rule must not), nextcloud@file is slow but excluded
+# and quickly (the latency rule must not); nextcloud@file and matrix-dera-page@docker
+# are slow but excluded. The latency rule reads the last 5 minutes, which keep
+# at least 20 requests per service for the whole 2-minute poll
 now=$(date +%s)
 uv run python - "$now" > "$directory/samples.prom" <<'EOF'
 import sys
@@ -104,10 +112,11 @@ now = int(sys.argv[1])
 for step in range(17):
     timestamp = (now - 480 + step * 30) * 1000
     successes, errors = step * 10, step
-    for service, code, count in (("app@file", "200", successes), ("app@file", "500", errors), ("nextcloud@file", "200", successes)):
+    for service, code, count in (("app@file", "200", successes), ("app@file", "500", errors),
+                                 ("nextcloud@file", "200", successes), ("matrix-dera-page@docker", "200", successes)):
         labels = f'service="{service}",code="{code}",method="GET",protocol="http",host="bruxelles"'
         print(f"traefik_service_requests_total{{{labels}}} {count} {timestamp}")
-    for service in ("app@file", "nextcloud@file"):
+    for service in ("app@file", "nextcloud@file", "matrix-dera-page@docker"):
         total = successes + errors if service == "app@file" else successes
         labels = f'service="{service}",code="200",method="GET",protocol="http",host="bruxelles"'
         for bound in ("0.1", "0.3", "1.2", "5.0", "+Inf"):
@@ -180,10 +189,11 @@ EOF
 # Poll until every check passes, at most 2 minutes
 failures=""
 for _ in $(seq 24); do
-    curl -fsS "$metrics/api/v1/targets" > "$directory/targets.json"
-    curl -sS "$grafana/api/datasources/uid/victoriametrics/health" > "$directory/datasource.json"
-    curl -sS "$grafana/api/dashboards/uid/traefik" > "$directory/dashboard.json"
-    curl -fsS "$grafana/api/prometheus/grafana/api/v1/rules" > "$directory/rules.json"
+    # A failed request leaves an unreadable file: the checks fail and the next round retries
+    curl -fsS "$metrics/api/v1/targets" > "$directory/targets.json" || true
+    curl -sS "$grafana/api/datasources/uid/victoriametrics/health" > "$directory/datasource.json" || true
+    curl -sS "$grafana/api/dashboards/uid/traefik" > "$directory/dashboard.json" || true
+    curl -fsS "$grafana/api/prometheus/grafana/api/v1/rules" > "$directory/rules.json" || true
     if failures=$(uv run python "$directory/check.py" "$directory"); then
         echo "Vigie provisioned: datasource healthy, dashboard present, alert rules evaluated as expected"
         exit 0
