@@ -1,0 +1,73 @@
+---
+# Request every route and redirect of the host's routes file through its
+# Traefik, from this machine (on the LAN or VPN, so internal routes answer):
+#   uv run ansible-playbook services/traefik/verify.yml --limit bruxelles
+#
+# A route fails when it can't be reached, answers 5xx (backend down), serves
+# an invalid or staging certificate, or is refused by Traefik itself (its own
+# 403 Forbidden or 404 page not found). Redirects must answer 301, and the
+# dashboard's API and metrics must answer 200.
+- name: Verify the Traefik routes
+  hosts: traefik
+  gather_facts: false
+  vars:
+    traefik_checks: >-
+      {% set result = namespace(checks=[]) %}
+      {% set routed = range(100, 500) | list %}
+      {% if traefik_dashboard_host is defined %}
+      {% for path in ['/api/version', '/metrics'] %}
+      {% set result.checks = result.checks + [{'url': 'https://' ~ traefik_dashboard_host ~ path, 'statuses': [200]}] %}
+      {% endfor %}
+      {% endif %}
+      {% for route in traefik_routes | default([]) %}
+      {% for host in route.hosts %}
+      {% set result.checks = result.checks + [{'url': 'https://' ~ host ~ '/', 'statuses': routed}] %}
+      {% for path in route.paths | default([]) %}
+      {% set result.checks = result.checks + [{'url': 'https://' ~ host ~ path.prefix, 'statuses': [301] if path.redirect is defined else routed}] %}
+      {% endfor %}
+      {% endfor %}
+      {% endfor %}
+      {% for redirect in traefik_redirects | default([]) %}
+      {% for host in redirect.hosts %}
+      {% set result.checks = result.checks + [{'url': 'https://' ~ host ~ '/', 'statuses': [301]}] %}
+      {% endfor %}
+      {% endfor %}
+      {{ result.checks | to_json }}
+    traefik_failed_checks: "{{ traefik_answers.results | selectattr('failed') | list }}"
+  tasks:
+    - name: Request each route
+      ansible.builtin.uri:
+        url: "{{ item.url }}"
+        follow_redirects: none
+        validate_certs: true
+        # The expected statuses are checked below, with Traefik's own refusals
+        status_code: "{{ item.statuses }}"
+        return_content: true
+        timeout: 15
+      loop: "{{ traefik_checks | from_json }}"
+      loop_control:
+        label: "{{ item.url }}"
+      delegate_to: localhost
+      register: traefik_answers
+      # Any answer from the backend, 4xx included (internal routes or logins may
+      # refuse), except Traefik's own bodies: no route matched, or not allowed
+      failed_when: >-
+        traefik_answers.status | default(-1) not in item.statuses
+        or (traefik_answers.status | default(-1) == 403 and traefik_answers.content | default('') | trim == 'Forbidden')
+        or (traefik_answers.status | default(-1) == 404 and traefik_answers.content | default('') | trim == '404 page not found')
+      # Collected below, so that one run reports every failed route
+      ignore_errors: true
+
+    - name: List the failed routes
+      ansible.builtin.debug:
+        msg: >-
+          {{ traefik_failed_checks | map(attribute='item.url')
+             | zip(traefik_failed_checks | map(attribute='status', default=-1) | map('string') | map('regex_replace', '^', 'status '),
+                   traefik_failed_checks | map(attribute='content', default='') | map('trim') | map('truncate', 40))
+             | map('join', ', ') | list }}
+      when: traefik_failed_checks | length > 0
+
+    - name: Fail when a route failed
+      ansible.builtin.fail:
+        msg: "{{ traefik_failed_checks | length }} routes failed, listed above."
+      when: traefik_failed_checks | length > 0

@@ -1,0 +1,29 @@
+---
+# Stops the play for this host when another container holds Traefik's ports,
+# since Compose would fail to start Traefik. Included from deploy.yml; the
+# variables can be overridden to test it on another port.
+- name: List the containers publishing Traefik's ports
+  ansible.builtin.command:
+    argv: [docker, ps, --filter, "publish={{ item }}", --format, "{{ '{{.Names}}' }}"]
+  loop: "{{ traefik_checked_ports | default([80, 443]) }}"
+  register: traefik_port_holders
+  changed_when: false
+
+- name: Work out which other containers hold them
+  ansible.builtin.set_fact:
+    traefik_other_port_holders: >-
+      {{ traefik_port_holders.results | map(attribute='stdout_lines') | flatten | unique
+         | reject('equalto', traefik_port_owner | default('traefik')) | list }}
+
+# TrueNAS apps name their containers ix-<app>-<service>-<number>
+- name: Explain how to free the ports
+  ansible.builtin.debug:
+    msg: >-
+      Ports {{ traefik_checked_ports | default([80, 443]) | join('/') }} are held by {{ traefik_other_port_holders | join(', ') }}.
+      Stop it in TrueNAS (Apps → {{ traefik_other_port_holders | map('regex_replace', '^ix-(.+)-[^-]+-[0-9]+$', '\1') | unique | join(', ') }} → Stop),
+      then run this playbook again.
+  when: traefik_other_port_holders | length > 0
+
+- name: Skip a host whose ports are held
+  ansible.builtin.meta: end_host
+  when: traefik_other_port_holders | length > 0

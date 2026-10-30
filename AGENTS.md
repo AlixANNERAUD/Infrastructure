@@ -8,7 +8,7 @@ Ansible playbooks and Docker Compose files that deploy Alix's self-hosted servic
 - `hosts/<host>/` — host-level playbooks (packages, networking, DNS for the host itself).
 - `services/cloudflare/update_dns_*.yml` — DNS zones not owned by a single service.
 - `inventory/hosts.yml` — hosts, plus one group per service naming the host it runs on (`tolgee_anneraud: {hosts: {luxembourg:}}`). Group names use underscores (`ha_linky`).
-- `inventory/host_vars/<host>.yml` — per-host settings: connection, `local_dns_host` / `global_dns_host`, `services_root`, `proxy_network`. Put host facts here, not in playbooks.
+- `inventory/host_vars/<host>.yml` (or a folder, `inventory/host_vars/bruxelles/`) — per-host settings: connection, `local_dns_host` / `global_dns_host`, `services_root`, `proxy_network`. Put host facts here, not in playbooks.
 - `vault/` — **private submodule** (`Infrastructure_vault`) with Ansible Vault files, one per service: `vault/<service>/vault.yml`, plus `vault/ansible/vault.yml` (sudo password) and `vault/cloudflare/vault.yml`.
 - `services/website/website` — separate submodule; not part of this repo's code.
 
@@ -17,11 +17,11 @@ Ansible playbooks and Docker Compose files that deploy Alix's self-hosted servic
 | Host | Role | Service root | Reverse proxy |
 |---|---|---|---|
 | `luxembourg` | Cloud VM with a public IP | `/opt/<service>` | Traefik (`services/traefik`), labels on the external `traefik` network |
-| `bruxelles` | Home TrueNAS server | `/mnt/Donnees/Applications_chiffrees/<Service>` | Nginx Proxy Manager on the external `proxy` network, configured by hand in its UI (not in this repo) |
+| `bruxelles` | Home TrueNAS server | `/mnt/Donnees/Applications_chiffrees/<Service>` | Traefik (`services/traefik`) on the external `proxy` network, routes in `inventory/host_vars/bruxelles/traefik.yml` |
 | `pristina` | Home machine | — | — |
 | `paris` | Desktop client | — | — |
 
-Luxembourg is reachable from the internet: anything published with `ports:` there is public, because Docker bypasses the host firewall. Keep internal services behind Traefik with the `internal-allowlist@docker` middleware instead.
+Luxembourg is reachable from the internet: anything published with `ports:` there is public, because Docker bypasses the host firewall. Keep internal services behind Traefik with the `internal-allowlist@file` middleware instead.
 
 ## Tooling
 
