@@ -84,6 +84,29 @@ uv run yamllint .
 uv run ansible-lint
 ```
 
+## Ansible account
+
+Ansible connects to every host as `ansible`: SSH key only (`~/.ssh/ansible.pub`, accepted from the networks in `inventory/group_vars/all.yml`), passwordless sudo, locked password. A hardware-backed key (`ssh-keygen -t ed25519-sk`) is recommended.
+
+Set it up, or update it, with:
+
+```bash
+uv run ansible-playbook hosts/bootstrap.yml --limit <host>                                # existing host
+uv run ansible-playbook hosts/bootstrap.yml --limit <host> -u <you> --ask-become-pass     # new host, added to the inventory first
+```
+
+The playbook also hardens `sshd` (no passwords, no root login, only `ansible` and `ssh_administrators`). It refuses to run if the current connection doesn't come from an allowed network.
+
+**TrueNAS (Bruxelles)** manages users and `sshd` in its own interface, so the playbook skips it. In *Credentials → Users*, the `ansible` user has the public key, *Allowed sudo commands with no password* set to `ALL`, and password login disabled; in *System → Services → SSH*, password login is off.
+
+### Replication
+
+`services/replication/deploy.yml` gives each client in the `replication` group a `replication` account and key, and installs a forced command on Bruxelles that runs one TrueNAS replication task, so the TrueNAS API key never leaves Bruxelles. Once, before deploying it:
+
+1. In TrueNAS, create a `replication` user with a home folder on the pool and `/usr/bin/sh` as shell (not `nologin`, the forced command runs through it), without sudo.
+2. Deploy: `uv run ansible-playbook services/replication/deploy.yml`.
+3. Paste the `command="…",restrict ssh-ed25519 …` lines it prints into that user's *Authorized Keys*.
+
 ## Structure
 
 The repository is organized by **service**, with each service containing all its related files:

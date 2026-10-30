@@ -1,43 +1,78 @@
 ---
-- name: Setup replication from bruxelles to other sites
+# Clients trigger their TrueNAS replication task on Bruxelles over SSH, with a
+# dedicated replication account and key. On Bruxelles, each client key may only
+# run run-replication.sh with its own task identifier, and the TrueNAS API key
+# stays there.
+- name: Set up replication clients
   hosts: replication
   become: true
   vars:
-    bruxelles_host: "local.bruxelles.anneraud.fr"
-    bruxelles_user: "ansible"
-
-    service_name: "bruxelles-replicate"
+    replication_user: replication
+    replication_home: /var/lib/replication
+    replication_service: bruxelles-replicate
   vars_files:
     - ../../vault/ansible/vault.yml
-    - ../../vault/replication/vault.yml
   tasks:
-    # yamllint disable rule:line-length
-    - name: Create the systemd service unit
+    - name: Create the replication account
+      ansible.builtin.user:
+        name: "{{ replication_user }}"
+        system: true
+        home: "{{ replication_home }}"
+        create_home: true
+        shell: /usr/sbin/nologin
+        password_lock: true
+        state: present
+
+    - name: Create the replication SSH folder
+      ansible.builtin.file:
+        path: "{{ replication_home }}/.ssh"
+        state: directory
+        owner: "{{ replication_user }}"
+        group: "{{ replication_user }}"
+        mode: "0700"
+
+    - name: Generate the replication key
+      ansible.builtin.command:
+        argv: [ssh-keygen, -t, ed25519, -N, "", -q, -C, "replication@{{ inventory_hostname }}", -f, "{{ replication_home }}/.ssh/id_ed25519"]
+        creates: "{{ replication_home }}/.ssh/id_ed25519"
+
+    - name: Give the replication key to its account
+      ansible.builtin.file:
+        path: "{{ replication_home }}/.ssh/{{ item }}"
+        owner: "{{ replication_user }}"
+        group: "{{ replication_user }}"
+      loop:
+        - id_ed25519
+        - id_ed25519.pub
+
+    - name: Read the replication public key
+      ansible.builtin.slurp:
+        src: "{{ replication_home }}/.ssh/id_ed25519.pub"
+      register: replication_public_key
+
+    - name: Create the replication service
       ansible.builtin.copy:
-        dest: "/etc/systemd/system/{{ service_name }}.service"
-        mode: "0640"
+        dest: "/etc/systemd/system/{{ replication_service }}.service"
+        mode: "0644"
         content: |
           [Unit]
-          Description=Trigger TrueNAS Replication Task
+          Description=Trigger the TrueNAS replication task on Bruxelles
           After=network-online.target
           Wants=network-online.target
 
           [Service]
           Type=oneshot
-          User=ansible
-          Group=ansible
-          BatchMode=yes # Disable password prompts
+          User={{ replication_user }}
+          # The key is bound to this host's task on Bruxelles, so no command is sent
+          ExecStart=/usr/bin/ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new {{ replication_user }}@{{ hostvars['bruxelles'].ansible_host }}
 
-          ExecStart=/usr/bin/ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new {{ bruxelles_user }}@{{ bruxelles_host }} 'midclt -K {{ bruxelles_api_key }} call replication.run {{ bruxelles_replication_identifier }}'
-
-    # yamllint enable rule:line-length
-    - name: Create the systemd timer unit
+    - name: Create the replication timer
       ansible.builtin.copy:
-        dest: "/etc/systemd/system/{{ service_name }}.timer"
+        dest: "/etc/systemd/system/{{ replication_service }}.timer"
         mode: "0644"
         content: |
           [Unit]
-          Description=Run replication of bruxelles (Desktop Optimized)
+          Description=Run the Bruxelles replication twice a day
 
           [Timer]
           OnCalendar=*-*-* 00/12:00:00
@@ -47,14 +82,60 @@
           [Install]
           WantedBy=timers.target
 
-    - name: Enable and start the timer
+    - name: Enable the replication timer
       ansible.builtin.systemd:
-        name: "{{ service_name }}.timer"
+        name: "{{ replication_service }}.timer"
         state: started
         enabled: true
         daemon_reload: true
 
-    - name: Ensure the service itself is enabled (but not necessarily started)
-      ansible.builtin.systemd:
-        name: "{{ service_name }}.service"
-        enabled: true
+- name: Set up replication on Bruxelles
+  hosts: bruxelles
+  become: true
+  vars:
+    # Created in the TrueNAS interface, see the readme
+    replication_user: replication
+    replication_directory: "{{ services_root }}/Replication"
+  vars_files:
+    - ../../vault/ansible/vault.yml
+    - ../../vault/replication/vault.yml
+  tasks:
+    - name: Create the replication folder
+      ansible.builtin.file:
+        path: "{{ replication_directory }}"
+        state: directory
+        owner: root
+        group: "{{ replication_user }}"
+        mode: "0750"
+
+    - name: Store the TrueNAS API key
+      ansible.builtin.copy:
+        dest: "{{ replication_directory }}/api_key"
+        content: "{{ bruxelles_api_key }}"
+        owner: "{{ replication_user }}"
+        group: "{{ replication_user }}"
+        mode: "0400"
+      no_log: true
+
+    - name: Install the forced command
+      ansible.builtin.copy:
+        dest: "{{ replication_directory }}/run-replication.sh"
+        owner: root
+        group: "{{ replication_user }}"
+        mode: "0750"
+        content: |
+          #!/bin/sh
+          # Forced command of the replication SSH keys: runs one TrueNAS replication task
+          set -eu
+          case "${1:-}" in
+              ''|*[!0-9]*) echo "Usage: run-replication.sh <task identifier>" >&2; exit 1 ;;
+          esac
+          exec midclt -K "$(cat {{ replication_directory }}/api_key)" call replication.run "$1"
+
+    - name: Show the SSH keys to set on the replication user in TrueNAS
+      ansible.builtin.debug:
+        msg: >-
+          command="{{ replication_directory }}/run-replication.sh {{ hostvars[item].bruxelles_replication_identifier }}",restrict
+          {{ hostvars[item].replication_public_key.content | b64decode | trim }}
+      loop: "{{ groups['replication'] }}"
+      when: hostvars[item].replication_public_key is defined
