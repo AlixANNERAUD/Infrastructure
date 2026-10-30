@@ -31,12 +31,6 @@ services:
       - POSTGRES_DB=gatus
       - HOME_ASSISTANT_URL=${HOME_ASSISTANT_URL}
       - HOME_ASSISTANT_TOKEN=${HOME_ASSISTANT_TOKEN}
-      - EMAIL_FROM=${EMAIL_FROM}
-      - EMAIL_USERNAME=${EMAIL_USERNAME}
-      - EMAIL_PASSWORD=${EMAIL_PASSWORD}
-      - EMAIL_HOST=${EMAIL_HOST}
-      - EMAIL_PORT=${EMAIL_PORT}
-      - EMAIL_TO=${EMAIL_TO}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
