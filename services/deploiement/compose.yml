@@ -1,0 +1,23 @@
+services:
+  semaphore:
+    image: semaphoreui/semaphore:v2.19.17
+    restart: unless-stopped
+    user: ${USER_ID}:${GROUP_ID}
+    environment:
+      SEMAPHORE_DB_DIALECT: sqlite
+      SEMAPHORE_DB: /var/lib/semaphore/semaphore.sqlite
+      SEMAPHORE_ADMIN: ${SEMAPHORE_ADMIN}
+      SEMAPHORE_ADMIN_NAME: ${SEMAPHORE_ADMIN_NAME}
+      SEMAPHORE_ADMIN_EMAIL: ${SEMAPHORE_ADMIN_EMAIL}
+      SEMAPHORE_ADMIN_PASSWORD: ${SEMAPHORE_ADMIN_PASSWORD}
+      SEMAPHORE_ACCESS_KEY_ENCRYPTION: ${SEMAPHORE_ACCESS_KEY_ENCRYPTION}
+      SEMAPHORE_WEB_ROOT: ${SEMAPHORE_WEB_ROOT}
+    volumes:
+      - ./data:/var/lib/semaphore
+      - ./config:/etc/semaphore
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true

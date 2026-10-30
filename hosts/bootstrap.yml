@@ -29,7 +29,7 @@
           - "{{ inventory_hostname }} can't be reached over SSH. Log in on it with your own account and run:"
           - sudo useradd --create-home --shell /bin/bash {{ automation_user }}
           - sudo install -d -m 700 -o {{ automation_user }} -g {{ automation_user }} /home/{{ automation_user }}/.ssh
-          - echo '{{ automation_authorized_key }}' | sudo tee /home/{{ automation_user }}/.ssh/authorized_keys
+          - printf '%s\n' '{{ automation_authorized_keys | join("' '") }}' | sudo tee /home/{{ automation_user }}/.ssh/authorized_keys
           - sudo chown {{ automation_user }}:{{ automation_user }} /home/{{ automation_user }}/.ssh/authorized_keys
           - echo '{{ automation_user }} ALL=(ALL) NOPASSWD:ALL' | sudo tee /etc/sudoers.d/{{ automation_user }}
           - sudo chmod 440 /etc/sudoers.d/{{ automation_user }}
@@ -97,10 +97,10 @@
         mode: "0440"
         validate: /usr/sbin/visudo -cf %s
 
-    - name: Authorize only the Ansible key, from the LAN and VPN
+    - name: Authorize only the Ansible keys, from the LAN and VPN
       ansible.posix.authorized_key:
         user: "{{ automation_user }}"
-        key: "{{ automation_public_key }}"
+        key: "{{ automation_public_keys | join('\n') }}"
         key_options: 'from="{{ automation_ssh_sources | join(",") }}"'
         exclusive: true
         state: present
@@ -172,8 +172,8 @@
           {{
             (['Credentials > Users: create or edit the ' ~ automation_user ~ ' user, with a shell and a home folder on the pool']
                if bootstrap_unreachable else [])
-            + (['Credentials > Users > ' ~ automation_user ~ ' > Authorized Keys: set it to the single line ' ~ automation_authorized_key]
-               if bootstrap_unreachable or automation_authorized_key not in (bootstrap_authorized_keys.stdout | default('')) else [])
+            + (['Credentials > Users > ' ~ automation_user ~ ' > Authorized Keys: set it to exactly these lines: ' ~ (automation_authorized_keys | join(' | '))]
+               if bootstrap_unreachable or automation_authorized_keys | reject('in', bootstrap_authorized_keys.stdout | default('')) | length > 0 else [])
             + (['Credentials > Users > ' ~ automation_user ~ ' > Allowed sudo commands with no password: ALL']
                if bootstrap_unreachable or bootstrap_sudo.rc | default(1) != 0 else [])
             + (['System > Services > SSH: disable password login (and root login)']

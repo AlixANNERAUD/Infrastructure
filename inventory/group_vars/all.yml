@@ -11,10 +11,19 @@ automation_ssh_sources:
 ssh_administrators:
   - alix_anneraud
 
-# Account Ansible connects with, and its authorized_keys line
+# Account Ansible connects with, and the keys authorized for it: the laptop's,
+# plus the other controllers' (Semaphore's public key, printed by
+# services/deploiement/deploy.yml), which run on Bruxelles. Only these keys are
+# accepted. Every key works from automation_ssh_sources; on TrueNAS (Bruxelles)
+# the controllers' keys also work from the proxy network, where their
+# containers connect from (see hosts/bootstrap.yml).
 automation_user: ansible
-automation_public_key: "{{ lookup('ansible.builtin.file', '~/.ssh/ansible.pub') }}"
-automation_authorized_key: 'from="{{ automation_ssh_sources | join(",") }}" {{ automation_public_key }}'
+automation_laptop_public_key: "{{ lookup('ansible.builtin.file', '~/.ssh/ansible.pub') | trim }}"
+automation_additional_public_keys: []
+automation_public_keys: "{{ [automation_laptop_public_key] + automation_additional_public_keys }}"
+# Their authorized_keys lines on the managed hosts, restricted to the networks above
+automation_authorized_keys: >-
+  {{ automation_public_keys | map('regex_replace', '^', 'from="' ~ (automation_ssh_sources | join(',')) ~ '" ') | list }}
 
 # Ranges Cloudflare proxies from, https://www.cloudflare.com/ips/ (2026-10-30)
 cloudflare_networks:

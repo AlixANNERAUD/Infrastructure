@@ -80,6 +80,7 @@ Rules:
 ## Hosts access
 
 - Ansible connects as `ansible` with passwordless sudo; `hosts/bootstrap.yml` sets it up and hardens `sshd` on every host except TrueNAS (`truenas` group, configured in its interface). Never widen `automation_ssh_sources` or `ssh_administrators` in `inventory/group_vars/all.yml` without the owner.
+- Runs against hosts go through Semaphore (`services/deploiement`, its key is in `automation_additional_public_keys`) or the owner's laptop; Zitadel provisioning (OpenTofu) still runs from the laptop.
 - Hosts that need to reach each other use their own account and key with a forced command (see `hosts/replication.yml`), never the `ansible` account.
 
 ## Secrets

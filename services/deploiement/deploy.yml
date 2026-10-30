@@ -1,0 +1,73 @@
+---
+- name: Deploy Semaphore
+  hosts: deploiement
+  become: true
+  vars_files:
+    - ../../vault/ansible/vault.yml
+    - ../../vault/deploiement/vault.yml
+    - ../../vault/cloudflare/vault.yml
+  roles:
+    - role: compose_service
+      vars:
+        compose_service_name: deploiement
+        compose_service_directory: Deploiement
+        # UID of the semaphore user in the official image
+        compose_service_user: 1001
+        compose_service_directories:
+          - data
+          - config
+          - keys
+        compose_service_environment:
+          SEMAPHORE_ADMIN: "{{ deploiement_admin_login }}"
+          SEMAPHORE_ADMIN_NAME: "{{ deploiement_admin_name }}"
+          SEMAPHORE_ADMIN_EMAIL: "{{ deploiement_admin_email }}"
+          SEMAPHORE_ADMIN_PASSWORD: "{{ deploiement_admin_password }}"
+          SEMAPHORE_ACCESS_KEY_ENCRYPTION: "{{ deploiement_access_key_encryption }}"
+          SEMAPHORE_WEB_ROOT: https://deploiement.anneraud.fr
+        compose_service_dns_records:
+          - record: deploiement.anneraud.fr
+            visibility: private
+  tasks:
+    # Semaphore connects to the hosts with this key: it is created once, then
+    # pasted in Semaphore's key store by hand
+    - name: Generate the SSH key Semaphore connects with
+      ansible.builtin.command:
+        argv:
+          - ssh-keygen
+          - -t
+          - ed25519
+          - -N
+          - ""
+          - -C
+          - semaphore
+          - -f
+          - "{{ compose_service_path }}/keys/ansible"
+        creates: "{{ compose_service_path }}/keys/ansible"
+
+    - name: Restrict the SSH key to the Semaphore user
+      ansible.builtin.file:
+        path: "{{ compose_service_path }}/keys/{{ item.name }}"
+        owner: "{{ compose_service_user }}"
+        group: "{{ compose_service_group }}"
+        mode: "{{ item.mode }}"
+      loop:
+        - name: ansible
+          mode: "0600"
+        - name: ansible.pub
+          mode: "0644"
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: Read the public key of Semaphore
+      ansible.builtin.slurp:
+        src: "{{ compose_service_path }}/keys/ansible.pub"
+      register: deploiement_public_key
+
+    - name: Explain how to authorize Semaphore on the hosts
+      ansible.builtin.debug:
+        msg:
+          - "Semaphore's public key: {{ (deploiement_public_key.content | b64decode).strip() }}"
+          - "1. Add it to automation_additional_public_keys in inventory/group_vars/all.yml, then run: uv run ansible-playbook hosts/bootstrap.yml"
+          - "2. TrueNAS: add it as a line of Credentials > Users > {{ automation_user }} > Authorized Keys (bootstrap prints the exact lines)."
+          - "3. In Semaphore, store the private key {{ compose_service_path }}/keys/ansible as an SSH key with the user {{ automation_user }}."
+          - "The full one-time setup of the project is in the readme (Deployment with Semaphore)."

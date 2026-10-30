@@ -25,6 +25,7 @@ Hosts and the service-to-host mapping are in [inventory/hosts.yml](inventory/hos
 | [Archive](https://archive.anneraud.fr/)                                | Document management (Paperless-ngx)          | Private | Bruxelles  | TrueNAS Apps | ![Status](<https://etat.anneraud.fr/api/v1/endpoints/services_archive-(paperless-ngx)/uptimes/30d/badge.svg>)                      |
 | [Statistiques](https://s.anneraud.fr/)                                 | Analytics (Umami)                            | Public  | Bruxelles  | TrueNAS Apps | ![Status](<https://etat.anneraud.fr/api/v1/endpoints/services_statistiques-(umami)/uptimes/30d/badge.svg>)                         |
 | [Notes](https://notes.anneraud.fr/)                                    | Documentation (Docmost)                      | Private | Bruxelles  | Ansible      | ![Status](<https://etat.anneraud.fr/api/v1/endpoints/services_notes-(docmost)/uptimes/30d/badge.svg>)                              |
+| [Déploiement](https://deploiement.anneraud.fr/)                         | Ansible web UI (Semaphore)                   | Private | Bruxelles  | Ansible      | -                                                                                                                                  |
 | [Assistant](https://assistant.anneraud.fr/)                            | AI assistant (Open WebUI)                    | Private | Bruxelles  | TrueNAS Apps | ![Status](<https://etat.anneraud.fr/api/v1/endpoints/services_assistant-(open-webui)/uptimes/30d/badge.svg>)                       |
 | [Recherche](https://recherche.anneraud.fr/)                            | Search engine (SearXNG)                      | Private | Bruxelles  | TrueNAS Apps | ![Status](<https://etat.anneraud.fr/api/v1/endpoints/services_recherche-(searxng)/uptimes/30d/badge.svg>)                           |
 | [Authentification](https://authentification.anneraud.fr/)              | Identity provider (Zitadel)                  | Private | Bruxelles  | Ansible      | ![Status](<https://etat.anneraud.fr/api/v1/endpoints/services_authentification-(zitadel)/uptimes/30d/badge.svg>)                   |
@@ -81,7 +82,7 @@ mise test                                        # Molecule scenarios of the rol
 
 ## Ansible account
 
-Ansible connects to every host as `ansible`: SSH key only (`~/.ssh/ansible.pub`, accepted from the networks in `inventory/group_vars/all.yml`), passwordless sudo, locked password. A hardware-backed key (`ssh-keygen -t ed25519-sk`) is recommended.
+Ansible connects to every host as `ansible`: SSH keys only, passwordless sudo, locked password. The authorized keys (`automation_public_keys` in `inventory/group_vars/all.yml`) are the laptop's `~/.ssh/ansible.pub` plus the other controllers' keys listed in `automation_additional_public_keys` (Semaphore's, see below). Each is accepted only from the networks in `automation_ssh_sources`, and no other key is kept in `authorized_keys`. A hardware-backed key (`ssh-keygen -t ed25519-sk`) is recommended for the laptop.
 
 Set it up, or update it, with:
 
@@ -92,7 +93,7 @@ mise deploy hosts/bootstrap.yml --limit <host> -u <you> --ask-become-pass     # 
 
 The playbook also hardens `sshd` (no passwords, no root login, only `ansible` and `ssh_administrators`). It refuses to run if the current connection doesn't come from an allowed network. When a host can't be reached, or sudo needs a password nobody provided, it prints the commands to run on that host by hand and skips it.
 
-**TrueNAS (Bruxelles)** manages users and `sshd` in its own interface, which would undo changes made over SSH. The playbook only checks it (reachable, the key with its `from=` restriction, passwordless sudo, password login off) and prints what to change in the interface.
+**TrueNAS (Bruxelles)** manages users and `sshd` in its own interface, which would undo changes made over SSH. The playbook only checks it (reachable, every key with its `from=` restriction, passwordless sudo, password login off) and prints what to change in the interface.
 
 ### Replication
 
@@ -100,6 +101,32 @@ The playbook also hardens `sshd` (no passwords, no root login, only `ansible` an
 
 1. Deploy: `mise deploy hosts/replication.yml`. Until the `replication` user exists in TrueNAS, it explains how to create it.
 2. Paste the `command="…",restrict ssh-ed25519 …` lines it prints into that user's *Authorized Keys*; it prints them only while they are missing.
+
+## Deployment with Semaphore
+
+[Semaphore](https://semaphoreui.com/) (`services/deploiement`, https://deploiement.anneraud.fr, private) runs the playbooks from Bruxelles. It is deployed with `uv run ansible-playbook services/deploiement/deploy.yml`, which also generates the SSH key Semaphore connects to the hosts with (`keys/ansible` in the service folder) and prints its public key. Its secrets (admin account, `deploiement_access_key_encryption`) are in `vault/deploiement/vault.yml`. The database is an embedded SQLite file in the service folder.
+
+Once, to authorize Semaphore on the hosts:
+
+1. Add the printed public key to `automation_additional_public_keys` in `inventory/group_vars/all.yml`, then run `uv run ansible-playbook hosts/bootstrap.yml`.
+2. On TrueNAS, add the same key as a line of the `ansible` user's *Authorized Keys* (bootstrap prints the exact lines).
+
+Once, in the Semaphore interface:
+
+1. Create the project `Infrastructure`.
+2. Key store, add:
+   - `ansible`: type SSH, login `ansible`, the content of `keys/ansible` (read it on Bruxelles, it is never committed);
+   - `vault`: type Login with password, empty login, the Ansible Vault password (it is only used to decrypt the vault files);
+   - `vault-deploy`: type SSH, a key pair generated for this (`ssh-keygen -t ed25519`), whose public key is added as a read-only deploy key of `Infrastructure_vault` on GitHub;
+   - `none`: type None, to clone the public repository.
+3. Host config: add a URL mapping `https://github.com/AlixANNERAUD/Infrastructure_vault.git` to the `vault-deploy` key, so that the submodule is cloned over SSH. Submodules do not use the repository's key.
+4. Repositories: `https://github.com/AlixANNERAUD/Infrastructure.git`, branch `main`, key `none`. Semaphore updates submodules when it clones. It installs the collections of the root `requirements.yml` by itself.
+5. Inventory: type File, path `inventory/hosts.yml` (relative to the repository), SSH key `ansible`. Ansible reads `host_vars` and `group_vars` next to the inventory file, so `inventory/host_vars/` and `inventory/group_vars/` are picked up.
+6. Task templates, for `site.yml` and for each `services/<service>/deploy.yml` (and `hosts/*.yml` if wanted), each in two variants, with the vault password `vault`:
+   - preview: CLI args `["--check", "--diff"]`;
+   - run: no extra arguments.
+
+Zitadel provisioning (OpenTofu) still runs from the laptop.
 
 ## Structure
 
