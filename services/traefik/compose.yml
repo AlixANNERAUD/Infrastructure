@@ -28,7 +28,6 @@ services:
 
       - "--entryPoints.web-secure.address=:443"
       - "--entryPoints.web-secure.http.tls=true"
-      - "--entryPoints.web-secure.http.tls.certResolver=letsencrypt"
       # Applies to label and file routes alike
       - "--entryPoints.web-secure.http.middlewares=security-headers@file"
       # Clients must not smuggle underscore aliases (X_Forwarded_For) of the headers Traefik sets; nginx dropped them

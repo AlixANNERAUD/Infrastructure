@@ -89,10 +89,25 @@ def certificate(domain):
     return {"main": domain, "sans": [f"*.{domain}"]}
 
 
-check(certificate("bruxelles.anneraud.fr") in domains("portainer"), "router portainer lacks its certificate")
-check(certificate("anneraud.fr") in domains("redirect-anneraud"), "router redirect-anneraud lacks its certificate")
-for domain in ["anneraud.fr", "guenola-sahut.fr"]:
-    check(certificate(domain) in domains("umami"), f"router umami lacks the {domain} certificate")
+def zone(host):
+    labels = host.split(".")
+    return host if len(labels) == 2 else ".".join(labels[1:])
+
+
+# Every zone's wildcard is requested by exactly one router: concurrent orders for the same zone break each other
+hosts = [host for entry in routes + redirects for host in entry["hosts"]]
+requesters = {}
+for name, router in routers.items():
+    tls = router.get("tls", {})
+    check(bool(tls.get("domains")) == bool(tls.get("certResolver")), f"router {name} has a resolver without domains or the reverse")
+    for request in tls.get("domains", []):
+        check(request == certificate(request["main"]), f"router {name} requests {request}")
+        requesters.setdefault(request["main"], []).append(name)
+check(set(requesters) == {zone(host) for host in hosts}, f"requested zones {sorted(requesters)}")
+for requested_zone, names in requesters.items():
+    check(len(names) == 1, f"zone {requested_zone} requested by {names}")
+check(requesters.get("bruxelles.anneraud.fr") == ["portainer"], "bruxelles.anneraud.fr is not requested by portainer")
+check(requesters.get("guenola-sahut.fr") == ["umami"], "guenola-sahut.fr is not requested by umami")
 
 
 def replacement(name):
