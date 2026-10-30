@@ -199,8 +199,8 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum(rate(traefik_entrypoint_requests_total{host=~\"$host\",entrypoint=~\"$entrypoint\"}[$interval])) by (entrypoint)",
-          "legendFormat": "{{entrypoint}}",
+          "expr": "sum(rate(traefik_entrypoint_requests_total{host=~\"$host\",entrypoint=~\"$entrypoint\"}[$interval])) by (host, entrypoint)",
+          "legendFormat": "{{entrypoint}} ({{host}})",
           "range": true,
           "refId": "A"
         }
@@ -297,8 +297,8 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "(sum(rate(traefik_entrypoint_request_duration_seconds_bucket{host=~\"$host\",le=\"0.3\",code=\"200\",entrypoint=~\"$entrypoint\"}[$interval])) by (method) + \n sum(rate(traefik_entrypoint_request_duration_seconds_bucket{host=~\"$host\",le=\"1.2\",code=\"200\",entrypoint=~\"$entrypoint\"}[$interval])) by (method)) / 2 / \n sum(rate(traefik_entrypoint_request_duration_seconds_count{host=~\"$host\",code=\"200\",entrypoint=~\"$entrypoint\"}[$interval])) by (method)\n",
-          "legendFormat": "{{method}}",
+          "expr": "(sum(rate(traefik_entrypoint_request_duration_seconds_bucket{host=~\"$host\",le=\"0.3\",code=\"200\",entrypoint=~\"$entrypoint\"}[$interval])) by (host, method) + \n sum(rate(traefik_entrypoint_request_duration_seconds_bucket{host=~\"$host\",le=\"1.2\",code=\"200\",entrypoint=~\"$entrypoint\"}[$interval])) by (host, method)) / 2 / \n sum(rate(traefik_entrypoint_request_duration_seconds_count{host=~\"$host\",code=\"200\",entrypoint=~\"$entrypoint\"}[$interval])) by (host, method)\n",
+          "legendFormat": "{{method}} ({{host}})",
           "range": true,
           "refId": "A"
         }
@@ -365,8 +365,8 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "sum(rate(traefik_service_requests_total{host=~\"$host\",service=~\"$service.*\",protocol=\"http\"}[$interval])) by (method, code)",
-          "legendFormat": "{{method}}[{{code}}]",
+          "expr": "sum(rate(traefik_service_requests_total{host=~\"$host\",service=~\"$service.*\",protocol=\"http\"}[$interval])) by (host, method, code)",
+          "legendFormat": "{{method}}[{{code}}] ({{host}})",
           "range": true,
           "refId": "A"
         }
@@ -465,7 +465,7 @@
           },
           "editorMode": "code",
           "expr": "topk(15,\n    label_replace(\n        traefik_service_request_duration_seconds_sum{host=~\"$host\",service=~\"$service.*\",protocol=\"http\"} / \n          traefik_service_request_duration_seconds_count{host=~\"$host\",service=~\"$service.*\",protocol=\"http\"},\n        \"service\", \"$1\", \"service\", \"([^-]+-[^-]+).*\")\n)\n\n",
-          "legendFormat": "{{method}}[{{code}}] on {{service}}",
+          "legendFormat": "{{method}}[{{code}}] on {{service}} ({{host}})",
           "range": true,
           "refId": "A"
         }
@@ -563,8 +563,8 @@
             "uid": "victoriametrics"
           },
           "editorMode": "code",
-          "expr": "topk(15,\n    label_replace(\n        sum by (service,code) \n          (rate(traefik_service_requests_total{host=~\"$host\",service=~\"$service.*\",protocol=\"http\"}[$interval])) > 0,\n        \"service\", \"$1\", \"service\", \"([^-]+-[^-]+).*\")\n)",
-          "legendFormat": "[{{code}}] on {{service}}",
+          "expr": "topk(15,\n    label_replace(\n        sum by (host, service,code) \n          (rate(traefik_service_requests_total{host=~\"$host\",service=~\"$service.*\",protocol=\"http\"}[$interval])) > 0,\n        \"service\", \"$1\", \"service\", \"([^-]+-[^-]+).*\")\n)",
+          "legendFormat": "[{{code}}] on {{service}} ({{host}})",
           "range": true,
           "refId": "A"
         }
@@ -667,8 +667,8 @@
                 "uid": "victoriametrics"
               },
               "editorMode": "code",
-              "expr": "label_replace(\n  1 - (sum by (service)\n    (rate(traefik_service_request_duration_seconds_bucket{host=~\"$host\",le=\"1.2\",service=~\"$service.*\"}[$interval])) / sum by (service) \n    (rate(traefik_service_request_duration_seconds_count{host=~\"$host\",service=~\"$service.*\"}[$interval]))\n  ) > 0,\n  \"service\", \"$1\", \"service\", \"([^-]+-[^-]+).*\"\n)",
-              "legendFormat": "{{service}}",
+              "expr": "label_replace(\n  1 - (sum by (host, service)\n    (rate(traefik_service_request_duration_seconds_bucket{host=~\"$host\",le=\"1.2\",service=~\"$service.*\"}[$interval])) / sum by (host, service) \n    (rate(traefik_service_request_duration_seconds_count{host=~\"$host\",service=~\"$service.*\"}[$interval]))\n  ) > 0,\n  \"service\", \"$1\", \"service\", \"([^-]+-[^-]+).*\"\n)",
+              "legendFormat": "{{service}} ({{host}})",
               "range": true,
               "refId": "A"
             }
@@ -761,8 +761,8 @@
                 "uid": "victoriametrics"
               },
               "editorMode": "code",
-              "expr": "label_replace(\n  1 - (sum by (service)\n    (rate(traefik_service_request_duration_seconds_bucket{host=~\"$host\",le=\"0.3\",service=~\"$service.*\"}[$interval])) / sum by (service) \n    (rate(traefik_service_request_duration_seconds_count{host=~\"$host\",service=~\"$service.*\"}[$interval]))\n  ) > 0,\n  \"service\", \"$1\", \"service\", \"([^-]+-[^-]+).*\"\n)",
-              "legendFormat": "{{service}}",
+              "expr": "label_replace(\n  1 - (sum by (host, service)\n    (rate(traefik_service_request_duration_seconds_bucket{host=~\"$host\",le=\"0.3\",service=~\"$service.*\"}[$interval])) / sum by (host, service) \n    (rate(traefik_service_request_duration_seconds_count{host=~\"$host\",service=~\"$service.*\"}[$interval]))\n  ) > 0,\n  \"service\", \"$1\", \"service\", \"([^-]+-[^-]+).*\"\n)",
+              "legendFormat": "{{service}} ({{host}})",
               "range": true,
               "refId": "A"
             }
@@ -873,8 +873,8 @@
                 "uid": "victoriametrics"
               },
               "editorMode": "code",
-              "expr": "topk(15,\n    label_replace(\n        sum by (service,method,code) \n          (rate(traefik_service_requests_total{host=~\"$host\",service=~\"$service.*\",code=~\"2..\",protocol=\"http\"}[$interval])) > 0,\n        \"service\", \"$1\", \"service\", \"([^-]+-[^-]+).*\")\n)",
-              "legendFormat": "{{method}}[{{code}}] on {{service}}",
+              "expr": "topk(15,\n    label_replace(\n        sum by (host, service,method,code) \n          (rate(traefik_service_requests_total{host=~\"$host\",service=~\"$service.*\",code=~\"2..\",protocol=\"http\"}[$interval])) > 0,\n        \"service\", \"$1\", \"service\", \"([^-]+-[^-]+).*\")\n)",
+              "legendFormat": "{{method}}[{{code}}] on {{service}} ({{host}})",
               "range": true,
               "refId": "A"
             }
@@ -972,8 +972,8 @@
                 "uid": "victoriametrics"
               },
               "editorMode": "code",
-              "expr": "topk(15,\n    label_replace(\n        sum by (service,method,code) \n          (rate(traefik_service_requests_total{host=~\"$host\",service=~\"$service.*\",code=~\"5..\",protocol=\"http\"}[$interval])) > 0,\n        \"service\", \"$1\", \"service\", \"([^-]+-[^-]+).*\")\n)",
-              "legendFormat": "{{method}}[{{code}}] on {{service}}",
+              "expr": "topk(15,\n    label_replace(\n        sum by (host, service,method,code) \n          (rate(traefik_service_requests_total{host=~\"$host\",service=~\"$service.*\",code=~\"5..\",protocol=\"http\"}[$interval])) > 0,\n        \"service\", \"$1\", \"service\", \"([^-]+-[^-]+).*\")\n)",
+              "legendFormat": "{{method}}[{{code}}] on {{service}} ({{host}})",
               "range": true,
               "refId": "A"
             }
@@ -1071,8 +1071,8 @@
                 "uid": "victoriametrics"
               },
               "editorMode": "code",
-              "expr": "topk(15,\n    label_replace(\n        sum by (service,method,code) \n          (rate(traefik_service_requests_total{host=~\"$host\",service=~\"$service.*\",code!~\"2..|5..\",protocol=\"http\"}[$interval])) > 0,\n        \"service\", \"$1\", \"service\", \"([^-]+-[^-]+).*\")\n)",
-              "legendFormat": "{{method}}[{{code}}] on {{service}}",
+              "expr": "topk(15,\n    label_replace(\n        sum by (host, service,method,code) \n          (rate(traefik_service_requests_total{host=~\"$host\",service=~\"$service.*\",code!~\"2..|5..\",protocol=\"http\"}[$interval])) > 0,\n        \"service\", \"$1\", \"service\", \"([^-]+-[^-]+).*\")\n)",
+              "legendFormat": "{{method}}[{{code}}] on {{service}} ({{host}})",
               "range": true,
               "refId": "A"
             }
@@ -1170,8 +1170,8 @@
                 "uid": "victoriametrics"
               },
               "editorMode": "code",
-              "expr": "topk(15,\n    label_replace(\n        sum by (service,method) \n          (rate(traefik_service_requests_bytes_total{host=~\"$host\",service=~\"$service.*\",protocol=\"http\"}[$interval])) > 0,\n        \"service\", \"$1\", \"service\", \"([^-]+-[^-]+).*\")\n)",
-              "legendFormat": "{{method}} on {{service}}",
+              "expr": "topk(15,\n    label_replace(\n        sum by (host, service,method) \n          (rate(traefik_service_requests_bytes_total{host=~\"$host\",service=~\"$service.*\",protocol=\"http\"}[$interval])) > 0,\n        \"service\", \"$1\", \"service\", \"([^-]+-[^-]+).*\")\n)",
+              "legendFormat": "{{method}} on {{service}} ({{host}})",
               "range": true,
               "refId": "A"
             }
@@ -1269,8 +1269,8 @@
                 "uid": "victoriametrics"
               },
               "editorMode": "code",
-              "expr": "topk(15,\n    label_replace(\n        sum by (service,method) \n          (rate(traefik_service_responses_bytes_total{host=~\"$host\",service=~\"$service.*\",protocol=\"http\"}[$interval])) > 0,\n        \"service\", \"$1\", \"service\", \"([^-]+-[^-]+).*\")\n)",
-              "legendFormat": "{{method}} on {{service}}",
+              "expr": "topk(15,\n    label_replace(\n        sum by (host, service,method) \n          (rate(traefik_service_responses_bytes_total{host=~\"$host\",service=~\"$service.*\",protocol=\"http\"}[$interval])) > 0,\n        \"service\", \"$1\", \"service\", \"([^-]+-[^-]+).*\")\n)",
+              "legendFormat": "{{method}} on {{service}} ({{host}})",
               "range": true,
               "refId": "A"
             }
@@ -1367,8 +1367,8 @@
                 "uid": "victoriametrics"
               },
               "editorMode": "code",
-              "expr": "sum(traefik_open_connections{host=~\"$host\",entrypoint=~\"$entrypoint\"}) by (entrypoint)\n",
-              "legendFormat": "{{entrypoint}}",
+              "expr": "sum(traefik_open_connections{host=~\"$host\",entrypoint=~\"$entrypoint\"}) by (host, entrypoint)\n",
+              "legendFormat": "{{entrypoint}} ({{host}})",
               "range": true,
               "refId": "A"
             }

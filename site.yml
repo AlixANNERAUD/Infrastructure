@@ -1,6 +1,6 @@
 ---
 # Deploy every service. Limit to one host with --limit, for example:
-#   uv run ansible-playbook site.yml --limit bruxelles
+#   mise exec -- uv run ansible-playbook site.yml --limit bruxelles
 # DNS zones are applied with dns/*.yml
 
 # Reverse proxy first: the other Luxembourg services are routed through it

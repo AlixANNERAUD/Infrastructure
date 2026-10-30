@@ -179,6 +179,14 @@ errors = rules.get("Traefik server errors", {})
 check(errors.get("state") in ("pending", "firing"), f"rule Traefik server errors is {errors.get('state')}")
 alerts = [alert["labels"].get("service") for alert in errors.get("alerts", [])]
 check(alerts == ["app@file"], f"rule Traefik server errors alerts for {alerts}")
+# Annotations are rendered for pending alerts too: labels and values must reach the text
+for alert in errors.get("alerts", []):
+    summary = alert.get("annotations", {}).get("summary", "")
+    check(
+        "app@file" in summary and "bruxelles" in summary and "%" in summary
+        and "error" not in summary.replace("server error", "") and "no value" not in summary,
+        f"rule Traefik server errors summary is {summary!r}",
+    )
 latency = rules.get("Traefik slow responses", {})
 check(latency.get("state") == "inactive", f"rule Traefik slow responses is {latency.get('state')}")
 

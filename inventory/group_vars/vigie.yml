@@ -19,3 +19,5 @@ vigie_latency_excluded_services:
   - camera           # camera-nicosie, camera-skopje, camera-amsterdam
   - metube
   - qbittorrent
+  - meshcentral      # remote desktop sessions
+  - open-webui       # streamed model answers

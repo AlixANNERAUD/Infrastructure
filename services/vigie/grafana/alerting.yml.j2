@@ -1,4 +1,6 @@
-# Grafana alerting, rendered by deploy.yml: Traefik alert rules sent to Home Assistant
+# Grafana alerting, rendered by deploy.yml: Traefik alert rules sent to Home Assistant.
+# Grafana expands environment variables (dollar sign followed by a name) in
+# provisioning files, so annotations use .Labels and .Values: no dollar sign here
 {% set excluded = '(' ~ vigie_latency_excluded_services | join('|') ~ ').*' %}
 apiVersion: 1
 
@@ -56,7 +58,7 @@ groups:
               conditions:
                 - evaluator: {type: gt, params: [0.05]}
         annotations:
-          summary: "{% raw %}{{ $labels.service }} on {{ $labels.host }} answers {{ humanizePercentage $values.query.Value }} of its requests with a server error{% endraw %}"
+          summary: "{% raw %}{{ .Labels.service }} on {{ .Labels.host }} answers {{ humanizePercentage .Values.query.Value }} of its requests with a server error{% endraw %}"
 
       - uid: traefik-slow-responses
         title: Traefik slow responses
@@ -89,7 +91,7 @@ groups:
               conditions:
                 - evaluator: {type: gt, params: [2]}
         annotations:
-          summary: "{% raw %}{{ $labels.service }} on {{ $labels.host }} answers 5 % of its requests in more than {{ humanizeDuration $values.query.Value }}{% endraw %}"
+          summary: "{% raw %}{{ .Labels.service }} on {{ .Labels.host }} answers 5 % of its requests in more than {{ humanizeDuration .Values.query.Value }}{% endraw %}"
 
       # VictoriaMetrics records up = 0 when a Traefik instance cannot be scraped;
       # no up series at all means scraping itself is broken
@@ -117,4 +119,4 @@ groups:
               conditions:
                 - evaluator: {type: lt, params: [1]}
         annotations:
-          summary: "{% raw %}{{ if $labels.host }}Traefik on {{ $labels.host }} cannot be scraped{{ else }}No Traefik metrics at all: VictoriaMetrics scrapes nothing{{ end }}{% endraw %}"
+          summary: "{% raw %}{{ if .Labels.host }}Traefik on {{ .Labels.host }} cannot be scraped{{ else }}No Traefik metrics at all: VictoriaMetrics scrapes nothing{{ end }}{% endraw %}"
