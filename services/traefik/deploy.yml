@@ -9,9 +9,16 @@
     - name: Check that no other container holds ports 80 and 443
       ansible.builtin.include_tasks: check_published_ports.yml
 
+    - name: Look up the proxy network
+      community.docker.docker_network_info:
+        name: "{{ proxy_network }}"
+      register: traefik_proxy_network
+
+    # Never recreate an existing network: a driver mismatch would make the module disconnect every container
     - name: Create the proxy network
       community.docker.docker_network:
         name: "{{ proxy_network }}"
+      when: not traefik_proxy_network.exists
 
   roles:
     - role: compose_service
