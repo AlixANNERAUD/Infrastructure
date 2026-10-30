@@ -99,9 +99,10 @@ services:
       - BACKUP_KEEP_MONTHS=6
       - HEALTHCHECK_PORT=8080
 
+  # Synapse admin UI (etkecc/synapse-admin, now called Ketesa), served under /admin
   synapse-admin:
     hostname: synapse-admin
-    image: ghcr.io/etkecc/synapse-admin:latest
+    image: ghcr.io/etkecc/ketesa:v1.5.2
     logging: *logging
     restart: unless-stopped
     labels:
@@ -116,7 +117,7 @@ services:
       - traefik.http.routers.synapse-admin.entrypoints=web-secure
       - traefik.http.routers.synapse-admin.tls=true
       - traefik.http.routers.synapse-admin.tls.certresolver=letsencrypt
-      - traefik.http.services.synapse-admin.loadbalancer.server.port=80
+      - traefik.http.services.synapse-admin.loadbalancer.server.port=8080
       - traefik.http.services.synapse-admin.loadbalancer.server.scheme=http
     networks:
       - traefik
