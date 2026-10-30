@@ -1,0 +1,10 @@
+---
+# Home TrueNAS server
+ansible_host: local.bruxelles.anneraud.fr
+ansible_user: ansible
+local_dns_host: local.bruxelles.anneraud.fr
+global_dns_host: global.bruxelles.anneraud.fr
+
+# Compose stacks live on the encrypted dataset, behind Nginx Proxy Manager
+services_root: /mnt/Donnees/Applications_chiffrees
+proxy_network: proxy

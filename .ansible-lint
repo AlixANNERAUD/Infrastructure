@@ -11,7 +11,7 @@ exclude_paths:
   - services/website/website/
   - services/*/compose.yml
   - services/gatus_*/config.yml
-  - inventory.yml
+  - inventory/
   - requirements.yml
 
 # ansible-lint does not follow module_defaults, which sets zone in the Cloudflare playbooks

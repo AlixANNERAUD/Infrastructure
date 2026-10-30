@@ -1,0 +1,5 @@
+---
+ansible_host: local.pristina.anneraud.fr
+ansible_user: ansible
+local_dns_host: local.pristina.anneraud.fr
+bruxelles_replication_identifier: "7"

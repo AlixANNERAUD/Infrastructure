@@ -16,7 +16,7 @@ fi
 
 # Set your exports
 export ANSIBLE_VAULT_PASSWORD_FILE="$tmp_vault_file"
-export ANSIBLE_INVENTORY="$(pwd)/inventory.yml"
+export ANSIBLE_INVENTORY="$(pwd)/inventory/"
 export EDITOR="zed --wait"
 
 unset tmp_vault_file
