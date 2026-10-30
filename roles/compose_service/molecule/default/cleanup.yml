@@ -1,0 +1,20 @@
+---
+- name: Cleanup
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Check whether the test stack exists
+      ansible.builtin.stat:
+        path: "{{ compose_service_test_path }}/compose.yml"
+      register: compose_service_test_compose
+
+    - name: Stop the test stack
+      community.docker.docker_compose_v2:
+        project_src: "{{ compose_service_test_path }}"
+        state: absent
+      when: compose_service_test_compose.stat.exists
+
+    - name: Remove the test services folder
+      ansible.builtin.file:
+        path: "{{ services_root }}"
+        state: absent
