@@ -166,14 +166,30 @@
       failed_when: false
       when: bootstrap_sudo.rc | default(1) == 0
 
+    # Controllers running on Bruxelles (Semaphore) connect from their address on
+    # the proxy network, which Docker doesn't NAT: that range is read now, as the
+    # network has no fixed subnet
+    - name: Read the subnet of the proxy network
+      community.docker.docker_network_info:
+        name: "{{ proxy_network }}"
+      become: true
+      register: bootstrap_proxy_network
+      failed_when: false
+      when: bootstrap_sudo.rc | default(1) == 0
+
     - name: Work out what is left to change in the TrueNAS interface
       ansible.builtin.set_fact:
         bootstrap_steps: >-
           {{
             (['Credentials > Users: create or edit the ' ~ automation_user ~ ' user, with a shell and a home folder on the pool']
                if bootstrap_unreachable else [])
-            + (['Credentials > Users > ' ~ automation_user ~ ' > Authorized Keys: set it to exactly these lines: ' ~ (automation_authorized_keys | join(' | '))]
-               if bootstrap_unreachable or automation_authorized_keys | reject('in', bootstrap_authorized_keys.stdout | default('')) | length > 0 else [])
+            + (['Credentials > Users > ' ~ automation_user ~ ' > Authorized Keys: set it to exactly these lines: ' ~ (bootstrap_truenas_keys | join(' | '))
+                ~ '. The range ' ~ (bootstrap_proxy_subnets | join(', ')) ~ ' is the current subnet of the ' ~ proxy_network
+                ~ ' Docker network: if that network is ever recreated, run this playbook again and update the lines']
+               if bootstrap_unreachable or bootstrap_truenas_keys | reject('in', bootstrap_authorized_keys.stdout | default('')) | length > 0 else [])
+            + (['The subnet of the ' ~ proxy_network ~ ' Docker network could not be read, so the keys of the controllers running on Bruxelles '
+                ~ 'only get the LAN and VPN ranges: run this playbook again once the network exists']
+               if not bootstrap_unreachable and bootstrap_proxy_subnets | length == 0 and automation_additional_public_keys | length > 0 else [])
             + (['Credentials > Users > ' ~ automation_user ~ ' > Allowed sudo commands with no password: ALL']
                if bootstrap_unreachable or bootstrap_sudo.rc | default(1) != 0 else [])
             + (['System > Services > SSH: disable password login (and root login)']
@@ -181,6 +197,16 @@
           }}
       vars:
         bootstrap_unreachable: "{{ bootstrap_connection.unreachable | default(false) }}"
+        bootstrap_proxy_subnets: >-
+          {{ (bootstrap_proxy_network.network.IPAM.Config | default([]) | map(attribute='Subnet') | select('match', '^[0-9]+[.]') | list)
+             if bootstrap_proxy_network.network is defined else [] }}
+        # The laptop's key works from the usual networks, the controllers' keys also from the proxy network
+        bootstrap_truenas_keys: >-
+          {{
+            ([automation_laptop_public_key] | map('regex_replace', '^', 'from="' ~ (automation_ssh_sources | join(',')) ~ '" ') | list)
+            + (automation_additional_public_keys
+               | map('regex_replace', '^', 'from="' ~ ((automation_ssh_sources + bootstrap_proxy_subnets) | join(',')) ~ '" ') | list)
+          }}
 
     - name: List what to change in the TrueNAS interface
       ansible.builtin.debug:

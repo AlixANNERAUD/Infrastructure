@@ -104,12 +104,12 @@ The playbook also hardens `sshd` (no passwords, no root login, only `ansible` an
 
 ## Deployment with Semaphore
 
-[Semaphore](https://semaphoreui.com/) (`services/deploiement`, https://deploiement.anneraud.fr, private) runs the playbooks from Bruxelles. It is deployed with `uv run ansible-playbook services/deploiement/deploy.yml`, which also generates the SSH key Semaphore connects to the hosts with (`keys/ansible` in the service folder) and prints its public key. Its secrets (admin account, `deploiement_access_key_encryption`) are in `vault/deploiement/vault.yml`. The database is an embedded SQLite file in the service folder.
+[Semaphore](https://semaphoreui.com/) (`services/deploiement`, https://deploiement.anneraud.fr, private) runs the playbooks from Bruxelles. It is deployed with `mise deploy services/deploiement/deploy.yml`, which also generates the SSH key Semaphore connects to the hosts with (`keys/ansible` in the service folder) and prints its public key. Its secrets (admin account, `deploiement_access_key_encryption`) are in `vault/deploiement/vault.yml`. The database is an embedded SQLite file in the service folder.
 
 Once, to authorize Semaphore on the hosts:
 
-1. Add the printed public key to `automation_additional_public_keys` in `inventory/group_vars/all.yml`, then run `uv run ansible-playbook hosts/bootstrap.yml`.
-2. On TrueNAS, add the same key as a line of the `ansible` user's *Authorized Keys* (bootstrap prints the exact lines).
+1. Add the printed public key to `automation_additional_public_keys` in `inventory/group_vars/all.yml`, then run `mise deploy hosts/bootstrap.yml`.
+2. On TrueNAS, add the same key as a line of the `ansible` user's *Authorized Keys* (bootstrap prints the exact lines). Semaphore's SSH connections to Bruxelles itself come from its container's address on the `proxy` network (not NATed), which has no fixed subnet: on Bruxelles its key is accepted from the LAN and VPN plus the current subnet of `proxy`, read when bootstrap runs. If the `proxy` network is ever recreated, run `mise deploy hosts/bootstrap.yml --limit bruxelles` again and update that line. On the other hosts, the key is accepted from the LAN and VPN only.
 
 Once, in the Semaphore interface:
 

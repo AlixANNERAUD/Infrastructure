@@ -67,7 +67,8 @@
       ansible.builtin.debug:
         msg:
           - "Semaphore's public key: {{ (deploiement_public_key.content | b64decode).strip() }}"
-          - "1. Add it to automation_additional_public_keys in inventory/group_vars/all.yml, then run: uv run ansible-playbook hosts/bootstrap.yml"
+          - "1. Add it to automation_additional_public_keys in inventory/group_vars/all.yml, then run: mise deploy hosts/bootstrap.yml"
           - "2. TrueNAS: add it as a line of Credentials > Users > {{ automation_user }} > Authorized Keys (bootstrap prints the exact lines)."
+          - "   Those lines include the current subnet of the proxy network: redo this step if that network is ever recreated."
           - "3. In Semaphore, store the private key {{ compose_service_path }}/keys/ansible as an SSH key with the user {{ automation_user }}."
           - "The full one-time setup of the project is in the readme (Deployment with Semaphore)."
