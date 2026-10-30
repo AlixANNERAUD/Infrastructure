@@ -19,9 +19,10 @@ http:
     security-headers:
       headers:
         stsSeconds: 63072000
-        stsIncludeSubdomains: true
+        # Not includeSubDomains: it would force HTTPS on every *.anneraud.fr name for two years, including
+        # devices only reachable over HTTP (printers, local.* names); each HTTPS site sends its own HSTS
+        stsIncludeSubdomains: false
         contentTypeNosniff: true
-        referrerPolicy: strict-origin-when-cross-origin
 
     internal-allowlist:
       ipAllowList:
