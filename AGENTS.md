@@ -71,7 +71,7 @@ Rules:
 - Bind-mount paths in `compose.yml` must match what `deploy.yml` creates. A missing file mount makes Docker create a directory in its place.
 - Pass UID/GID and secrets to Compose through `.env` (`${USER_ID}:${GROUP_ID}`), not hard-coded twice.
 - Every long-running container gets `restart: unless-stopped`, databases included.
-- Pin image tags (no `latest`, no untagged images); Renovate opens PRs for updates.
+- Pin image tags (no `latest`, no untagged images); Dependabot (`.github/dependabot.yml`) opens one grouped PR per ecosystem every Monday. It does not cover `requirements.yml` or `.python-version`: update those by hand.
 - Ansible style: FQCN modules (`ansible.builtin.copy`), `true`/`false`, `changed_when` on `command`/`shell`, handlers for restarts.
 - Lines that can't be split (DNS TXT records, Traefik rules, long commands) get `# yamllint disable-line rule:line-length`. Never put that comment inside a `|` block scalar: it would become part of the file content; wrap the task in `# yamllint disable/enable rule:line-length` instead.
 - New public endpoints should also get a Gatus check in `services/gatus_anneraud/config.yml` or `services/gatus_dera_page/config.yml`, and a row in `readme.md`.
