@@ -22,6 +22,8 @@ services:
     volumes:
       - ./data:/var/lib/semaphore
       - ./config:/etc/semaphore
+      - ./gitconfig:/etc/gitconfig:ro
+      - ./git-credentials:/etc/git-credentials:ro
     networks:
       - proxy
 

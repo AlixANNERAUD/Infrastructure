@@ -104,7 +104,7 @@ The playbook also hardens `sshd` (no passwords, no root login, only `ansible` an
 
 ## Deployment with Semaphore
 
-[Semaphore](https://semaphoreui.com/) (`services/deploiement`, https://deploiement.anneraud.fr, private) runs the playbooks from Bruxelles. It is deployed with `mise deploy services/deploiement/deploy.yml`, which also generates the SSH key Semaphore connects to the hosts with (`keys/ansible` in the service folder) and prints its public key. Its secrets (admin account, `deploiement_access_key_encryption`) are in `vault/deploiement/vault.yml`. Generate the encryption key with `head -c32 /dev/urandom | base64` (it encrypts the keys stored in Semaphore: losing it makes them unreadable). The `SEMAPHORE_ADMIN_*` variables only create the admin on the first start: changing them in the vault later does not change the account, use the interface. The database is an embedded SQLite file in `data/` of the service folder. `keys/ansible` on the host stays there as the recovery copy of Semaphore's private key (mode `0600`, owned by the container user). Keep it: if it is deleted, the next deploy generates a different key pair, which has to be authorized and pasted again.
+[Semaphore](https://semaphoreui.com/) (`services/deploiement`, https://deploiement.anneraud.fr, private) runs the playbooks from Bruxelles. It is deployed with `mise deploy services/deploiement/deploy.yml`, which also generates the SSH key Semaphore connects to the hosts with (`keys/ansible` in the service folder) and prints its public key. Its secrets are in `vault/deploiement/vault.yml`: the admin account (`deploiement_admin_login`, `deploiement_admin_name`, `deploiement_admin_email`, `deploiement_admin_password`), `deploiement_access_key_encryption` and `deploiement_vault_repository_token`. The last one lets Semaphore clone the private `Infrastructure_vault` submodule: create it in GitHub > Settings > Developer settings > Fine-grained personal access tokens, with *Only select repositories* > `Infrastructure_vault` and the repository permission *Contents: Read-only*, an expiry, and a reminder to rotate it before then (update the vault and run the deployment again). The deployment gives it to git in the container through a credential helper limited to that repository (`gitconfig` and `git-credentials` in the service folder, mode `0600`); without it, the deployment still works and prints this step. Generate the encryption key with `head -c32 /dev/urandom | base64` (it encrypts the keys stored in Semaphore: losing it makes them unreadable). The `SEMAPHORE_ADMIN_*` variables only create the admin on the first start: changing them in the vault later does not change the account, use the interface. The database is an embedded SQLite file in `data/` of the service folder. `keys/ansible` on the host stays there as the recovery copy of Semaphore's private key (mode `0600`, owned by the container user). Keep it: if it is deleted, the next deploy generates a different key pair, which has to be authorized and pasted again.
 
 Once, to authorize Semaphore on the hosts:
 
@@ -117,14 +117,14 @@ Once, in the Semaphore interface:
 2. Key store, add:
    - `ansible`: type SSH, login `ansible`, the content of `keys/ansible` (read it on Bruxelles, it is never committed);
    - `vault`: type Login with password, empty login, the Ansible Vault password (it is only used to decrypt the vault files);
-   - `vault-deploy`: type SSH, a key pair generated for this (`ssh-keygen -t ed25519`), whose public key is added as a read-only deploy key of `Infrastructure_vault` on GitHub;
    - `none`: type None, to clone the public repository.
-3. Host config: add a URL mapping `https://github.com/AlixANNERAUD/Infrastructure_vault.git` to the `vault-deploy` key, so that the submodule is cloned over SSH. Submodules do not use the repository's key.
-4. Repositories: `https://github.com/AlixANNERAUD/Infrastructure.git`, branch `main`, key `none`. Semaphore updates submodules when it clones. It installs the collections of the root `requirements.yml` by itself.
-5. Inventory: type File, path `inventory/hosts.yml` (relative to the repository), SSH key `ansible`. Ansible reads `host_vars` and `group_vars` next to the inventory file, so `inventory/host_vars/` and `inventory/group_vars/` are picked up.
-6. Task templates, for `site.yml` and for each `services/<service>/deploy.yml` (and `hosts/*.yml` if wanted), each in two variants, with the vault password `vault`:
+3. Repositories: `https://github.com/AlixANNERAUD/Infrastructure.git`, branch `main`, key `none` (the repository is public). Semaphore updates submodules when it clones; the private vault submodule is cloned with the read-only token that the deployment gives git in the container (see above), nothing to configure here. It installs the collections of the root `requirements.yml` by itself.
+4. Inventory: type File, path `inventory/hosts.yml` (relative to the repository), SSH key `ansible`. Ansible reads `host_vars` and `group_vars` next to the inventory file, so `inventory/host_vars/` and `inventory/group_vars/` are picked up.
+5. Task templates, for `site.yml` and for each `services/<service>/deploy.yml` (and `hosts/*.yml` if wanted), each in two variants, with the vault password `vault`:
    - preview: CLI args `["--check", "--diff"]`;
    - run: no extra arguments.
+
+Semaphore runs the ansible-core bundled in its image (2.20) while CI lints with 2.21: check the first `--check` run for differences.
 
 Zitadel provisioning (OpenTofu) still runs from the laptop.
 

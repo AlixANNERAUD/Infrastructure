@@ -17,6 +17,10 @@
           - data
           - config
           - keys
+        # Git configuration of the container, written below: it must exist when the stack starts
+        compose_service_mounted_files:
+          - gitconfig
+          - git-credentials
         compose_service_environment:
           SEMAPHORE_ADMIN: "{{ deploiement_admin_login }}"
           SEMAPHORE_ADMIN_NAME: "{{ deploiement_admin_name }}"
@@ -28,6 +32,43 @@
           - record: deploiement.anneraud.fr
             visibility: private
   tasks:
+    # The vault submodule is private: git hands the token over, through a
+    # credential helper (not in a URL, so it stays out of logs), for that
+    # repository only
+    - name: Configure git credentials in the container
+      ansible.builtin.copy:
+        dest: "{{ compose_service_path }}/gitconfig"
+        content: |
+          [credential]
+            useHttpPath = true
+
+          [credential "https://github.com/AlixANNERAUD/Infrastructure_vault.git"]
+            helper = store --file=/etc/git-credentials
+        mode: "0600"
+        owner: "{{ compose_service_user }}"
+        group: "{{ compose_service_group }}"
+      notify: Restart the stack
+
+    - name: Store the token of the vault repository
+      ansible.builtin.copy:
+        dest: "{{ compose_service_path }}/git-credentials"
+        content: >-
+          {{ ('https://x-access-token:' ~ deploiement_vault_repository_token ~ '@github.com/AlixANNERAUD/Infrastructure_vault.git' ~ '\n')
+             if deploiement_vault_repository_token | default('') | length > 0 else '' }}
+        mode: "0600"
+        owner: "{{ compose_service_user }}"
+        group: "{{ compose_service_group }}"
+      no_log: true
+      notify: Restart the stack
+
+    - name: Explain how to let Semaphore clone the vault repository
+      ansible.builtin.debug:
+        msg:
+          - "deploiement_vault_repository_token is missing from vault/deploiement/vault.yml: Semaphore can't clone the private vault submodule."
+          - "Create a fine-grained GitHub token (Contents: read-only, only on AlixANNERAUD/Infrastructure_vault, with an expiry),"
+          - "add it to the vault as deploiement_vault_repository_token, then run this playbook again (the readme has the steps)."
+      when: deploiement_vault_repository_token | default('') | length == 0
+
     # Semaphore connects to the hosts with this key: it is created once, then
     # pasted in Semaphore's key store by hand
     - name: Generate the SSH key Semaphore connects with
