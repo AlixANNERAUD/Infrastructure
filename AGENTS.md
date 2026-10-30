@@ -26,7 +26,7 @@ Luxembourg is reachable from the internet: anything published with `ports:` ther
 
 ## Tooling
 
-Tools are pinned with uv (`pyproject.toml`, `uv.lock`) and Ansible collections in `requirements.yml`.
+Tools are pinned with uv (`pyproject.toml`, `uv.lock`), OpenTofu with mise (`mise.toml`) and Ansible collections in `requirements.yml`. `mise.toml` also holds the owner's shortcuts (`mise deploy <playbook>` = `mise exec -- uv run ansible-playbook`, `mise preview`, `mise lint`, `mise test`, `mise vault`); keep them in sync when a command below changes.
 
 ```bash
 uv sync
@@ -65,7 +65,7 @@ Compose services are deployed with the shared role `roles/compose_service` (see 
         compose_service_dns_records: [{record: wakapi.dera.page}]   # visibility: private for local_dns_host
 ```
 
-The role creates the folder under the host's `services_root` (permissions only on creation, existing TrueNAS folders keep their ACLs), copies `compose.yml`, writes `.env`, starts the stack and points the DNS records at the host. Stacks are only recreated when their image or configuration changes, and restarted when an extra file changes. Every Compose service uses the role except `services/vault_xila`, which bootstraps its own TLS certificate and must stay unsealed; keep it hand-written. `site.yml` imports every service playbook (`uv run ansible-playbook site.yml --limit <host>`); add new services to it.
+The role creates the folder under the host's `services_root` (permissions only on creation, existing TrueNAS folders keep their ACLs), copies `compose.yml`, writes `.env`, starts the stack and points the DNS records at the host. Stacks are only recreated when their image or configuration changes, and restarted when an extra file changes. Every Compose service uses the role except `services/vault_xila`, which bootstraps its own TLS certificate and must stay unsealed; keep it hand-written. `site.yml` imports every service playbook (`mise deploy site.yml --limit <host>`); add new services to it.
 
 Rules:
 

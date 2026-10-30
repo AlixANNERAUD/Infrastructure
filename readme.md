@@ -57,35 +57,26 @@ Hosts and the service-to-host mapping are in [inventory/hosts.yml](inventory/hos
 
 ## Deployment
 
-Install the pinned tools (Ansible, ansible-lint, yamllint) and Ansible collections with [uv](https://docs.astral.sh/uv/), and OpenTofu (pinned in `mise.toml`, used for Zitadel's applications) with [mise](https://mise.jdx.dev/):
+Install [uv](https://docs.astral.sh/uv/) and [mise](https://mise.jdx.dev/), then the pinned tools (Ansible, ansible-lint, yamllint, OpenTofu for Zitadel's applications) and Ansible collections:
 
 ```bash
-uv sync
-uv run ansible-galaxy collection install -r requirements.yml
 mise install
+mise run setup
+source source.sh          # once per session: caches the vault password
 ```
 
-Activate mise in your shell (`mise activate`) or prefix commands with `mise exec --`; otherwise `tofu` isn't on `PATH` and the Zitadel role reports OpenTofu as missing.
-
-Deploy a service playbook with Ansible:
+Common commands are mise tasks (`mise tasks` lists them). They run with the tools from `mise.toml` on `PATH`, so OpenTofu is there for the Zitadel role. Arguments are passed on to the command:
 
 ```bash
-uv run ansible-playbook services/<service_name>/deploy.yml
+mise deploy services/<service_name>/deploy.yml   # deploy one service
+mise deploy site.yml --limit bruxelles           # everything on one host (or everything without --limit)
+mise preview site.yml --limit bruxelles          # what would change (--check --diff), without changing it
+mise vault vault/<service_name>/vault.yml        # edit a vault file
+mise lint                                        # yamllint, ansible-lint, docker compose config
+mise test                                        # Molecule scenarios of the roles (needs Docker)
 ```
 
-Deploy everything, or everything on one host:
-
-```bash
-uv run ansible-playbook site.yml
-uv run ansible-playbook site.yml --limit bruxelles
-```
-
-Lint before committing:
-
-```bash
-uv run yamllint .
-uv run ansible-lint
-```
+`mise deploy …` is short for `mise run deploy …` and for `mise exec -- uv run ansible-playbook …`.
 
 ## Ansible account
 
@@ -94,8 +85,8 @@ Ansible connects to every host as `ansible`: SSH key only (`~/.ssh/ansible.pub`,
 Set it up, or update it, with:
 
 ```bash
-uv run ansible-playbook hosts/bootstrap.yml --limit <host>                                # existing host
-uv run ansible-playbook hosts/bootstrap.yml --limit <host> -u <you> --ask-become-pass     # new host, added to the inventory first
+mise deploy hosts/bootstrap.yml --limit <host>                                # existing host
+mise deploy hosts/bootstrap.yml --limit <host> -u <you> --ask-become-pass     # new host, added to the inventory first
 ```
 
 The playbook also hardens `sshd` (no passwords, no root login, only `ansible` and `ssh_administrators`). It refuses to run if the current connection doesn't come from an allowed network. When a host can't be reached, or sudo needs a password nobody provided, it prints the commands to run on that host by hand and skips it.
@@ -106,7 +97,7 @@ The playbook also hardens `sshd` (no passwords, no root login, only `ansible` an
 
 `hosts/replication.yml` gives each client in the `replication` group a `replication` account and key, and installs a forced command on Bruxelles that runs one TrueNAS replication task, so the TrueNAS API key never leaves Bruxelles. Once, before deploying it:
 
-1. Deploy: `uv run ansible-playbook hosts/replication.yml`. Until the `replication` user exists in TrueNAS, it explains how to create it.
+1. Deploy: `mise deploy hosts/replication.yml`. Until the `replication` user exists in TrueNAS, it explains how to create it.
 2. Paste the `command="…",restrict ssh-ed25519 …` lines it prints into that user's *Authorized Keys*; it prints them only while they are missing.
 
 ## Structure
@@ -141,7 +132,7 @@ deploying `services/vigie/deploy.yml`.
 OIDC applications of services managed outside Ansible are declared in `opentofu/zitadel/applications.auto.tfvars` and provisioned with OpenTofu. To add one:
 
 1. Add an entry to `applications.auto.tfvars` (set `authentication = "client_secret"` and `configured_in` when the service needs a secret pasted in).
-2. Run `mise exec -- uv run ansible-playbook services/zitadel/applications.yml`. It prints the issuer, client id and `configured_in`, and writes client secrets to `~/.config/infrastructure/zitadel/<application>.secret` (mode `0600`). Without `zitadel_automation_token` and `zitadel_state_passphrase` in `vault/zitadel/vault.yml`, it prints how to create them.
+2. Run `mise deploy services/zitadel/applications.yml`. It prints the issuer, client id and `configured_in`, and writes client secrets to `~/.config/infrastructure/zitadel/<application>.secret` (mode `0600`). Without `zitadel_automation_token` and `zitadel_state_passphrase` in `vault/zitadel/vault.yml`, it prints how to create them.
 3. Commit the updated `vault/zitadel/opentofu.tfstate` in the vault repository.
 
 ## Vault

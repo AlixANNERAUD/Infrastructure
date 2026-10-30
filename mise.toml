@@ -1,2 +1,40 @@
 [tools]
 opentofu = "1.13.2"
+
+# Shortcuts: `mise run <task> [arguments]`, or `mise <task>` when no mise command has that name.
+# Tasks run with the tools above on PATH, so OpenTofu is there for the Zitadel role.
+# Playbooks and ansible-lint read the vault: run `source source.sh` once per session first.
+
+[tasks.setup]
+description = "Install the pinned tools and Ansible collections"
+run = [
+    "uv sync",
+    "uv run ansible-galaxy collection install -r requirements.yml",
+]
+
+[tasks.deploy]
+description = "Run a playbook: mise deploy services/<service>/deploy.yml [--limit <host>]"
+run = "uv run ansible-playbook"
+
+[tasks.preview]
+description = "Show what a playbook would change, without changing it"
+run = "uv run ansible-playbook --check --diff"
+
+[tasks.lint]
+description = "Run the linters CI runs"
+run = [
+    "uv run yamllint .",
+    "uv run ansible-lint",
+    ".github/scripts/check-compose.sh",
+]
+
+[tasks.test]
+description = "Run the Molecule scenarios of the roles (needs Docker)"
+run = [
+    "cd roles/compose_service && uv run molecule test",
+    "cd roles/zitadel_applications && uv run molecule test",
+]
+
+[tasks.vault]
+description = "Edit a vault file: mise vault vault/<service>/vault.yml"
+run = "uv run ansible-vault edit"
