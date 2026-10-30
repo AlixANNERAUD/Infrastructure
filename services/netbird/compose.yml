@@ -8,7 +8,7 @@ x-logging: &logging
 services:
   # UI dashboard
   dashboard:
-    image: netbirdio/dashboard:v2.95.0
+    image: netbirdio/dashboard:v2.96.0
     logging: *logging
     container_name: netbird-dashboard
     restart: unless-stopped
@@ -38,7 +38,7 @@ services:
 
   # Combined server (Management + Signal + Relay + STUN)
   netbird-server:
-    image: netbirdio/netbird-server:0.81.4
+    image: netbirdio/netbird-server:0.81.5
     logging: *logging
     container_name: netbird-server
     restart: unless-stopped
