@@ -6,6 +6,42 @@
     - ../../vault/ansible/vault.yml
     - ../../vault/vigie/vault.yml
     - ../../vault/cloudflare/vault.yml
+  pre_tasks:
+    # Grafana's login through Zitadel is optional: without the Zitadel
+    # credentials, or if provisioning fails, the deploy goes on with the
+    # break-glass admin login only
+    - name: Look for the Zitadel vault
+      ansible.builtin.stat:
+        path: "{{ playbook_dir }}/../../vault/zitadel/vault.yml"
+      register: vigie_zitadel_vault
+      delegate_to: localhost
+      become: false
+
+    - name: Load the Zitadel vault
+      ansible.builtin.include_vars:
+        file: "{{ playbook_dir }}/../../vault/zitadel/vault.yml"
+      when: vigie_zitadel_vault.stat.exists
+      no_log: true
+
+    - name: Provision the Grafana application in Zitadel
+      block:
+        - name: Run the Zitadel applications role
+          ansible.builtin.include_role:
+            name: zitadel_applications
+            apply:
+              become: false
+      rescue:
+        - name: Continue without Zitadel login
+          ansible.builtin.set_fact:
+            zitadel_applications_provisioned: false
+            zitadel_applications_client_ids: {}
+
+        - name: Report that Zitadel provisioning failed
+          ansible.builtin.debug:
+            msg: >-
+              Zitadel provisioning failed, Grafana login through Zitadel is disabled for this deploy:
+              {{ ansible_failed_result.msg | default('unknown error') }}
+
   roles:
     - role: compose_service
       vars:
@@ -32,6 +68,8 @@
         compose_service_environment:
           GRAFANA_ADMIN_PASSWORD: "{{ vigie_grafana_admin_password }}"
           PROXY_NETWORK: "{{ proxy_network }}"
+          GRAFANA_OAUTH_ENABLED: "{{ (zitadel_applications_provisioned | default(false)) | string | lower }}"
+          GRAFANA_OAUTH_CLIENT_ID: "{{ zitadel_applications_client_ids.grafana | default('') }}"
         compose_service_dns_records:
           - record: vigie.anneraud.fr
             visibility: private
