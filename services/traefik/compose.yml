@@ -40,6 +40,11 @@ services:
       - "--entryPoints.web-secure-federation.address=:8448"
       - "--entryPoints.web-secure-federation.http.tls=true"
 
+      # Scraped from inside the Docker network (never published): reaching the
+      # metrics through the public name would hairpin via Docker with a 172.x
+      # source that the internal allowlist rejects
+      - "--entryPoints.metrics.address=:8082"
+
       # Let's Encrypt configuration
       - "--certificatesresolvers.letsencrypt.acme.email=alix@anneraud.fr" # replace with your actual email
       - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
@@ -73,6 +78,11 @@ services:
       - "traefik.http.routers.metrics.service=prometheus@internal"
       - "traefik.http.routers.metrics.tls=true"
       - "traefik.http.routers.metrics.middlewares=internal-allowlist@file"
+
+      # Plain HTTP without allowlist: the port is only reachable from the Docker network
+      - "traefik.http.routers.metrics-internal.rule=PathPrefix(`/metrics`)"
+      - "traefik.http.routers.metrics-internal.entrypoints=metrics"
+      - "traefik.http.routers.metrics-internal.service=prometheus@internal"
 
 networks:
   proxy:
