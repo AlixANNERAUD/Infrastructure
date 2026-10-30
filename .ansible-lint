@@ -2,6 +2,7 @@
 kinds:
   - playbook: "services/*/*.yml"
   - playbook: "hosts/*/*.yml"
+  - playbook: "hosts/*.yml"
 
 exclude_paths:
   - .venv/

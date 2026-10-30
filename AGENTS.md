@@ -76,6 +76,11 @@ Rules:
 - Lines that can't be split (DNS TXT records, Traefik rules, long commands) get `# yamllint disable-line rule:line-length`. Never put that comment inside a `|` block scalar: it would become part of the file content; wrap the task in `# yamllint disable/enable rule:line-length` instead.
 - New public endpoints should also get a Gatus check in `services/gatus_anneraud/config.yml` or `services/gatus_dera_page/config.yml`, and a row in `readme.md`.
 
+## Hosts access
+
+- Ansible connects as `ansible` with passwordless sudo; `hosts/bootstrap.yml` sets it up and hardens `sshd` on every host except TrueNAS (`truenas` group, configured in its interface). Never widen `automation_ssh_sources` or `ssh_administrators` in `inventory/group_vars/all.yml` without the owner.
+- Hosts that need to reach each other use their own account and key with a forced command (see `services/replication`), never the `ansible` account.
+
 ## Secrets
 
 - Never decrypt, print or commit vault contents. Vault files are edited with `ansible-vault edit` after `source source.sh` (caches the password in `$XDG_RUNTIME_DIR`).

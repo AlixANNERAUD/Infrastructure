@@ -1,0 +1,193 @@
+---
+# Set up the account Ansible connects with: SSH key only (from the LAN and
+# VPN), passwordless sudo, locked password, and hardened sshd.
+#
+# Existing host (connects as ansible with the vault's sudo password):
+#   uv run ansible-playbook hosts/bootstrap.yml --limit <host>
+# New host, added to the inventory first, using your own account once:
+#   uv run ansible-playbook hosts/bootstrap.yml --limit <host> -u <you> --ask-become-pass
+#
+# When a host can't be reached or configured from here, the playbook prints
+# the manual steps for it and skips it.
+- name: Bootstrap the Ansible account
+  hosts: all:!truenas
+  gather_facts: false
+  become: true
+  vars_files:
+    # Sudo password of existing hosts, until they are bootstrapped
+    - ../vault/ansible/vault.yml
+  tasks:
+    - name: Check that the host is reachable
+      ansible.builtin.ping:
+      become: false
+      ignore_unreachable: true
+      register: bootstrap_connection
+
+    - name: Explain how to set up an unreachable host by hand
+      ansible.builtin.debug:
+        msg:
+          - "{{ inventory_hostname }} can't be reached over SSH. Log in on it with your own account and run:"
+          - sudo useradd --create-home --shell /bin/bash {{ automation_user }}
+          - sudo install -d -m 700 -o {{ automation_user }} -g {{ automation_user }} /home/{{ automation_user }}/.ssh
+          - echo '{{ automation_authorized_key }}' | sudo tee /home/{{ automation_user }}/.ssh/authorized_keys
+          - sudo chown {{ automation_user }}:{{ automation_user }} /home/{{ automation_user }}/.ssh/authorized_keys
+          - echo '{{ automation_user }} ALL=(ALL) NOPASSWD:ALL' | sudo tee /etc/sudoers.d/{{ automation_user }}
+          - sudo chmod 440 /etc/sudoers.d/{{ automation_user }}
+          - Then run this playbook again for {{ inventory_hostname }}.
+      when: bootstrap_connection.unreachable | default(false)
+
+    - name: Skip an unreachable host
+      ansible.builtin.meta: end_host
+      when: bootstrap_connection.unreachable | default(false)
+
+    - name: Check whether sudo works without a password
+      ansible.builtin.command: sudo -n true
+      become: false
+      register: bootstrap_sudo
+      changed_when: false
+      failed_when: false
+
+    - name: Explain how to provide sudo
+      ansible.builtin.debug:
+        msg:
+          - "{{ inventory_hostname }}: sudo needs a password and none is known for this account."
+          - "Run again with your own account: --limit {{ inventory_hostname }} -u <you> --ask-become-pass"
+      when: bootstrap_sudo.rc != 0 and ansible_become_password is not defined
+
+    - name: Skip a host without sudo
+      ansible.builtin.meta: end_host
+      when: bootstrap_sudo.rc != 0 and ansible_become_password is not defined
+
+    - name: Read where this connection comes from
+      ansible.builtin.command: printenv SSH_CLIENT
+      become: false
+      register: bootstrap_ssh_client
+      changed_when: false
+
+    # Restricting the key to networks this connection isn't from would lock Ansible out
+    - name: Check that this connection comes from an allowed network
+      ansible.builtin.command:
+        argv: "{{ ['python3', '-c', bootstrap_network_check, bootstrap_ssh_client.stdout.split()[0]] + automation_ssh_sources }}"
+      vars:
+        bootstrap_network_check: >-
+          import ipaddress, sys;
+          address = ipaddress.ip_address(sys.argv[1]);
+          sys.exit(0 if any(address in ipaddress.ip_network(network) for network in sys.argv[2:]) else 1)
+      become: false
+      changed_when: false
+
+    - name: Create the ansible group
+      ansible.builtin.group:
+        name: "{{ automation_user }}"
+        state: present
+
+    - name: Create the ansible account with a locked password
+      ansible.builtin.user:
+        name: "{{ automation_user }}"
+        group: "{{ automation_user }}"
+        shell: /bin/bash
+        create_home: true
+        password_lock: true
+        state: present
+
+    - name: Allow passwordless sudo
+      ansible.builtin.copy:
+        dest: "/etc/sudoers.d/{{ automation_user }}"
+        content: "{{ automation_user }} ALL=(ALL) NOPASSWD: ALL\n"
+        mode: "0440"
+        validate: /usr/sbin/visudo -cf %s
+
+    - name: Authorize only the Ansible key, from the LAN and VPN
+      ansible.posix.authorized_key:
+        user: "{{ automation_user }}"
+        key: "{{ automation_public_key }}"
+        key_options: 'from="{{ automation_ssh_sources | join(",") }}"'
+        exclusive: true
+        state: present
+
+    # Replication now has its own account (services/replication)
+    - name: Remove the former key pair of the ansible account
+      ansible.builtin.file:
+        path: "/home/{{ automation_user }}/.ssh/{{ item }}"
+        state: absent
+      loop:
+        - id_ed25519
+        - id_ed25519.pub
+
+    - name: Harden sshd
+      ansible.builtin.copy:
+        dest: /etc/ssh/sshd_config.d/10-hardening.conf
+        content: |
+          # Managed by Ansible (hosts/bootstrap.yml)
+          PasswordAuthentication no
+          KbdInteractiveAuthentication no
+          PermitRootLogin no
+          AllowUsers {{ ([automation_user] + ssh_administrators) | join(' ') }}
+        mode: "0644"
+        validate: /usr/sbin/sshd -t -f %s
+      notify: Reload sshd
+
+  handlers:
+    - name: Reload sshd
+      ansible.builtin.systemd:
+        name: ssh
+        state: reloaded
+
+# TrueNAS manages its users and sshd in its own interface, which would undo
+# changes made here: check the settings and print what to change instead.
+- name: Check the Ansible account on TrueNAS
+  hosts: truenas
+  gather_facts: false
+  become: false
+  tasks:
+    - name: Check that the host is reachable
+      ansible.builtin.ping:
+      ignore_unreachable: true
+      register: bootstrap_connection
+
+    - name: Check whether sudo works without a password
+      ansible.builtin.command: sudo -n true
+      register: bootstrap_sudo
+      changed_when: false
+      failed_when: false
+      when: not bootstrap_connection.unreachable | default(false)
+
+    - name: Read the authorized keys of the ansible user
+      ansible.builtin.command: cat /home/{{ automation_user }}/.ssh/authorized_keys
+      register: bootstrap_authorized_keys
+      changed_when: false
+      failed_when: false
+      when: not bootstrap_connection.unreachable | default(false)
+
+    - name: Read the effective sshd settings
+      ansible.builtin.command: sudo -n sshd -T
+      register: bootstrap_sshd
+      changed_when: false
+      failed_when: false
+      when: bootstrap_sudo.rc | default(1) == 0
+
+    - name: Work out what is left to change in the TrueNAS interface
+      ansible.builtin.set_fact:
+        bootstrap_steps: >-
+          {{
+            (['Credentials > Users: create or edit the ' ~ automation_user ~ ' user, with a shell and a home folder on the pool']
+               if bootstrap_unreachable else [])
+            + (['Credentials > Users > ' ~ automation_user ~ ' > Authorized Keys: set it to the single line ' ~ automation_authorized_key]
+               if bootstrap_unreachable or automation_authorized_key not in (bootstrap_authorized_keys.stdout | default('')) else [])
+            + (['Credentials > Users > ' ~ automation_user ~ ' > Allowed sudo commands with no password: ALL']
+               if bootstrap_unreachable or bootstrap_sudo.rc | default(1) != 0 else [])
+            + (['System > Services > SSH: disable password login (and root login)']
+               if bootstrap_unreachable or 'passwordauthentication no' not in (bootstrap_sshd.stdout | default('')) else [])
+          }}
+      vars:
+        bootstrap_unreachable: "{{ bootstrap_connection.unreachable | default(false) }}"
+
+    - name: List what to change in the TrueNAS interface
+      ansible.builtin.debug:
+        msg: "{{ ['Manual steps for ' ~ inventory_hostname ~ ' in the TrueNAS interface, then run this playbook again:'] + bootstrap_steps }}"
+      when: bootstrap_steps | length > 0
+
+    - name: Confirm the TrueNAS setup
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }}: the ansible account is set up as expected."
+      when: bootstrap_steps | length == 0

@@ -1,0 +1,17 @@
+---
+# Networks Ansible connects from: the Houlme and Rouen LANs and the Netbird
+# VPN (see the website's network page). The ansible account's SSH key only
+# works from these.
+automation_ssh_sources:
+  - 192.168.0.0/24
+  - 192.168.1.0/24
+  - 100.64.0.0/24
+
+# Personal accounts still allowed to log in over SSH, besides ansible
+ssh_administrators:
+  - alix_anneraud
+
+# Account Ansible connects with, and its authorized_keys line
+automation_user: ansible
+automation_public_key: "{{ lookup('ansible.builtin.file', '~/.ssh/ansible.pub') }}"
+automation_authorized_key: 'from="{{ automation_ssh_sources | join(",") }}" {{ automation_public_key }}'
