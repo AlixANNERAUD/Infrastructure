@@ -64,7 +64,7 @@ Compose services are deployed with the shared role `roles/compose_service` (see 
         compose_service_dns_records: [{record: wakapi.dera.page}]   # visibility: private for local_dns_host
 ```
 
-The role creates the folder under the host's `services_root` (permissions only on creation, existing TrueNAS folders keep their ACLs), copies `compose.yml`, writes `.env`, starts the stack and points the DNS records at the host. Stacks are only recreated when their image or configuration changes, and restarted when an extra file changes. Services not yet migrated still use the older hand-written playbooks; move them to the role when touching them.
+The role creates the folder under the host's `services_root` (permissions only on creation, existing TrueNAS folders keep their ACLs), copies `compose.yml`, writes `.env`, starts the stack and points the DNS records at the host. Stacks are only recreated when their image or configuration changes, and restarted when an extra file changes. Every Compose service uses the role except `services/vault_xila`, which bootstraps its own TLS certificate and must stay unsealed; keep it hand-written. `site.yml` imports every service playbook (`uv run ansible-playbook site.yml --limit <host>`); add new services to it.
 
 Rules:
 

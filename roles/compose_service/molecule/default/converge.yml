@@ -2,6 +2,8 @@
 - name: Converge
   hosts: all
   gather_facts: false
+  vars:
+    compose_service_test_greeting: hello from molecule
   roles:
     - role: compose_service
       vars:
@@ -11,6 +13,11 @@
         compose_service_group: "{{ lookup('ansible.builtin.pipe', 'id -g') }}"
         compose_service_mounted_files:
           - data.sqlite
+        compose_service_directories:
+          - data
+        compose_service_templates:
+          - source: settings.json.j2
+            destination: settings/settings.json
         compose_service_files:
           - source: config.yml
             destination: config/config.yml

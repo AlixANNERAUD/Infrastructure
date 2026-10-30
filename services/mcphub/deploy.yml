@@ -1,47 +1,17 @@
 ---
 - name: Deploy MCPHub
-  hosts: bruxelles
+  hosts: mcphub
   become: true
-  vars:
-    root_directory: /mnt/Donnees/Applications_chiffrees/MCPHub
-    compose_file_source: compose.yml
-    compose_file_destination: "{{ root_directory }}/compose.yml"
   vars_files:
     - ../../vault/ansible/vault.yml
     - ../../vault/cloudflare/vault.yml
-  tasks:
-    - name: Ensure MCPHub directories exist
-      ansible.builtin.file:
-        path: "{{ item }}"
-        state: directory
-        mode: "0750"
-        owner: root
-        group: root
-      loop:
-        - "{{ root_directory }}"
-        - "{{ root_directory }}/data"
-
-    - name: Copy Docker Compose file
-      ansible.builtin.copy:
-        src: "{{ compose_file_source }}"
-        dest: "{{ compose_file_destination }}"
-        mode: "0640"
-        owner: root
-        group: root
-
-    - name: Deploy MCPHub with Docker Compose
-      community.docker.docker_compose_v2:
-        project_src: "{{ root_directory }}"
-        pull: always
-        recreate: always
-        remove_orphans: true
-        state: present
-
-    - name: Update DNS record for MCPHub
-      community.general.cloudflare_dns:
-        zone: anneraud.fr
-        account_email: "{{ cloudflare_email }}"
-        account_api_key: "{{ cloudflare_api_key }}"
-        type: CNAME
-        record: mcphub.anneraud.fr
-        value: "{{ local_dns_host }}"
+  roles:
+    - role: compose_service
+      vars:
+        compose_service_name: mcphub
+        compose_service_directory: MCPHub
+        compose_service_directories:
+          - data
+        compose_service_dns_records:
+          - record: mcphub.anneraud.fr
+            visibility: private

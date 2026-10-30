@@ -3,7 +3,7 @@
 # so /.well-known/matrix/* keeps working. Switch back with:
 #   ansible-playbook bare_domain.yml -e bare_domain_target=friend
 - name: Point dera.page bare domain
-  hosts: luxembourg
+  hosts: matrix_dera_page
   gather_facts: false
   vars:
     bare_domain_target: luxembourg

@@ -14,6 +14,24 @@
     group: "{{ compose_service_group }}"
   when: not compose_service_folder.stat.exists
 
+- name: Check whether the inner folders exist
+  ansible.builtin.stat:
+    path: "{{ compose_service_path }}/{{ item }}"
+  loop: "{{ compose_service_directories }}"
+  register: compose_service_inner_folders
+
+- name: Create the inner folders
+  ansible.builtin.file:
+    path: "{{ compose_service_path }}/{{ item.item }}"
+    state: directory
+    mode: "0750"
+    owner: "{{ compose_service_user }}"
+    group: "{{ compose_service_group }}"
+  loop: "{{ compose_service_inner_folders.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+  when: not item.stat.exists
+
 - name: Copy the Compose file
   ansible.builtin.copy:
     src: "{{ playbook_dir }}/compose.yml"
@@ -43,11 +61,11 @@
   no_log: true
 
 # Without mode or owner, existing folders are left untouched
-- name: Create folders for extra files
+- name: Create folders for extra files and templates
   ansible.builtin.file:  # noqa: risky-file-permissions
     path: "{{ (compose_service_path ~ '/' ~ item.destination) | dirname }}"
     state: directory
-  loop: "{{ compose_service_files }}"
+  loop: "{{ compose_service_files + compose_service_templates }}"
   loop_control:
     label: "{{ item.destination }}"
   when: (item.destination | dirname) != ''
@@ -60,6 +78,18 @@
     owner: "{{ compose_service_user }}"
     group: "{{ compose_service_group }}"
   loop: "{{ compose_service_files }}"
+  loop_control:
+    label: "{{ item.destination }}"
+  notify: Restart the stack
+
+- name: Render templates
+  ansible.builtin.template:
+    src: "{{ playbook_dir }}/{{ item.source }}"
+    dest: "{{ compose_service_path }}/{{ item.destination }}"
+    mode: "0640"
+    owner: "{{ compose_service_user }}"
+    group: "{{ compose_service_group }}"
+  loop: "{{ compose_service_templates }}"
   loop_control:
     label: "{{ item.destination }}"
   notify: Restart the stack

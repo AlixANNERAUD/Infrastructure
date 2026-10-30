@@ -1,6 +1,6 @@
 ---
 - name: After updating Nuage (Nextcloud)
-  hosts: bruxelles
+  hosts: nuage
   become: true
   vars_files:
     - ../../vault/ansible/vault.yml

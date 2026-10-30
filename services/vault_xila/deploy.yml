@@ -1,6 +1,6 @@
 ---
 - name: Deploy Vault Xila on Bruxelles
-  hosts: bruxelles
+  hosts: vault_xila
   become: true
   vars:
     openbao_root_directory: /mnt/Donnees/Applications_chiffrees/Vault_xila

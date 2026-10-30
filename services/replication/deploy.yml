@@ -1,8 +1,6 @@
 ---
 - name: Setup replication from bruxelles to other sites
-  hosts:
-    - paris
-    - pristina
+  hosts: replication
   become: true
   vars:
     bruxelles_host: "local.bruxelles.anneraud.fr"
