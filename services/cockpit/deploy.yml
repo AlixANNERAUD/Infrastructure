@@ -12,7 +12,7 @@
     # Traefik reaches Cockpit through host.docker.internal, which is the docker0 address
     cockpit_listen_address: "{{ ansible_facts['docker0']['ipv4']['address'] }}"
 
-    traefik_dynamic_config_dir: "/opt/traefik/dynamic"
+    traefik_dynamic_config_dir: "{{ services_root }}/{{ traefik_directory }}/dynamic"
     traefik_cockpit_config_file: "{{ traefik_dynamic_config_dir }}/cockpit.yml"
   vars_files:
     - ../../vault/ansible/vault.yml
