@@ -1,0 +1,69 @@
+---
+name: Lint
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  ansible:
+    name: yamllint and ansible-lint
+    runs-on: ubuntu-latest
+    steps:
+      # The vault submodule is private and not needed for linting
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          enable-cache: true
+
+      - name: Install tools
+        run: |
+          uv sync --locked
+          uv run ansible-galaxy collection install -r requirements.yml
+
+      - name: yamllint
+        run: uv run yamllint --format github .
+
+      # Playbooks load encrypted vault files, so lint against empty placeholders
+      - name: Create vault placeholders
+        run: |
+          git grep -hoE 'vault/[a-z_-]+/vault\.yml' -- services hosts | sort -u | while read -r file; do
+            mkdir -p "$(dirname "$file")"
+            echo "---" > "$file"
+          done
+
+      - name: ansible-lint
+        run: uv run ansible-lint
+
+  compose:
+    name: docker compose config
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Validate Compose files
+        run: .github/scripts/check-compose.sh
+
+  # Single check required by the branch ruleset: add new jobs to `needs`
+  required:
+    name: required
+    if: always()
+    needs: [ansible, compose]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check that all required jobs succeeded
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "Results: $RESULTS"
+          for result in $RESULTS; do
+            if [ "$result" != "success" ]; then
+              echo "A required job did not succeed"
+              exit 1
+            fi
+          done
