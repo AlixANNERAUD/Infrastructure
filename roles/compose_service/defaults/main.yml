@@ -10,8 +10,14 @@ compose_service_group: "{{ compose_service_user }}"
 # Variables written to .env, in order
 compose_service_environment: {}
 
+# Folders created inside the service folder, with permissions set only on creation
+compose_service_directories: []
+
 # Extra files copied from the playbook folder: [{source: config.yml, destination: config/config.yml}]
 compose_service_files: []
+
+# Jinja templates rendered from the playbook folder: [{source: config.yaml.j2, destination: config.yaml}]
+compose_service_templates: []
 
 # Files bind-mounted into containers that must exist beforehand, otherwise
 # Docker creates a directory in their place

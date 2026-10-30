@@ -67,7 +67,14 @@ uv run ansible-galaxy collection install -r requirements.yml
 Deploy a service playbook with Ansible:
 
 ```bash
-uv run ansible-playbook --ask-become-pass services/<service_name>/deploy.yml
+uv run ansible-playbook services/<service_name>/deploy.yml
+```
+
+Deploy everything, or everything on one host:
+
+```bash
+uv run ansible-playbook site.yml
+uv run ansible-playbook site.yml --limit bruxelles
 ```
 
 Lint before committing:

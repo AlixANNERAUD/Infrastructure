@@ -1,51 +1,25 @@
 ---
-- name: Deploy Téléchargement
-  hosts: bruxelles
+- name: Deploy Téléchargement (qBittorrent)
+  hosts: telechargement
   become: true
-  vars:
-    root_directory: /mnt/Donnees/Applications_chiffrees/qBittorrent
-    compose_file_source: compose.yml
-    compose_file_destination: "{{ root_directory }}/compose.yml"
-    user_id: 568
-    group_id: 3010
   vars_files:
     - ../../vault/ansible/vault.yml
     - ../../vault/telechargement/vault.yml
     - ../../vault/cloudflare/vault.yml
-  tasks:
-    - name: Copy compose file
-      ansible.builtin.copy:
-        src: "{{ compose_file_source }}"
-        dest: "{{ compose_file_destination }}"
-        mode: "0640"
-        owner: "{{ user_id }}"
-        group: "{{ group_id }}"
-
-    - name: Generate .env file for Téléchargement
-      ansible.builtin.copy:
-        dest: "{{ root_directory }}/.env"
-        mode: "0600"
-        content: |
-          VPN_USER_NAME={{ vpn_user_name }}
-          VPN_PASSWORD={{ vpn_password }}
-          VPN_SERVICE_PROVIDER={{ vpn_service_provider }}
-          VPN_TYPE={{ vpn_type }}
-          SERVER_COUNTRIES={{ vpn_server_countries }}
-          DOWNLOADS_PATH=/mnt/Donnees/Mediatheque/torrents
-
-    - name: Deploy Téléchargement with Docker Compose
-      community.docker.docker_compose_v2:
-        project_src: "{{ root_directory }}"
-        pull: always
-        recreate: always
-        remove_orphans: true
-        state: present
-
-    - name: Update DNS records for Téléchargement
-      community.general.cloudflare_dns:
-        zone: anneraud.fr
-        account_email: "{{ cloudflare_email }}"
-        account_api_key: "{{ cloudflare_api_key }}"
-        type: CNAME
-        record: telechargement.anneraud.fr
-        value: "{{ local_dns_host }}"
+  roles:
+    - role: compose_service
+      vars:
+        compose_service_name: telechargement
+        compose_service_directory: qBittorrent
+        compose_service_user: 568
+        compose_service_group: 3010
+        compose_service_environment:
+          VPN_USER_NAME: "{{ vpn_user_name }}"
+          VPN_PASSWORD: "{{ vpn_password }}"
+          VPN_SERVICE_PROVIDER: "{{ vpn_service_provider }}"
+          VPN_TYPE: "{{ vpn_type }}"
+          SERVER_COUNTRIES: "{{ vpn_server_countries }}"
+          DOWNLOADS_PATH: /mnt/Donnees/Mediatheque/torrents
+        compose_service_dns_records:
+          - record: telechargement.anneraud.fr
+            visibility: private

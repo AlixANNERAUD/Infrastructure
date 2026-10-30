@@ -22,6 +22,14 @@ argument_specs:
       compose_service_environment:
         type: dict
         description: Variables written to .env.
+      compose_service_directories:
+        type: list
+        elements: str
+        description: Folders to create inside the service folder.
+      compose_service_templates:
+        type: list
+        elements: dict
+        description: Jinja templates to render, with source and destination.
       compose_service_files:
         type: list
         elements: dict

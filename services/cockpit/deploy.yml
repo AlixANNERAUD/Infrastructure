@@ -1,6 +1,6 @@
 ---
 - name: Configure Cockpit for Existing Traefik Setup
-  hosts: luxembourg
+  hosts: cockpit
   become: true
   vars:
     cockpit_domain: "cockpit.luxembourg.anneraud.fr"

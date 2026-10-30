@@ -1,50 +1,22 @@
 ---
-- name: Deploy Notes
-  hosts: bruxelles
+- name: Deploy Notes (Docmost)
+  hosts: notes
   become: true
-  vars:
-    root_directory: /mnt/Donnees/Applications_chiffrees/Docmost
-    compose_file_source: compose.yml
-    compose_file_destination: "{{ root_directory }}/compose.yml"
-    user_id: 568
-    group_id: 568
   vars_files:
     - ../../vault/ansible/vault.yml
     - ../../vault/notes/vault.yml
     - ../../vault/cloudflare/vault.yml
-  tasks:
-    - name: Copy compose file
-      ansible.builtin.copy:
-        src: "{{ compose_file_source }}"
-        dest: "{{ compose_file_destination }}"
-        mode: "0640"
-        owner: "{{ user_id }}"
-        group: "{{ group_id }}"
-
-    - name: Generate .env file for Notes
-      ansible.builtin.copy:
-        dest: "{{ root_directory }}/.env"
-        mode: "0600"
-        content: |
-          DATABASE_USER={{ database_user }}
-          DATABASE_PASSWORD={{ database_password }}
-          APP_SECRET={{ app_secret }}
-          APP_URL=https://notes.anneraud.fr
-          DATABASE_NAME=docmost
-
-    - name: Deploy Notes with Docker Compose
-      community.docker.docker_compose_v2:
-        project_src: "{{ root_directory }}"
-        pull: always
-        recreate: always
-        remove_orphans: true
-        state: present
-
-    - name: Update DNS records for Notes
-      community.general.cloudflare_dns:
-        zone: anneraud.fr
-        account_email: "{{ cloudflare_email }}"
-        account_api_key: "{{ cloudflare_api_key }}"
-        type: CNAME
-        record: notes.anneraud.fr
-        value: "{{ global_dns_host }}"
+  roles:
+    - role: compose_service
+      vars:
+        compose_service_name: notes
+        compose_service_directory: Docmost
+        compose_service_user: 568
+        compose_service_environment:
+          DATABASE_USER: "{{ database_user }}"
+          DATABASE_PASSWORD: "{{ database_password }}"
+          APP_SECRET: "{{ app_secret }}"
+          APP_URL: https://notes.anneraud.fr
+          DATABASE_NAME: docmost
+        compose_service_dns_records:
+          - record: notes.anneraud.fr

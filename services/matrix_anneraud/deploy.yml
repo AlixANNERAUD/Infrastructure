@@ -1,68 +1,26 @@
 ---
-- name: Deploy Matrix (Anneraud)
-  hosts: bruxelles
+- name: Deploy Matrix (anneraud.fr)
+  hosts: matrix_anneraud
   become: true
   vars:
-    root_directory: /mnt/Donnees/Applications_chiffrees/Matrix_anneraud
-    compose_file_source: compose.yml
-    compose_file_destination: "{{ root_directory }}/compose.yml"
-    configuration_file_source: homeserver.yaml.j2
-    configuration_file_destination: "{{ root_directory }}/Synapse_data/homeserver.yaml"
-    user_id: 991
-    group_id: 991
     database_name: synapse
   vars_files:
     - ../../vault/ansible/vault.yml
     - ../../vault/matrix_anneraud/vault.yml
     - ../../vault/cloudflare/vault.yml
-  tasks:
-    - name: Copy compose file
-      ansible.builtin.copy:
-        src: "{{ compose_file_source }}"
-        dest: "{{ compose_file_destination }}"
-        mode: "0640"
-        owner: "{{ user_id }}"
-        group: "{{ group_id }}"
-
-    - name: Copy Matrix configuration file
-      ansible.builtin.template:
-        src: "{{ configuration_file_source }}"
-        dest: "{{ configuration_file_destination }}"
-        mode: "0640"
-        owner: "{{ user_id }}"
-        group: "{{ group_id }}"
-
-    - name: Generate .env file for Matrix
-      ansible.builtin.copy:
-        dest: "{{ root_directory }}/.env"
-        mode: "0600"
-        content: |
-          DATABASE_USER={{ database_user }}
-          DATABASE_PASSWORD={{ database_password }}
-          DATABASE_NAME={{ database_name }}
-
-    - name: Deploy Matrix with Docker Compose
-      community.docker.docker_compose_v2:
-        project_src: "{{ root_directory }}"
-        pull: always
-        recreate: always
-        remove_orphans: true
-        state: present
-
-    - name: Update DNS records for Matrix
-      community.general.cloudflare_dns:
-        zone: anneraud.fr
-        account_email: "{{ cloudflare_email }}"
-        account_api_key: "{{ cloudflare_api_key }}"
-        type: CNAME
-        record: matrix.anneraud.fr
-        value: "{{ global_dns_host }}"
-
-    - name: Update DNS records for Element
-      community.general.cloudflare_dns:
-        zone: anneraud.fr
-        account_email: "{{ cloudflare_email }}"
-        account_api_key: "{{ cloudflare_api_key }}"
-        type: CNAME
-        record: element.anneraud.fr
-        value: "{{ global_dns_host }}"
+  roles:
+    - role: compose_service
+      vars:
+        compose_service_name: matrix_anneraud
+        compose_service_directory: Matrix_anneraud
+        compose_service_user: 991
+        compose_service_templates:
+          - source: homeserver.yaml.j2
+            destination: Synapse_data/homeserver.yaml
+        compose_service_environment:
+          DATABASE_USER: "{{ database_user }}"
+          DATABASE_PASSWORD: "{{ database_password }}"
+          DATABASE_NAME: "{{ database_name }}"
+        compose_service_dns_records:
+          - record: matrix.anneraud.fr
+          - record: element.anneraud.fr

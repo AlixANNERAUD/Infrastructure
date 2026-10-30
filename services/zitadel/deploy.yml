@@ -1,49 +1,24 @@
 ---
 - name: Deploy Zitadel
-  hosts: bruxelles
+  hosts: zitadel
   become: true
-  vars:
-    root_directory: /mnt/Donnees/Applications_chiffrees/Zitadel
-    compose_file_source: compose.yml
-    compose_file_destination: "{{ root_directory }}/compose.yml"
   vars_files:
     - ../../vault/ansible/vault.yml
     - ../../vault/zitadel/vault.yml
     - ../../vault/cloudflare/vault.yml
-  tasks:
-    - name: Copy Zitadel compose file
-      ansible.builtin.copy:
-        src: "{{ compose_file_source }}"
-        dest: "{{ compose_file_destination }}"
-        mode: "0640"
-
-    - name: Generate Zitadel environment file
-      ansible.builtin.copy:
-        dest: "{{ root_directory }}/.env"
-        mode: "0600"
-        content: |
-          ZITADEL_DOMAIN=authentification.anneraud.fr
-          ZITADEL_HOST_PORT=32432
-          ZITADEL_LOGIN_HOST_PORT=32433
-          ZITADEL_MASTERKEY={{ zitadel_masterkey }}
-          LOGIN_CLIENT_PAT_EXPIRATION=2099-01-01T00:00:00Z
-          POSTGRES_DB=zitadel
-          POSTGRES_USER={{ database_user }}
-          POSTGRES_PASSWORD={{ database_password }}
-
-    - name: Deploy Zitadel with Docker Compose
-      community.docker.docker_compose_v2:
-        project_src: "{{ root_directory }}"
-        pull: always
-        recreate: always
-        remove_orphans: true
-        state: present
-
-    - name: Update DNS record for Zitadel
-      community.general.cloudflare_dns:
-        zone: anneraud.fr
-        account_email: "{{ cloudflare_email }}"
-        account_api_key: "{{ cloudflare_api_key }}"
-        type: CNAME
-        record: "authentification.anneraud.fr"
-        value: "{{ global_dns_host }}"
+  roles:
+    - role: compose_service
+      vars:
+        compose_service_name: zitadel
+        compose_service_directory: Zitadel
+        compose_service_environment:
+          ZITADEL_DOMAIN: authentification.anneraud.fr
+          ZITADEL_HOST_PORT: 32432
+          ZITADEL_LOGIN_HOST_PORT: 32433
+          ZITADEL_MASTERKEY: "{{ zitadel_masterkey }}"
+          LOGIN_CLIENT_PAT_EXPIRATION: "2099-01-01T00:00:00Z"
+          POSTGRES_DB: zitadel
+          POSTGRES_USER: "{{ database_user }}"
+          POSTGRES_PASSWORD: "{{ database_password }}"
+        compose_service_dns_records:
+          - record: authentification.anneraud.fr

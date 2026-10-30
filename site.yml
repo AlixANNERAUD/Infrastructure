@@ -1,0 +1,42 @@
+---
+# Deploy every service. Limit to one host with --limit, for example:
+#   uv run ansible-playbook site.yml --limit bruxelles
+
+# Reverse proxy first: the other Luxembourg services are routed through it
+- name: Traefik
+  ansible.builtin.import_playbook: services/traefik/deploy.yml
+- name: Cockpit
+  ansible.builtin.import_playbook: services/cockpit/deploy.yml
+
+- name: Gatus (anneraud.fr)
+  ansible.builtin.import_playbook: services/gatus_anneraud/deploy.yml
+- name: Gatus (dera.page)
+  ansible.builtin.import_playbook: services/gatus_dera_page/deploy.yml
+- name: HA-Linky
+  ansible.builtin.import_playbook: services/ha-linky/deploy.yml
+- name: Matrix (anneraud.fr)
+  ansible.builtin.import_playbook: services/matrix_anneraud/deploy.yml
+- name: Matrix (dera.page)
+  ansible.builtin.import_playbook: services/matrix_dera_page/deploy.yml
+- name: MCPHub
+  ansible.builtin.import_playbook: services/mcphub/deploy.yml
+- name: Netbird
+  ansible.builtin.import_playbook: services/netbird/deploy.yml
+- name: Notes
+  ansible.builtin.import_playbook: services/notes/deploy.yml
+- name: Replication
+  ansible.builtin.import_playbook: services/replication/deploy.yml
+- name: Star History
+  ansible.builtin.import_playbook: services/star_history/deploy.yml
+- name: Téléchargement
+  ansible.builtin.import_playbook: services/telechargement/deploy.yml
+- name: Tolgee
+  ansible.builtin.import_playbook: services/tolgee_anneraud/deploy.yml
+- name: Vault Xila
+  ansible.builtin.import_playbook: services/vault_xila/deploy.yml
+- name: Wakapi
+  ansible.builtin.import_playbook: services/wakapi/deploy.yml
+- name: Website
+  ansible.builtin.import_playbook: services/website/deploy.yml
+- name: Zitadel
+  ansible.builtin.import_playbook: services/zitadel/deploy.yml
