@@ -1,0 +1,57 @@
+---
+# Request every route and redirect of the host's routes file through its
+# Traefik, from this machine (on the LAN or VPN, so internal routes answer):
+#   uv run ansible-playbook services/traefik/verify.yml --limit bruxelles
+#
+# A route fails when it can't be reached, answers 5xx (backend down), or
+# serves an invalid or staging certificate. Redirects must answer 301.
+- name: Verify the Traefik routes
+  hosts: traefik
+  gather_facts: false
+  vars:
+    traefik_checks: >-
+      {% set result = namespace(checks=[]) %}
+      {% for route in traefik_routes | default([]) %}
+      {% for host in route.hosts %}
+      {% set result.checks = result.checks + [{'url': 'https://' ~ host ~ '/', 'redirect': false}] %}
+      {% for path in route.paths | default([]) %}
+      {% set result.checks = result.checks + [{'url': 'https://' ~ host ~ path.prefix, 'redirect': path.redirect is defined}] %}
+      {% endfor %}
+      {% endfor %}
+      {% endfor %}
+      {% for redirect in traefik_redirects | default([]) %}
+      {% for host in redirect.hosts %}
+      {% set result.checks = result.checks + [{'url': 'https://' ~ host ~ '/', 'redirect': true}] %}
+      {% endfor %}
+      {% endfor %}
+      {{ result.checks | to_json }}
+    traefik_failed_checks: "{{ traefik_answers.results | selectattr('failed') | list }}"
+  tasks:
+    - name: Request each route
+      ansible.builtin.uri:
+        url: "{{ item.url }}"
+        follow_redirects: none
+        validate_certs: true
+        # Any answer from the backend, 4xx included: internal routes or logins may refuse
+        status_code: "{{ [301] if item.redirect else range(100, 500) | list }}"
+        timeout: 15
+      loop: "{{ traefik_checks | from_json }}"
+      loop_control:
+        label: "{{ item.url }}"
+      delegate_to: localhost
+      register: traefik_answers
+      # Collected below, so that one run reports every failed route
+      ignore_errors: true
+
+    - name: List the failed routes
+      ansible.builtin.debug:
+        msg: >-
+          {{ traefik_failed_checks | map(attribute='item.url')
+             | zip(traefik_failed_checks | map(attribute='msg') | map('regex_replace', '^Status code was (-?[0-9]+) and not [^:]*: ', 'status \1, '))
+             | map('join', ': ') | list }}
+      when: traefik_failed_checks | length > 0
+
+    - name: Fail when a route failed
+      ansible.builtin.fail:
+        msg: "{{ traefik_failed_checks | length }} routes failed, listed above."
+      when: traefik_failed_checks | length > 0

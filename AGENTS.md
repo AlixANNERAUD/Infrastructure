@@ -17,7 +17,7 @@ Ansible playbooks and Docker Compose files that deploy Alix's self-hosted servic
 | Host | Role | Service root | Reverse proxy |
 |---|---|---|---|
 | `luxembourg` | Cloud VM with a public IP | `/opt/<service>` | Traefik (`services/traefik`), labels on the external `traefik` network |
-| `bruxelles` | Home TrueNAS server | `/mnt/Donnees/Applications_chiffrees/<Service>` | Nginx Proxy Manager on the external `proxy` network, configured by hand in its UI (not in this repo) |
+| `bruxelles` | Home TrueNAS server | `/mnt/Donnees/Applications_chiffrees/<Service>` | Traefik (`services/traefik`) on the external `proxy` network, routes in `inventory/host_vars/bruxelles/traefik.yml` |
 | `pristina` | Home machine | — | — |
 | `paris` | Desktop client | — | — |
 
