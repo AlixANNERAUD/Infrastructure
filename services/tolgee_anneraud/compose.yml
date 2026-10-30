@@ -1,6 +1,7 @@
 services:
   app:
     image: tolgee/tolgee:latest
+    restart: unless-stopped
     volumes:
       - ./tolgee_data:/data
     environment:
@@ -18,9 +19,6 @@ services:
       - TOLGEE_SPRING_DATASOURCE_URL=jdbc:postgresql://database:5432/${DATABASE_NAME}
       - TOLGEE_SPRING_DATASOURCE_USERNAME=${DATABASE_USER}
       - TOLGEE_SPRING_DATASOURCE_PASSWORD=${DATABASE_PASSWORD}
-    deploy:
-      restart_policy:
-        condition: on-failure
     depends_on:
       - database
     networks:
@@ -42,6 +40,7 @@ services:
 
   database:
     image: postgres:18
+    restart: unless-stopped
     environment:
       POSTGRES_DB: ${DATABASE_NAME}
       POSTGRES_USER: ${DATABASE_USER}
