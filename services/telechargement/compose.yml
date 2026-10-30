@@ -7,7 +7,7 @@ x-logging: &logging
 
 services:
   gluetun:
-    image: qmcgaw/gluetun:v3
+    image: qmcgaw/gluetun:v3.41.3
     logging: *logging
     container_name: gluetun
     restart: unless-stopped
