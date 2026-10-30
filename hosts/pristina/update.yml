@@ -15,14 +15,15 @@
     - name: Add Netbird GPG key
       ansible.builtin.get_url:
         url: https://pkgs.netbird.io/debian/public.key
-        dest: /usr/share/keyrings/netbird-archive-keyring.gpg
+        dest: /usr/share/keyrings/netbird-archive-keyring.asc
         mode: "0644"
         force: true
 
     - name: Add Netbird repository
-      ansible.builtin.uri:
+      ansible.builtin.copy:
         dest: /etc/apt/sources.list.d/netbird.list
-        url: https://pkgs.netbird.io/debian/netbird.list
+        content: "deb [signed-by=/usr/share/keyrings/netbird-archive-keyring.asc] https://pkgs.netbird.io/debian stable main\n"
+        mode: "0644"
 
     - name: Update packages
       ansible.builtin.apt:
