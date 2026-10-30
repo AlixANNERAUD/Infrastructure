@@ -32,7 +32,7 @@ jobs:
       # Playbooks load encrypted vault files, so lint against empty placeholders
       - name: Create vault placeholders
         run: |
-          git grep -hoE 'vault/[a-z_-]+/vault\.yml' -- services hosts | sort -u | while read -r file; do
+          git grep -hoE 'vault/[a-z_-]+/vault\.yml' -- services hosts dns | sort -u | while read -r file; do
             mkdir -p "$(dirname "$file")"
             echo "---" > "$file"
           done

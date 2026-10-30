@@ -108,6 +108,8 @@
         value: dkim.smtp2go.net
       - record: s.anneraud.fr
         value: global.bruxelles.anneraud.fr
+      - record: www.anneraud.fr
+        value: alixanneraud.github.io
       - record: skopje.anneraud.fr
         value: local.bruxelles.anneraud.fr
       - record: sonarr.anneraud.fr
@@ -144,7 +146,7 @@
         # yamllint disable-line rule:line-length
         value: "v=DMARC1; p=reject; rua=mailto:5715c191ce054df6be0a31b9dbc29be5@dmarc-reports.cloudflare.net,mailto:alix@anneraud.fr; ruf=mailto:alix@anneraud.fr; fo=1; pct=100; adkim=s; aspf=s"
   vars_files:
-    - ../../vault/cloudflare/vault.yml
+    - ../vault/cloudflare/vault.yml
   module_defaults:
     community.general.cloudflare_dns:
       zone: anneraud.fr

@@ -11,7 +11,7 @@
     replication_home: /var/lib/replication
     replication_service: bruxelles-replicate
   vars_files:
-    - ../../vault/ansible/vault.yml
+    - ../vault/ansible/vault.yml
   tasks:
     - name: Create the replication account
       ansible.builtin.user:
@@ -97,8 +97,8 @@
     replication_user: replication
     replication_directory: "{{ services_root }}/Replication"
   vars_files:
-    - ../../vault/ansible/vault.yml
-    - ../../vault/replication/vault.yml
+    - ../vault/ansible/vault.yml
+    - ../vault/replication/vault.yml
   tasks:
     - name: Look up the replication user
       ansible.builtin.getent:

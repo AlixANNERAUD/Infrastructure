@@ -1,6 +1,7 @@
 ---
 # Deploy every service. Limit to one host with --limit, for example:
 #   uv run ansible-playbook site.yml --limit bruxelles
+# DNS zones are applied with dns/*.yml
 
 # Reverse proxy first: the other Luxembourg services are routed through it
 - name: Traefik
@@ -25,7 +26,7 @@
 - name: Notes
   ansible.builtin.import_playbook: services/notes/deploy.yml
 - name: Replication
-  ansible.builtin.import_playbook: services/replication/deploy.yml
+  ansible.builtin.import_playbook: hosts/replication.yml
 - name: Star History
   ansible.builtin.import_playbook: services/star_history/deploy.yml
 - name: Téléchargement
@@ -36,7 +37,5 @@
   ansible.builtin.import_playbook: services/vault_xila/deploy.yml
 - name: Wakapi
   ansible.builtin.import_playbook: services/wakapi/deploy.yml
-- name: Website
-  ansible.builtin.import_playbook: services/website/deploy.yml
 - name: Zitadel
   ansible.builtin.import_playbook: services/zitadel/deploy.yml

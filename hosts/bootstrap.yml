@@ -105,7 +105,7 @@
         exclusive: true
         state: present
 
-    # Replication now has its own account (services/replication)
+    # Replication now has its own account (hosts/replication.yml)
     - name: Remove the former key pair of the ansible account
       ansible.builtin.file:
         path: "/home/{{ automation_user }}/.ssh/{{ item }}"
