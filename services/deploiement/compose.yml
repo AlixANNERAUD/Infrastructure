@@ -13,7 +13,6 @@ services:
     user: ${USER_ID}:${GROUP_ID}
     environment:
       SEMAPHORE_DB_DIALECT: sqlite
-      SEMAPHORE_DB: /var/lib/semaphore/semaphore.sqlite
       SEMAPHORE_ADMIN: ${SEMAPHORE_ADMIN}
       SEMAPHORE_ADMIN_NAME: ${SEMAPHORE_ADMIN_NAME}
       SEMAPHORE_ADMIN_EMAIL: ${SEMAPHORE_ADMIN_EMAIL}

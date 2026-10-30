@@ -286,6 +286,17 @@ endpoints:
     alerts:
       - type: homeassistant
 
+  - name: Déploiement (Semaphore)
+    group: Administration
+    url: "https://deploiement.anneraud.fr/api/ping"
+    interval: 10m
+    conditions:
+      - "[STATUS] == 200"
+      - "[BODY] == pong"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
+    alerts:
+      - type: homeassistant
+
   - name: Radarr
     group: Services
     url: "https://radarr.anneraud.fr/"

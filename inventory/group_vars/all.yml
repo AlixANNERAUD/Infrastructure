@@ -18,7 +18,8 @@ ssh_administrators:
 # the controllers' keys also work from the proxy network, where their
 # containers connect from (see hosts/bootstrap.yml).
 automation_user: ansible
-automation_laptop_public_key: "{{ lookup('ansible.builtin.file', '~/.ssh/ansible.pub') | trim }}"
+# (a public key, written here so that Semaphore can run hosts/bootstrap.yml too)
+automation_laptop_public_key: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH2a6tQP6NqnRvRMzeJxyavYhCXuLmU3JWgHhmMp6UxP ansible@helsinki.anneraud.fr
 automation_additional_public_keys: []
 automation_public_keys: "{{ [automation_laptop_public_key] + automation_additional_public_keys }}"
 # Their authorized_keys lines on the managed hosts, restricted to the networks above
