@@ -7,7 +7,7 @@ x-logging: &logging
 
 services:
   star_history:
-    image: ghcr.io/mubelotix/simrepo:latest
+    image: ghcr.io/mubelotix/simrepo:sha-92deec0
     logging: *logging
     container_name: star_history
     user: "${USER_ID}:${GROUP_ID}"
