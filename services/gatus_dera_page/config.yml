@@ -16,7 +16,7 @@ endpoints:
     interval: 1m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
 
   - name: Matrix
     group: Services
@@ -24,7 +24,7 @@ endpoints:
     interval: 1m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
       - "[BODY] == pat(*OK*)"
 
   - name: Bible
@@ -33,7 +33,7 @@ endpoints:
     interval: 1m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
 
   - name: Genda
     group: Services
@@ -41,7 +41,7 @@ endpoints:
     interval: 1m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
 
   - name: Pixel war
     group: Services
@@ -49,7 +49,7 @@ endpoints:
     interval: 1m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
 
   - name: Bento PDF
     group: Services
@@ -57,7 +57,7 @@ endpoints:
     interval: 1m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
 
   - name: Calendrier Républicain
     group: Services
@@ -65,7 +65,7 @@ endpoints:
     interval: 1m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
 
   - name: Blog
     group: Services
@@ -73,7 +73,7 @@ endpoints:
     interval: 1m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
 
   - name: Umami
     group: Services
@@ -81,7 +81,7 @@ endpoints:
     interval: 1m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
       - "[BODY] == pat(*ok*)"
 
   - name: Auth
@@ -90,7 +90,7 @@ endpoints:
     interval: 1m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
 
   - name: Wakapi
     group: Services
@@ -98,7 +98,7 @@ endpoints:
     interval: 10m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
       - "[BODY] == pat(*app=1*)"
       - "[BODY] == pat(*db=1*)"
 
@@ -136,4 +136,4 @@ endpoints:
     interval: 1m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[CERTIFICATE_EXPIRATION] > 336h"

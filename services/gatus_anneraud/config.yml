@@ -26,7 +26,7 @@ endpoints:
     interval: 10m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
     alerts:
       - type: homeassistant
 
@@ -36,7 +36,7 @@ endpoints:
     interval: 10m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
     alerts:
       - type: homeassistant
 
@@ -46,7 +46,7 @@ endpoints:
     interval: 10m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
     alerts:
       - type: homeassistant
 
@@ -56,7 +56,7 @@ endpoints:
     interval: 10m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
       - "[BODY].status == ok"
     alerts:
       - type: homeassistant
@@ -67,7 +67,7 @@ endpoints:
     interval: 10m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
     alerts:
       - type: homeassistant
 
@@ -77,7 +77,7 @@ endpoints:
     interval: 10m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
       - "[BODY] == pat(*Healthy*)"
     alerts:
       - type: homeassistant
@@ -88,7 +88,7 @@ endpoints:
     interval: 10m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
     alerts:
       - type: homeassistant
 
@@ -98,7 +98,7 @@ endpoints:
     interval: 10m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
     alerts:
       - type: homeassistant
 
@@ -108,7 +108,7 @@ endpoints:
     interval: 10m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
     alerts:
       - type: homeassistant
 
@@ -118,7 +118,7 @@ endpoints:
     interval: 10m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
     alerts:
       - type: homeassistant
 
@@ -128,7 +128,7 @@ endpoints:
     interval: 10m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
     alerts:
       - type: homeassistant
 
@@ -138,7 +138,7 @@ endpoints:
     interval: 10m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
     alerts:
       - type: homeassistant
 
@@ -148,7 +148,7 @@ endpoints:
     interval: 10m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
       - "[BODY].ok == true"
     alerts:
       - type: homeassistant
@@ -159,7 +159,7 @@ endpoints:
     interval: 10m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
       - "[BODY].status == ok"
     alerts:
       - type: homeassistant
@@ -170,7 +170,7 @@ endpoints:
     interval: 10m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
     alerts:
       - type: homeassistant
 
@@ -180,7 +180,7 @@ endpoints:
     interval: 10m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
     alerts:
       - type: homeassistant
 
@@ -190,7 +190,7 @@ endpoints:
     interval: 10m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
     alerts:
       - type: homeassistant
 
@@ -200,7 +200,7 @@ endpoints:
     interval: 10m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
     alerts:
       - type: homeassistant
 
@@ -210,7 +210,7 @@ endpoints:
     interval: 10m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
     alerts:
       - type: homeassistant
 
@@ -220,7 +220,7 @@ endpoints:
     interval: 10m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
     alerts:
       - type: homeassistant
 
@@ -230,7 +230,7 @@ endpoints:
     interval: 10m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
       - "[BODY].status == pass"
     alerts:
       - type: homeassistant
@@ -241,7 +241,7 @@ endpoints:
     interval: 10m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
       - "[BODY] == pat(*OK*)"
     alerts:
       - type: homeassistant
@@ -252,7 +252,7 @@ endpoints:
     interval: 10m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
     alerts:
       - type: homeassistant
 
@@ -262,7 +262,7 @@ endpoints:
     interval: 10m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
     alerts:
       - type: homeassistant
 
@@ -272,7 +272,7 @@ endpoints:
     interval: 10m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
     alerts:
       - type: homeassistant
 
@@ -282,7 +282,7 @@ endpoints:
     interval: 10m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
     alerts:
       - type: homeassistant
 
@@ -292,7 +292,7 @@ endpoints:
     interval: 10m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
     alerts:
       - type: homeassistant
 
@@ -302,7 +302,7 @@ endpoints:
     interval: 10m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
     alerts:
       - type: homeassistant
 
@@ -312,7 +312,7 @@ endpoints:
     interval: 10m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
     alerts:
       - type: homeassistant
 
@@ -322,7 +322,7 @@ endpoints:
     interval: 10m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
     alerts:
       - type: homeassistant
 
@@ -332,7 +332,7 @@ endpoints:
     interval: 10m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
       - '[BODY] == pat(*"version":*)'
     alerts:
       - type: homeassistant
@@ -343,7 +343,7 @@ endpoints:
     interval: 10m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
       - '[BODY] == pat(*"Version":*)'
     alerts:
       - type: homeassistant
@@ -354,7 +354,7 @@ endpoints:
     interval: 10m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
       - "[BODY] == pat(*app=1*)"
       - "[BODY] == pat(*db=1*)"
     alerts:
@@ -366,7 +366,7 @@ endpoints:
     interval: 10m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
       - "[BODY] == pat(*OK*)"
     alerts:
       - type: homeassistant
@@ -377,7 +377,7 @@ endpoints:
     interval: 10m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
     alerts:
       - type: homeassistant
 
@@ -387,7 +387,7 @@ endpoints:
     interval: 10m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
     alerts:
       - type: homeassistant
 
@@ -397,7 +397,7 @@ endpoints:
     interval: 10m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
     alerts:
       - type: homeassistant
 
@@ -407,7 +407,7 @@ endpoints:
     interval: 10m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
     alerts:
       - type: homeassistant
 
@@ -417,7 +417,7 @@ endpoints:
     interval: 10m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
     alerts:
       - type: homeassistant
 
@@ -427,7 +427,7 @@ endpoints:
     interval: 10m
     conditions:
       - "[STATUS] == 200"
-      - "[CERTIFICATE_EXPIRATION] > 48h"
+      - "[CERTIFICATE_EXPIRATION] > 336h"
       - "[BODY].status == Application is healthy, internal DB working fine and disk usage is below 95%. You can connect downdetector to this endpoint"
     alerts:
       - type: homeassistant
@@ -437,6 +437,17 @@ endpoints:
   - name: Cockpit (Luxembourg)
     group: Administration
     url: "http://host.docker.internal:9090/"
+    interval: 10m
+    conditions:
+      - "[STATUS] == 200"
+    alerts:
+      - type: homeassistant
+
+  # Checked directly: through Traefik, Gatus's requests come from a Docker
+  # address, which the internal allowlist rejects
+  - name: Vigie (Grafana)
+    group: Administration
+    url: "http://vigie-grafana-1:3000/api/health"
     interval: 10m
     conditions:
       - "[STATUS] == 200"

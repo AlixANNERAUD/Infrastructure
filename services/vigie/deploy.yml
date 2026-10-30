@@ -39,8 +39,10 @@
         - name: Report that Zitadel provisioning failed
           ansible.builtin.debug:
             msg: >-
-              Zitadel provisioning failed, Grafana login through Zitadel is disabled for this deploy:
-              {{ ansible_failed_result.msg | default('unknown error') }}
+              Zitadel provisioning failed: Grafana OAuth stays off for this deploy and the
+              local admin login still works. A missing tofu means the playbook was not run
+              under mise exec --. First line of the error:
+              {{ (ansible_failed_result.msg | default('unknown error') | string).splitlines() | first | default('unknown error') }}
 
   roles:
     - role: compose_service
