@@ -33,9 +33,10 @@ uv run ansible-galaxy collection install -r requirements.yml   # into .ansible/c
 uv run yamllint .
 uv run ansible-lint
 .github/scripts/check-compose.sh                               # docker compose config on every service
+(cd roles/compose_service && uv run molecule test)             # runs the role against a local busybox stack (needs Docker)
 ```
 
-All three must pass; CI (`.github/workflows/lint.yml`) runs them on every PR and push to `main`. CI has no vault password, so ansible-lint runs against empty placeholder vault files — playbooks must not depend on vault values to parse.
+All of them must pass; CI (`.github/workflows/lint.yml`) runs them on every PR and push to `main`. CI has no vault password, so ansible-lint runs against empty placeholder vault files — playbooks must not depend on vault values to parse.
 
 ansible-lint warns `args[module]` on the Cloudflare playbooks: a false positive, `zone` comes from `module_defaults`.
 

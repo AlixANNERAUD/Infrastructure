@@ -1,0 +1,52 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Read the service files
+      ansible.builtin.stat:
+        path: "{{ compose_service_test_path }}/{{ item }}"
+      register: compose_service_test_files
+      loop:
+        - compose.yml
+        - .env
+        - config/config.yml
+        - data.sqlite
+
+    - name: Check the service files
+      ansible.builtin.assert:
+        that:
+          - item.stat.exists
+          - item.stat.isreg
+        fail_msg: "{{ item.item }} is missing or is not a regular file"
+      loop: "{{ compose_service_test_files.results }}"
+      loop_control:
+        label: "{{ item.item }}"
+
+    - name: Check that .env is private
+      ansible.builtin.assert:
+        that: compose_service_test_files.results[1].stat.mode == '0600'
+
+    - name: Read .env
+      ansible.builtin.slurp:
+        src: "{{ compose_service_test_path }}/.env"
+      register: compose_service_test_environment
+
+    - name: Check .env contents
+      ansible.builtin.assert:
+        that:
+          - "'USER_ID=' ~ lookup('ansible.builtin.pipe', 'id -u') in content"
+          - "'PROXY_RULE=Host(`molecule.example`)' in content"
+      vars:
+        content: "{{ compose_service_test_environment.content | b64decode }}"
+
+    - name: List running containers
+      ansible.builtin.command:
+        argv: [docker, compose, ps, --status, running, --services]
+        chdir: "{{ compose_service_test_path }}"
+      register: compose_service_test_running
+      changed_when: false
+
+    - name: Check that the stack is running
+      ansible.builtin.assert:
+        that: "'app' in compose_service_test_running.stdout_lines"

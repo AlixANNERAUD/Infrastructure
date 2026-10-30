@@ -1,0 +1,29 @@
+---
+# Runs the role on the local machine (or CI runner) against a throwaway
+# busybox stack; needs Docker with the Compose plugin.
+driver:
+  name: default
+  options:
+    managed: false
+platforms:
+  - name: instance
+provisioner:
+  name: ansible
+  env:
+    ANSIBLE_COLLECTIONS_PATH: ${MOLECULE_PROJECT_DIRECTORY}/../../.ansible/collections
+    ANSIBLE_ROLES_PATH: ${MOLECULE_PROJECT_DIRECTORY}/..
+  inventory:
+    host_vars:
+      instance:
+        ansible_connection: local
+        ansible_python_interpreter: "{{ ansible_playbook_python }}"
+        services_root: "{{ lookup('ansible.builtin.env', 'MOLECULE_EPHEMERAL_DIRECTORY') }}/services"
+        compose_service_test_path: "{{ services_root }}/Molecule_test"
+scenario:
+  test_sequence:
+    - cleanup
+    - syntax
+    - converge
+    - idempotence
+    - verify
+    - cleanup
