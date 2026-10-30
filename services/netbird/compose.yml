@@ -1,7 +1,15 @@
+# Container logs are unbounded by default and would fill the disk
+x-logging: &logging
+  driver: local
+  options:
+    max-size: "20m"
+    max-file: "3"
+
 services:
   # UI dashboard
   dashboard:
     image: netbirdio/dashboard:v2.95.0
+    logging: *logging
     container_name: netbird-dashboard
     restart: unless-stopped
     networks: [traefik]
@@ -27,22 +35,18 @@ services:
       - traefik.http.routers.netbird-dashboard.tls.certresolver=letsencrypt
       - traefik.http.routers.netbird-dashboard.priority=1
       - traefik.http.services.netbird-dashboard.loadbalancer.server.port=80
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "500m"
-        max-file: "2"
 
   # Combined server (Management + Signal + Relay + STUN)
   netbird-server:
     image: netbirdio/netbird-server:0.81.4
+    logging: *logging
     container_name: netbird-server
     restart: unless-stopped
     networks: [traefik]
     ports:
       - "3478:3478/udp"
     volumes:
-      - netbird_data:/var/lib/netbird
+      - ./data:/var/lib/netbird
       - ./config.yaml:/etc/netbird/config.yaml
     command: ["--config", "/etc/netbird/config.yaml"]
     labels:
@@ -72,14 +76,6 @@ services:
       - traefik.http.services.netbird-server-h2c.loadbalancer.server.port=80
       - traefik.http.services.netbird-server-h2c.loadbalancer.server.scheme=h2c
       - traefik.http.services.netbird-health-svc.loadbalancer.server.port=9000
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "500m"
-        max-file: "2"
-
-volumes:
-  netbird_data:
 
 networks:
   traefik:

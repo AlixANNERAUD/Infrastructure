@@ -14,6 +14,14 @@
         state: absent
       when: compose_service_test_compose.stat.exists
 
+    - name: Remove the external test networks
+      community.docker.docker_network:
+        name: "{{ item }}"
+        state: absent
+      loop:
+        - molecule_test_database
+        - molecule_test_drift
+
     - name: Remove the test services folder
       ansible.builtin.file:
         path: "{{ services_root }}"
