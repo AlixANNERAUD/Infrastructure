@@ -6,6 +6,9 @@
     - ../../vault/ansible/vault.yml
     - ../../vault/cloudflare/vault.yml
   pre_tasks:
+    - name: Check that no other container holds ports 80 and 443
+      ansible.builtin.include_tasks: check_published_ports.yml
+
     - name: Create the proxy network
       community.docker.docker_network:
         name: "{{ proxy_network }}"
@@ -29,3 +32,77 @@
         compose_service_dns_records:
           - record: "{{ traefik_dashboard_host }}"
             visibility: private
+
+  tasks:
+    # Traefik watches the dynamic folder, so the routes apply without a restart
+    - name: Render the routes
+      ansible.builtin.template:
+        src: routes.yml.j2
+        dest: "{{ services_root }}/{{ traefik_directory }}/dynamic/routes.yml"
+        mode: "0640"
+      when: traefik_routes is defined
+
+    # Docker publishes ports past the host firewall, and TrueNAS manages its
+    # apps and its UI in its own interface: list what is still exposed instead
+    - name: List the ports published by containers
+      ansible.builtin.command:
+        argv: [docker, ps, --format, "{{ '{{.Names}} {{.Ports}}' }}"]
+      register: traefik_published_ports
+      changed_when: false
+      when: inventory_hostname in groups['truenas']
+
+    # The output also holds the UI's private key: never print it
+    - name: Read the TrueNAS UI settings
+      ansible.builtin.command: midclt call system.general.config
+      register: traefik_truenas_settings
+      changed_when: false
+      no_log: true
+      when: inventory_hostname in groups['truenas']
+
+    - name: Check the addresses the TrueNAS UI listens on
+      ansible.builtin.set_fact:
+        traefik_exposure_steps: >-
+          {{
+            ['TrueNAS UI listens on all addresses: in System → General → GUI, listen on 192.168.0.21 only (not 0.0.0.0 or ::)']
+            if '0.0.0.0' in traefik_ui_addresses or '::' in traefik_ui_addresses else []
+          }}
+      vars:
+        traefik_ui_settings: "{{ traefik_truenas_settings.stdout | from_json }}"
+        traefik_ui_addresses: "{{ traefik_ui_settings.ui_address + traefik_ui_settings.ui_v6address }}"
+      no_log: true
+      when: inventory_hostname in groups['truenas']
+
+    - name: Check the ports containers publish on all addresses
+      ansible.builtin.set_fact:
+        traefik_exposure_steps: >-
+          {{
+            traefik_exposure_steps
+            + ([('Container ' ~ traefik_container ~ ' publishes ports ' ~ traefik_exposed_ports | join(', ') ~ ' on all addresses: ')
+                ~ ('it is the unused gacha:latest container, remove it (docker rm -f exciting_thompson)'
+                   if traefik_container == 'exciting_thompson'
+                   else 'unpublish them in its app settings, or remove it if unused')]
+               if traefik_exposed_ports else [])
+          }}
+      vars:
+        # Only these publications on every address are expected
+        traefik_allowed_ports:
+          traefik: ["80", "443"]
+          gluetun: ["6881"]
+        traefik_container: "{{ item.split()[0] }}"
+        traefik_exposed_ports: >-
+          {{ item | regex_findall('(?:0[.]0[.]0[.]0|\[::\]):([0-9-]+)->') | unique
+             | reject('in', traefik_allowed_ports[traefik_container] | default([])) | list }}
+      loop: "{{ traefik_published_ports.stdout_lines | default([]) }}"
+      loop_control:
+        label: "{{ traefik_container }}"
+      when: inventory_hostname in groups['truenas']
+
+    - name: List what is still exposed
+      ansible.builtin.debug:
+        msg: "{{ ['Manual steps for ' ~ inventory_hostname ~ ', then run this playbook again:'] + traefik_exposure_steps }}"
+      when: inventory_hostname in groups['truenas'] and traefik_exposure_steps | length > 0
+
+    - name: Confirm that only Traefik and gluetun are exposed
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }}: only Traefik's 80/443 and gluetun's 6881 are published."
+      when: inventory_hostname in groups['truenas'] and traefik_exposure_steps | length == 0
