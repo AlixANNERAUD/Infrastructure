@@ -1,0 +1,5 @@
+---
+- name: Restart the stack
+  community.docker.docker_compose_v2:
+    project_src: "{{ compose_service_path }}"
+    state: restarted
