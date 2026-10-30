@@ -1,0 +1,103 @@
+#jinja2: lstrip_blocks: True
+{# Wildcard certificate of each host's parent domain, or of the host itself when it is a bare domain #}
+{% macro certificates(hosts) %}
+{% set result = namespace(domains=[]) %}
+{% for host in hosts %}
+{% set labels = host.split('.') %}
+{% set result.domains = result.domains + [host if labels | length == 2 else labels[1:] | join('.')] %}
+{% endfor %}
+      tls:
+        certResolver: letsencrypt
+        domains:
+{% for domain in result.domains | unique %}
+          - main: {{ domain | to_json }}
+            sans:
+              - {{ ('*.' ~ domain) | to_json }}
+{% endfor %}
+{% endmacro %}
+{% macro host_rule(hosts) %}{{ hosts | map('regex_replace', '^(.*)$', 'Host(`\\1`)') | join(' || ') }}{% endmacro %}
+# Rendered from traefik_routes and traefik_redirects in the host's variables
+http:
+  routers:
+{% for route in traefik_routes %}
+    {{ route.name | to_json }}:
+      rule: {{ host_rule(route.hosts) | to_json }}
+      entryPoints:
+        - web-secure
+      service: {{ route.name | to_json }}
+  {% if route.internal %}
+      middlewares:
+        - internal-allowlist@file
+  {% endif %}
+{{ certificates(route.hosts) }}
+  {% for path in route.paths | default([]) %}
+    {{ (route.name ~ '-' ~ loop.index) | to_json }}:
+      rule: {{ ('(' ~ host_rule(route.hosts) ~ ') && PathPrefix(`' ~ path.prefix ~ '`)') | to_json }}
+      entryPoints:
+        - web-secure
+    {% if path.redirect is defined %}
+      service: noop@internal
+    {% else %}
+      service: {{ (route.name ~ '-' ~ loop.index) | to_json }}
+    {% endif %}
+    {% if route.internal or path.redirect is defined %}
+      middlewares:
+      {% if route.internal %}
+        - internal-allowlist@file
+      {% endif %}
+      {% if path.redirect is defined %}
+        - {{ (route.name ~ '-' ~ loop.index ~ '-redirect') | to_json }}
+      {% endif %}
+    {% endif %}
+{{ certificates(route.hosts) }}
+  {% endfor %}
+{% endfor %}
+{% for redirect in traefik_redirects %}
+    {{ ('redirect-' ~ redirect.name) | to_json }}:
+      rule: {{ host_rule(redirect.hosts) | to_json }}
+      entryPoints:
+        - web-secure
+      service: noop@internal
+      middlewares:
+        - {{ ('redirect-' ~ redirect.name) | to_json }}
+{{ certificates(redirect.hosts) }}
+{% endfor %}
+
+  services:
+{% for route in traefik_routes %}
+    {{ route.name | to_json }}:
+      loadBalancer:
+        servers:
+          - url: {{ route.url | to_json }}
+  {% if route.insecure_backend | default(false) %}
+        serversTransport: insecure-backend@file
+  {% endif %}
+  {% for path in route.paths | default([]) %}
+    {% if path.url is defined %}
+    {{ (route.name ~ '-' ~ loop.index) | to_json }}:
+      loadBalancer:
+        servers:
+          - url: {{ path.url | to_json }}
+    {% endif %}
+  {% endfor %}
+{% endfor %}
+
+  middlewares:
+{% for route in traefik_routes %}
+  {% for path in route.paths | default([]) %}
+    {% if path.redirect is defined %}
+    {{ (route.name ~ '-' ~ loop.index ~ '-redirect') | to_json }}:
+      redirectRegex:
+        regex: {{ ('^https?://([^/]+)' ~ (path.prefix | regex_escape) ~ '.*') | to_json }}
+        replacement: {{ ('https://${1}' ~ path.redirect) | to_json }}
+        permanent: true
+    {% endif %}
+  {% endfor %}
+{% endfor %}
+{% for redirect in traefik_redirects %}
+    {{ ('redirect-' ~ redirect.name) | to_json }}:
+      redirectRegex:
+        regex: "^https?://[^/]+(.*)"
+        replacement: {{ (redirect.to ~ ('${1}' if redirect.preserve_path else '/')) | to_json }}
+        permanent: true
+{% endfor %}
