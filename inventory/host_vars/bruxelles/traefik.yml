@@ -139,12 +139,17 @@ traefik_routes:
       - prefix: /_synapse/admin
         url: http://matrix_anneraud-synapse-1:8008
         internal: true
-  # Matrix delegation for @…:anneraud.fr; the rest of anneraud.fr redirects to www
+  # Matrix delegation for @…:anneraud.fr; the rest of anneraud.fr redirects to www.
+  # Synapse's served well-known advertises anneraud.fr:443 (its server_name), so
+  # other servers send federation requests to anneraud.fr/_matrix as well
   - name: matrix-delegation
     hosts: [anneraud.fr]
     prefix: /.well-known/matrix
     url: http://matrix_anneraud-synapse-1:8008
     internal: false
+    paths:
+      - prefix: /_matrix
+        url: http://matrix_anneraud-synapse-1:8008
   - name: odoo-minitrainstore
     hosts: [www.minitrainstore.fr]
     url: http://ix-odoo-odoo-1:8069
