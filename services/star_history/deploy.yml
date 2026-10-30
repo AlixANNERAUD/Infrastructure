@@ -1,75 +1,20 @@
 ---
 - name: Deploy Star History
-  hosts: luxembourg
+  hosts: star_history
   become: true
-  vars:
-    root_directory: /opt/star_history
-    compose_file_source: compose.yml
-    compose_file_destination: "{{ root_directory }}/compose.yml"
-    user_id: 991
-    group_id: 991
   vars_files:
     - ../../vault/ansible/vault.yml
     - ../../vault/star_history/vault.yml
     - ../../vault/cloudflare/vault.yml
-  tasks:
-    - name: Ensure StarRepo directory exists
-      ansible.builtin.file:
-        path: "{{ root_directory }}"
-        state: directory
-        mode: "0750"
-        owner: "{{ user_id }}"
-        group: "{{ group_id }}"
-
-    - name: Ensure StarRepo database file exists
-      ansible.builtin.file:
-        path: "{{ root_directory }}/repos.sqlite"
-        state: touch
-        mode: "0640"
-        owner: "{{ user_id }}"
-        group: "{{ group_id }}"
-        modification_time: preserve
-        access_time: preserve
-
-    - name: Copy Compose file
-      ansible.builtin.copy:
-        src: "{{ compose_file_source }}"
-        dest: "{{ compose_file_destination }}"
-        mode: "0640"
-        owner: "{{ user_id }}"
-        group: "{{ group_id }}"
-
-    - name: Generate .env file for StarRepo
-      ansible.builtin.copy:
-        dest: "{{ root_directory }}/.env"
-        mode: "0600"
-        content: |
-          USER_ID={{ user_id }}
-          GROUP_ID={{ group_id }}
-          STAR_HISTORY_GH_TOKEN={{ github_token }}
-
-    - name: Deploy StarRepo with Docker Compose
-      community.docker.docker_compose_v2:
-        project_src: "{{ root_directory }}"
-        pull: always
-        recreate: always
-        remove_orphans: true
-        state: present
-
-    - name: Update DNS record for StarRepo
-      community.general.cloudflare_dns:
-        zone: dera.page
-        account_email: "{{ cloudflare_email }}"
-        account_api_key: "{{ cloudflare_api_key }}"
-        type: CNAME
-        record: star-history.dera.page
-        value: "{{ global_dns_host }}"
-
-    - name: Update DNS record for SimRepo
-      community.general.cloudflare_dns:
-        zone: dera.page
-        account_email: "{{ cloudflare_email }}"
-        account_api_key: "{{ cloudflare_api_key }}"
-        type: CNAME
-        record: simrepo.dera.page
-        value: "{{ global_dns_host }}"
+  roles:
+    - role: compose_service
+      vars:
+        compose_service_name: star_history
+        compose_service_user: 991
+        compose_service_mounted_files:
+          - repos.sqlite
+        compose_service_environment:
+          STAR_HISTORY_GH_TOKEN: "{{ github_token }}"
+        compose_service_dns_records:
+          - record: star-history.dera.page
+          - record: simrepo.dera.page

@@ -1,64 +1,24 @@
 ---
-- name: Deploy Gatus
-  hosts: luxembourg
+- name: Deploy Gatus (anneraud.fr)
+  hosts: gatus_anneraud
   become: true
-  vars:
-    root_directory: /opt/gatus_anneraud
-    compose_file_source: compose.yml
-    compose_file_destination: "{{ root_directory }}/docker-compose.yml"
-    configuration_file_source: config.yml
-    configuration_file_destination: "{{ root_directory }}/config/config.yml"
   vars_files:
     - ../../vault/ansible/vault.yml
     - ../../vault/gatus_anneraud/vault.yml
     - ../../vault/cloudflare/vault.yml
-  tasks:
-    - name: Ensure application directory exists
-      ansible.builtin.file:
-        path: "{{ root_directory }}"
-        state: directory
-        mode: "0750"
-        owner: root
-        group: root
-
-    - name: Copy docker-compose.yml to remote
-      ansible.builtin.copy:
-        src: "{{ compose_file_source }}"
-        dest: "{{ compose_file_destination }}"
-        mode: "0640"
-
-    - name: Copy Gatus configuration file
-      ansible.builtin.copy:
-        src: "{{ configuration_file_source }}"
-        dest: "{{ configuration_file_destination }}"
-        mode: "0640"
-
-    - name: Generate .env file for Gatus
-      ansible.builtin.copy:
-        dest: "{{ root_directory }}/.env"
-        mode: "0600"
-        content: |
-          HOME_ASSISTANT_URL=https://maison.anneraud.fr
-          PROXY_RULE=Host(`etat.anneraud.fr`)
-          STACK_NAME=gatus-anneraud
-
-          DATABASE_USER={{ database_user }}
-          DATABASE_PASSWORD={{ database_password }}
-          HOME_ASSISTANT_TOKEN={{ home_assistant_token }}
-
-    - name: Deploy Gatus with Docker Compose
-      community.docker.docker_compose_v2:
-        project_src: "{{ root_directory }}"
-        pull: always
-        recreate: always
-        remove_orphans: true
-        state: present
-
-    - name: Update DNS records for Gatus
-      community.general.cloudflare_dns:
-        zone: anneraud.fr
-        account_email: "{{ cloudflare_email }}"
-        account_api_key: "{{ cloudflare_api_key }}"
-        type: CNAME
-        record: etat.anneraud.fr
-        value: "{{ global_dns_host }}"
+  roles:
+    - role: compose_service
+      vars:
+        compose_service_name: gatus_anneraud
+        compose_service_files:
+          - source: config.yml
+            destination: config/config.yml
+        compose_service_environment:
+          HOME_ASSISTANT_URL: https://maison.anneraud.fr
+          PROXY_RULE: Host(`etat.anneraud.fr`)
+          STACK_NAME: gatus-anneraud
+          DATABASE_USER: "{{ database_user }}"
+          DATABASE_PASSWORD: "{{ database_password }}"
+          HOME_ASSISTANT_TOKEN: "{{ home_assistant_token }}"
+        compose_service_dns_records:
+          - record: etat.anneraud.fr

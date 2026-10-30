@@ -1,0 +1,22 @@
+---
+# Folder under the host's services_root; defaults to the service name
+compose_service_directory: "{{ compose_service_name }}"
+compose_service_path: "{{ services_root }}/{{ compose_service_directory }}"
+
+# Owner of the service files, also written to .env as USER_ID / GROUP_ID
+compose_service_user: root
+compose_service_group: "{{ compose_service_user }}"
+
+# Variables written to .env, in order
+compose_service_environment: {}
+
+# Extra files copied from the playbook folder: [{source: config.yml, destination: config/config.yml}]
+compose_service_files: []
+
+# Files bind-mounted into containers that must exist beforehand, otherwise
+# Docker creates a directory in their place
+compose_service_mounted_files: []
+
+# CNAME records pointing to the host: [{record: app.example.org, visibility: public | private, zone: example.org}]
+# visibility defaults to public (global_dns_host), zone to the last two labels of the record
+compose_service_dns_records: []

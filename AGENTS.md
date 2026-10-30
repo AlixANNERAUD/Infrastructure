@@ -41,13 +41,29 @@ ansible-lint warns `args[module]` on the Cloudflare playbooks: a false positive,
 
 ## Conventions
 
-A typical `deploy.yml`:
+Compose services are deployed with the shared role `roles/compose_service` (see its `defaults/main.yml` and `meta/argument_specs.yml`). A service's `deploy.yml` is only:
 
-1. `hosts:` the target host, `become: true`, `vars_files:` that **always** include `../../vault/ansible/vault.yml` (sudo password), plus the service's vault and `../../vault/cloudflare/vault.yml` when it touches DNS.
-2. Create `root_directory` and data directories owned by the container's UID/GID.
-3. Copy `compose.yml` and templates; write `.env` (mode `0600`) from vault variables.
-4. `community.docker.docker_compose_v2` with `project_src: "{{ root_directory }}"`.
-5. `community.general.cloudflare_dns` CNAME to `global_dns_host` (public service) or `local_dns_host` (LAN/VPN only).
+```yaml
+- name: Deploy Wakapi
+  hosts: wakapi                      # the service's inventory group
+  become: true
+  vars_files:                        # always the ansible vault (sudo password), then the service's, then cloudflare
+    - ../../vault/ansible/vault.yml
+    - ../../vault/wakapi/vault.yml
+    - ../../vault/cloudflare/vault.yml
+  roles:
+    - role: compose_service
+      vars:
+        compose_service_name: wakapi
+        compose_service_directory: Wakapi   # only when the folder name differs from the service name
+        compose_service_user: 568            # also written to .env as USER_ID / GROUP_ID
+        compose_service_environment: {...}   # written to .env
+        compose_service_files: [{source: config.yml, destination: config/config.yml}]
+        compose_service_mounted_files: [repos.sqlite]
+        compose_service_dns_records: [{record: wakapi.dera.page}]   # visibility: private for local_dns_host
+```
+
+The role creates the folder under the host's `services_root` (permissions only on creation, existing TrueNAS folders keep their ACLs), copies `compose.yml`, writes `.env`, starts the stack and points the DNS records at the host. Stacks are only recreated when their image or configuration changes, and restarted when an extra file changes. Services not yet migrated still use the older hand-written playbooks; move them to the role when touching them.
 
 Rules:
 

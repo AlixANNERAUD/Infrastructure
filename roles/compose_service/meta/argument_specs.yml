@@ -1,0 +1,36 @@
+---
+argument_specs:
+  main:
+    short_description: Deploy a Docker Compose stack from the playbook folder
+    options:
+      compose_service_name:
+        type: str
+        required: true
+        description: Service name, used for the default folder name.
+      compose_service_directory:
+        type: str
+        description: Folder name under services_root.
+      compose_service_path:
+        type: str
+        description: Full path of the service folder.
+      compose_service_user:
+        type: raw
+        description: Owner (name or UID) of the service files.
+      compose_service_group:
+        type: raw
+        description: Group (name or GID) of the service files.
+      compose_service_environment:
+        type: dict
+        description: Variables written to .env.
+      compose_service_files:
+        type: list
+        elements: dict
+        description: Extra files to copy, with source and destination.
+      compose_service_mounted_files:
+        type: list
+        elements: str
+        description: Files to create before they are bind-mounted.
+      compose_service_dns_records:
+        type: list
+        elements: dict
+        description: CNAME records pointing to the host.

@@ -1,62 +1,23 @@
 ---
-- name: Deploy Gatus
-  hosts: luxembourg
+- name: Deploy Gatus (dera.page)
+  hosts: gatus_dera_page
   become: true
-  vars:
-    root_directory: /opt/gatus_derapage
-    compose_file_source: compose.yml
-    compose_file_destination: "{{ root_directory }}/docker-compose.yml"
-    configuration_file_source: config.yml
-    configuration_file_destination: "{{ root_directory }}/config/config.yml"
   vars_files:
     - ../../vault/ansible/vault.yml
     - ../../vault/gatus_dera_page/vault.yml
     - ../../vault/cloudflare/vault.yml
-  tasks:
-    - name: Ensure application directory exists
-      ansible.builtin.file:
-        path: "{{ root_directory }}"
-        state: directory
-        mode: "0750"
-        owner: root
-        group: root
-
-    - name: Copy docker-compose.yml to remote
-      ansible.builtin.copy:
-        src: "{{ compose_file_source }}"
-        dest: "{{ compose_file_destination }}"
-        mode: "0640"
-
-    - name: Copy Gatus configuration file
-      ansible.builtin.copy:
-        src: "{{ configuration_file_source }}"
-        dest: "{{ configuration_file_destination }}"
-        mode: "0640"
-
-    - name: Generate .env file for Gatus
-      ansible.builtin.copy:
-        dest: "{{ root_directory }}/.env"
-        mode: "0600"
-        content: |
-          PROXY_RULE=Host(`status.dera.page`)
-          STACK_NAME=gatus-derapage
-
-          DATABASE_USER={{ database_user }}
-          DATABASE_PASSWORD={{ database_password }}
-
-    - name: Deploy Gatus with Docker Compose
-      community.docker.docker_compose_v2:
-        project_src: "{{ root_directory }}"
-        pull: always
-        recreate: always
-        remove_orphans: true
-        state: present
-
-    - name: Update DNS records for Gatus
-      community.general.cloudflare_dns:
-        zone: dera.page
-        account_email: "{{ cloudflare_email }}"
-        account_api_key: "{{ cloudflare_api_key }}"
-        type: CNAME
-        record: status.dera.page
-        value: "{{ global_dns_host }}"
+  roles:
+    - role: compose_service
+      vars:
+        compose_service_name: gatus_dera_page
+        compose_service_directory: gatus_derapage
+        compose_service_files:
+          - source: config.yml
+            destination: config/config.yml
+        compose_service_environment:
+          PROXY_RULE: Host(`status.dera.page`)
+          STACK_NAME: gatus-derapage
+          DATABASE_USER: "{{ database_user }}"
+          DATABASE_PASSWORD: "{{ database_password }}"
+        compose_service_dns_records:
+          - record: status.dera.page

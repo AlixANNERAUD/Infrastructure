@@ -1,0 +1,96 @@
+---
+- name: Check whether the service folder exists
+  ansible.builtin.stat:
+    path: "{{ compose_service_path }}"
+  register: compose_service_folder
+
+# Only set permissions on creation: existing folders may carry TrueNAS ACLs
+- name: Create the service folder
+  ansible.builtin.file:
+    path: "{{ compose_service_path }}"
+    state: directory
+    mode: "0750"
+    owner: "{{ compose_service_user }}"
+    group: "{{ compose_service_group }}"
+  when: not compose_service_folder.stat.exists
+
+- name: Copy the Compose file
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/compose.yml"
+    dest: "{{ compose_service_path }}/compose.yml"
+    mode: "0640"
+    owner: "{{ compose_service_user }}"
+    group: "{{ compose_service_group }}"
+
+# Compose would otherwise warn about two Compose files in the folder
+- name: Remove the former docker-compose.yml
+  ansible.builtin.file:
+    path: "{{ compose_service_path }}/docker-compose.yml"
+    state: absent
+
+- name: Write the environment file
+  ansible.builtin.copy:
+    dest: "{{ compose_service_path }}/.env"
+    mode: "0600"
+    content: |
+      {% if compose_service_user | string != 'root' %}
+      USER_ID={{ compose_service_user }}
+      GROUP_ID={{ compose_service_group }}
+      {% endif %}
+      {% for name, value in compose_service_environment.items() %}
+      {{ name }}={{ value }}
+      {% endfor %}
+  no_log: true
+
+# Without mode or owner, existing folders are left untouched
+- name: Create folders for extra files
+  ansible.builtin.file:  # noqa: risky-file-permissions
+    path: "{{ (compose_service_path ~ '/' ~ item.destination) | dirname }}"
+    state: directory
+  loop: "{{ compose_service_files }}"
+  loop_control:
+    label: "{{ item.destination }}"
+  when: (item.destination | dirname) != ''
+
+- name: Copy extra files
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/{{ item.source }}"
+    dest: "{{ compose_service_path }}/{{ item.destination }}"
+    mode: "0640"
+    owner: "{{ compose_service_user }}"
+    group: "{{ compose_service_group }}"
+  loop: "{{ compose_service_files }}"
+  loop_control:
+    label: "{{ item.destination }}"
+  notify: Restart the stack
+
+- name: Create files mounted into containers
+  ansible.builtin.file:
+    path: "{{ compose_service_path }}/{{ item }}"
+    state: touch
+    mode: "0640"
+    owner: "{{ compose_service_user }}"
+    group: "{{ compose_service_group }}"
+    modification_time: preserve
+    access_time: preserve
+  loop: "{{ compose_service_mounted_files }}"
+
+# Recreates containers only when their image or configuration changed
+- name: Start the stack
+  community.docker.docker_compose_v2:
+    project_src: "{{ compose_service_path }}"
+    pull: always
+    remove_orphans: true
+    state: present
+
+- name: Point DNS records to the host
+  community.general.cloudflare_dns:
+    zone: "{{ item.zone | default(item.record.split('.')[-2:] | join('.')) }}"
+    account_email: "{{ cloudflare_email }}"
+    account_api_key: "{{ cloudflare_api_key }}"
+    type: CNAME
+    record: "{{ item.record }}"
+    value: "{{ global_dns_host if item.visibility | default('public') == 'public' else local_dns_host }}"
+  loop: "{{ compose_service_dns_records }}"
+  loop_control:
+    label: "{{ item.record }}"

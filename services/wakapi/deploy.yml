@@ -1,67 +1,27 @@
 ---
 - name: Deploy Wakapi
-  hosts: bruxelles
+  hosts: wakapi
   become: true
-  vars:
-    root_directory: /mnt/Donnees/Applications_chiffrees/Wakapi
-    compose_file_source: compose.yml
-    compose_file_destination: "{{ root_directory }}/compose.yml"
-    user_id: 568
-    group_id: 568
   vars_files:
     - ../../vault/ansible/vault.yml
     - ../../vault/wakapi/vault.yml
     - ../../vault/cloudflare/vault.yml
-  tasks:
-    - name: Copy compose file
-      ansible.builtin.copy:
-        src: "{{ compose_file_source }}"
-        dest: "{{ compose_file_destination }}"
-        mode: "0640"
-        owner: "{{ user_id }}"
-        group: "{{ group_id }}"
-
-    - name: Generate .env file for Wakapi
-      ansible.builtin.copy:
-        dest: "{{ root_directory }}/.env"
-        mode: "0600"
-        content: |
-          GROUP_ID={{ group_id }}
-          USER_ID={{ user_id }}
-          WAKAPI_PORT=30078
-          WAKAPI_TRUST_REVERSE_PROXY_IPS=172.16.0.0/16
-          WAKAPI_PUBLIC_URL=https://wakapi.dera.page
-
-          DATABASE_PASSWORD={{ database_password }}
-          DATABASE_USER={{ database_user }}
-          WAKAPI_PASSWORD_SALT={{ wakapi_password_salt }}
-
-          WAKAPI_MAIL_SMTP_HOST={{ wakapi_mail_smtp_host }}
-          WAKAPI_MAIL_SMTP_USER={{ wakapi_mail_smtp_user }}
-          WAKAPI_MAIL_SMTP_PASS={{ wakapi_mail_smtp_pass }}
-
-    - name: Deploy Wakapi with Docker Compose
-      community.docker.docker_compose_v2:
-        project_src: "{{ root_directory }}"
-        pull: always
-        recreate: always
-        remove_orphans: true
-        state: present
-
-    - name: Update DNS records for Wakapi
-      community.general.cloudflare_dns:
-        zone: dera.page
-        account_email: "{{ cloudflare_email }}"
-        account_api_key: "{{ cloudflare_api_key }}"
-        type: CNAME
-        record: wakapi.dera.page
-        value: "{{ global_dns_host }}"
-
-    - name: Update DNS records for Wakapi
-      community.general.cloudflare_dns:
-        zone: anneraud.fr
-        account_email: "{{ cloudflare_email }}"
-        account_api_key: "{{ cloudflare_api_key }}"
-        type: CNAME
-        record: wakapi.anneraud.fr
-        value: "{{ global_dns_host }}"
+  roles:
+    - role: compose_service
+      vars:
+        compose_service_name: wakapi
+        compose_service_directory: Wakapi
+        compose_service_user: 568
+        compose_service_environment:
+          WAKAPI_PORT: 30078
+          WAKAPI_TRUST_REVERSE_PROXY_IPS: 172.16.0.0/16
+          WAKAPI_PUBLIC_URL: https://wakapi.dera.page
+          DATABASE_PASSWORD: "{{ database_password }}"
+          DATABASE_USER: "{{ database_user }}"
+          WAKAPI_PASSWORD_SALT: "{{ wakapi_password_salt }}"
+          WAKAPI_MAIL_SMTP_HOST: "{{ wakapi_mail_smtp_host }}"
+          WAKAPI_MAIL_SMTP_USER: "{{ wakapi_mail_smtp_user }}"
+          WAKAPI_MAIL_SMTP_PASS: "{{ wakapi_mail_smtp_pass }}"
+        compose_service_dns_records:
+          - record: wakapi.dera.page
+          - record: wakapi.anneraud.fr
