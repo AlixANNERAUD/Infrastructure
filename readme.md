@@ -136,6 +136,14 @@ and threshold-based webhook notifications.
 Configure the selected applications, NPM log paths, and monitoring vault before
 deploying `services/vigie/deploy.yml`.
 
+## Zitadel applications
+
+OIDC applications of services managed outside Ansible are declared in `opentofu/zitadel/applications.auto.tfvars` and provisioned with OpenTofu. To add one:
+
+1. Add an entry to `applications.auto.tfvars` (set `authentication = "client_secret"` and `configured_in` when the service needs a secret pasted in).
+2. Run `mise exec -- uv run ansible-playbook services/zitadel/applications.yml`. It prints the issuer, client id and `configured_in`, and writes client secrets to `~/.config/infrastructure/zitadel/<application>.secret` (mode `0600`). Without `zitadel_automation_token` and `zitadel_state_passphrase` in `vault/zitadel/vault.yml`, it prints how to create them.
+3. Commit the updated `vault/zitadel/opentofu.tfstate` in the vault repository.
+
 ## Vault
 
 Source the vault password file path:

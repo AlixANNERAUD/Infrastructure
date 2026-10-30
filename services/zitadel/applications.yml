@@ -1,0 +1,49 @@
+---
+- name: Provision Zitadel applications for services managed outside Ansible
+  hosts: localhost
+  gather_facts: false
+  vars:
+    zitadel_issuer: https://authentification.anneraud.fr
+    zitadel_secret_directory: "{{ lookup('ansible.builtin.env', 'HOME') }}/.config/infrastructure/zitadel"
+  vars_files:
+    - ../../vault/zitadel/vault.yml
+  roles:
+    - role: zitadel_applications
+  tasks:
+    - name: Hand over the credentials of each application
+      when: zitadel_applications_provisioned
+      block:
+        - name: Create the folder for the client secrets
+          ansible.builtin.file:
+            path: "{{ zitadel_secret_directory }}"
+            state: directory
+            mode: "0700"
+
+        # Only written when absent or different, so a second run changes nothing
+        - name: Write the client secrets
+          ansible.builtin.copy:
+            dest: "{{ zitadel_secret_directory }}/{{ item.key }}.secret"
+            content: "{{ item.value }}"
+            mode: "0600"
+          loop: "{{ zitadel_applications_client_secrets | dict2items }}"
+          loop_control:
+            label: "{{ item.key }}"
+          no_log: true
+
+        - name: Show where to paste the credentials
+          ansible.builtin.debug:
+            msg: >-
+              {{ [
+                   item.key ~ ' (configured in ' ~ item.value ~ ')',
+                   'Issuer: ' ~ zitadel_issuer,
+                   'Client id: ' ~ zitadel_applications_client_ids[item.key]
+                 ] + ([
+                   'Client secret file: ' ~ zitadel_secret_directory ~ '/' ~ item.key ~ '.secret'
+                 ] if item.key in zitadel_applications_client_secrets else []) }}
+          loop: "{{ zitadel_applications_configured_in | dict2items }}"
+          loop_control:
+            label: "{{ item.key }}"
+
+        - name: Remind to commit the state
+          ansible.builtin.debug:
+            msg: Commit vault/zitadel/opentofu.tfstate in the vault repository.
