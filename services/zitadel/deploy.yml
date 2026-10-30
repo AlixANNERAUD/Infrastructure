@@ -13,8 +13,6 @@
         compose_service_directory: Zitadel
         compose_service_environment:
           ZITADEL_DOMAIN: authentification.anneraud.fr
-          ZITADEL_HOST_PORT: 32432
-          ZITADEL_LOGIN_HOST_PORT: 32433
           ZITADEL_MASTERKEY: "{{ zitadel_masterkey }}"
           LOGIN_CLIENT_PAT_EXPIRATION: "2099-01-01T00:00:00Z"
           POSTGRES_DB: zitadel

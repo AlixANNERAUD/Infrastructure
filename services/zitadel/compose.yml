@@ -5,8 +5,6 @@ services:
     image: ghcr.io/zitadel/zitadel:v4.20.0
     restart: unless-stopped
     user: "991:991"
-    ports:
-      - "${ZITADEL_HOST_PORT}:8080"
     command: start-from-init --masterkey "${ZITADEL_MASTERKEY}"
     environment:
       ZITADEL_PORT: 8080
@@ -36,6 +34,7 @@ services:
       - ./Zitadel_bootstrap:/zitadel/bootstrap
     networks:
       - internal
+      - proxy
     depends_on:
       postgres:
         condition: service_healthy
@@ -44,8 +43,6 @@ services:
     image: ghcr.io/zitadel/zitadel-login:v4.20.0
     restart: unless-stopped
     user: "991:991"
-    ports:
-      - "${ZITADEL_LOGIN_HOST_PORT}:3000"
     environment:
       ZITADEL_API_URL: http://zitadel:8080
       NEXT_PUBLIC_BASE_PATH: /ui/v2/login
@@ -55,6 +52,7 @@ services:
       - ./Zitadel_bootstrap:/zitadel/bootstrap:ro
     networks:
       - internal
+      - proxy
     depends_on:
       zitadel:
         condition: service_healthy
@@ -80,4 +78,6 @@ services:
 networks:
   internal:
   databases:
+    external: true
+  proxy:
     external: true
