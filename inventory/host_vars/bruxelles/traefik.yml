@@ -136,6 +136,10 @@ traefik_routes:
     hosts: [matrix.anneraud.fr]
     url: http://matrix_anneraud-synapse-1:8008
     internal: false
+    paths:
+      - prefix: /_synapse/admin
+        url: http://matrix_anneraud-synapse-1:8008
+        internal: true
   # Matrix delegation for @…:anneraud.fr; the rest of anneraud.fr redirects to www
   - name: matrix-delegation
     hosts: [anneraud.fr]
@@ -146,10 +150,12 @@ traefik_routes:
     hosts: [www.minitrainstore.fr]
     url: http://ix-odoo-odoo-1:8069
     internal: false
+    cloudflare_only: true
   - name: odoo-guenola-sahut
     hosts: [www.guenola-sahut.fr]
     url: http://ix-odoo-guenola-sahut-odoo-1:8069
     internal: false
+    cloudflare_only: true
   - name: bentopdf
     hosts: [pdf.anneraud.fr]
     url: http://ix-bentopdf-bentopdf-1:8080
@@ -197,6 +203,7 @@ traefik_redirects:
     hosts: [minitrainstore.fr]
     to: https://www.minitrainstore.fr
     preserve_path: false
+    cloudflare_only: true
   - name: arnaud
     hosts: [arnaud.anneraud.fr]
     to: https://www.minitrainstore.fr
@@ -205,3 +212,4 @@ traefik_redirects:
     hosts: [guenola-sahut.fr]
     to: https://www.guenola-sahut.fr
     preserve_path: true
+    cloudflare_only: true

@@ -37,6 +37,10 @@ services:
       # after the default 180s
       - "--entryPoints.web-secure.transport.respondingTimeouts.readTimeout=0"
 
+      # Cloudflare's forwarded headers are kept so backends see the visitor's address; the internal allowlist
+      # still checks the connection's address, so trusting them does not widen it
+      - "--entryPoints.web-secure.forwardedHeaders.trustedIPs=${TRAEFIK_TRUSTED_PROXIES}"
+
       - "--entryPoints.web-secure-federation.address=:8448"
       - "--entryPoints.web-secure-federation.http.tls=true"
 
