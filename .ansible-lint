@@ -1,5 +1,7 @@
 ---
 kinds:
+  # Task files included by a playbook, listed before the playbook pattern
+  - tasks: "services/traefik/check_published_ports.yml"
   - playbook: "services/*/*.yml"
   - playbook: "hosts/*/*.yml"
   - playbook: "hosts/*.yml"

@@ -1,0 +1,201 @@
+---
+# Bruxelles routes, rendered by services/traefik/routes.yml.j2 into dynamic/routes.yml
+traefik_directory: Traefik
+traefik_dashboard_host: traefik.bruxelles.anneraud.fr
+traefik_federation_publish: "127.0.0.1:8448:8448"
+
+traefik_routes:
+  - name: paperless
+    hosts: [archive.anneraud.fr]
+    url: http://ix-paperless-ngx-paperless-1:8000
+    internal: true
+  - name: truenas
+    hosts: [bruxelles.anneraud.fr]
+    url: https://192.168.0.21:1443
+    internal: true
+    insecure_backend: true
+  - name: firefly
+    hosts: [finances.anneraud.fr]
+    url: http://ix-firefly-iii-firefly-iii-1:8080
+    internal: true
+  - name: firefly-importer
+    hosts: [importeur-finances.anneraud.fr]
+    url: http://ix-firefly-iii-importer-1:8080
+    internal: true
+  - name: portainer
+    hosts: [conteneurs.bruxelles.anneraud.fr]
+    url: https://ix-portainer-portainer-1:8080
+    internal: true
+    insecure_backend: true
+  - name: docmost
+    hosts: [notes.anneraud.fr]
+    url: http://docmost-docmost-1:3000
+    internal: false
+  - name: nextcloud
+    hosts: [nuage.anneraud.fr]
+    url: http://ix-nextcloud-nextcloud-1:80
+    internal: false
+    paths:
+      - prefix: /collabora
+        url: http://ix-collabora-collabora-1:9980
+      - prefix: /.well-known/carddav
+        redirect: /remote.php/dav
+      - prefix: /.well-known/caldav
+        redirect: /remote.php/dav
+  - name: mealie
+    hosts: [recettes.anneraud.fr]
+    url: http://ix-mealie-mealie-1:8080
+    internal: true
+  - name: vaultwarden
+    hosts: [bitwarden.anneraud.fr]
+    url: http://ix-vaultwarden-vaultwarden-1:8080
+    internal: false
+  - name: collabora
+    hosts: [collabora.anneraud.fr]
+    url: http://ix-collabora-collabora-1:8080
+    internal: false
+  - name: home-assistant
+    hosts: [maison.anneraud.fr]
+    url: http://ix-home-assistant-home-assistant-1:8080
+    internal: false
+  - name: jellyfin
+    hosts: [mediatheque.anneraud.fr]
+    url: http://ix-jellyfin-jellyfin-1:8096
+    internal: false
+  - name: radarr
+    hosts: [radarr.anneraud.fr]
+    url: http://ix-radarr-radarr-1:8080
+    internal: true
+  - name: sonarr
+    hosts: [sonarr.anneraud.fr]
+    url: http://ix-sonarr-sonarr-1:8080
+    internal: true
+  - name: router
+    hosts: [berlin.anneraud.fr]
+    url: http://192.168.0.1:80
+    internal: true
+  - name: camera-nicosie
+    hosts: [nicosie.anneraud.fr]
+    url: https://192.168.0.41:443
+    internal: true
+    insecure_backend: true
+  - name: camera-skopje
+    hosts: [skopje.anneraud.fr]
+    url: https://192.168.0.43:443
+    internal: true
+    insecure_backend: true
+  - name: camera-amsterdam
+    hosts: [amsterdam.anneraud.fr]
+    url: https://192.168.0.42:443
+    internal: true
+    insecure_backend: true
+  - name: gitea
+    hosts: [git.anneraud.fr]
+    url: http://ix-gitea-gitea-1:30008
+    internal: true
+  - name: ddns-updater
+    hosts: [ddns-updater.bruxelles.anneraud.fr]
+    url: http://ix-ddns-updater-ddns-1:8080
+    internal: true
+  - name: umami
+    hosts: [s.anneraud.fr, s.guenola-sahut.fr]
+    url: http://ix-umami-umami-1:8080
+    internal: false
+  - name: prowlarr
+    hosts: [prowlarr.anneraud.fr]
+    url: http://ix-prowlarr-prowlarr-1:8080
+    internal: true
+  - name: seerr
+    hosts: [jellyseerr.anneraud.fr]
+    url: http://ix-seerr-seerr-1:8080
+    internal: true
+  - name: qbittorrent
+    hosts: [telechargement.anneraud.fr]
+    url: http://gluetun:30096
+    internal: true
+  - name: bazarr
+    hosts: [bazarr.anneraud.fr]
+    url: http://ix-bazarr-bazarr-1:8080
+    internal: true
+  - name: n8n
+    hosts: [automatisation.anneraud.fr]
+    url: http://ix-n8n-n8n-1:8080
+    internal: true
+  - name: wakapi
+    hosts: [wakapi.anneraud.fr, wakapi.dera.page]
+    url: http://wakapi-wakapi-1:3000
+    internal: false
+  - name: zitadel
+    hosts: [authentification.anneraud.fr]
+    url: http://zitadel-zitadel-1:8080
+    internal: false
+    paths:
+      - prefix: /ui/v2/login
+        url: http://zitadel-login-1:3000
+  - name: synapse
+    hosts: [matrix.anneraud.fr]
+    url: http://matrix_anneraud-synapse-1:8008
+    internal: false
+  - name: odoo-minitrainstore
+    hosts: [www.minitrainstore.fr]
+    url: http://ix-odoo-odoo-1:8069
+    internal: false
+  - name: odoo-guenola-sahut
+    hosts: [www.guenola-sahut.fr]
+    url: http://ix-odoo-guenola-sahut-odoo-1:8069
+    internal: false
+  - name: bentopdf
+    hosts: [pdf.anneraud.fr]
+    url: http://ix-bentopdf-bentopdf-1:8080
+    internal: false
+  - name: metube
+    hosts: [metube.anneraud.fr]
+    url: http://ix-metube-metube-1:8080
+    internal: true
+  - name: databasus
+    hosts: [databasus.anneraud.fr]
+    url: http://ix-databasus-databasus-1:4005
+    internal: true
+  - name: bichon
+    hosts: [archive-courriel.anneraud.fr]
+    url: http://ix-bichon-bichon-1:8080
+    internal: true
+  - name: open-webui
+    hosts: [assistant.anneraud.fr]
+    url: http://ix-open-webui-open-webui-1:8080
+    internal: true
+  - name: searxng
+    hosts: [recherche.anneraud.fr]
+    url: http://ix-searxng-searxng-1:8080
+    internal: true
+  - name: meshcentral
+    hosts: [parc.anneraud.fr]
+    url: http://ix-meshcentral-meshcentral-1:443
+    internal: false
+  - name: mcphub
+    hosts: [mcphub.anneraud.fr]
+    url: http://mcphub-mcphub-1:3000
+    internal: true
+  - name: openbao
+    hosts: [vault.xila.dev]
+    url: https://vault_xila-openbao-1:8200
+    internal: true
+    insecure_backend: true
+
+traefik_redirects:
+  - name: anneraud
+    hosts: [anneraud.fr]
+    to: https://www.anneraud.fr
+    preserve_path: false
+  - name: minitrainstore
+    hosts: [minitrainstore.fr]
+    to: https://www.minitrainstore.fr
+    preserve_path: false
+  - name: arnaud
+    hosts: [arnaud.anneraud.fr]
+    to: https://www.minitrainstore.fr
+    preserve_path: true
+  - name: guenola-sahut
+    hosts: [guenola-sahut.fr]
+    to: https://www.guenola-sahut.fr
+    preserve_path: true
