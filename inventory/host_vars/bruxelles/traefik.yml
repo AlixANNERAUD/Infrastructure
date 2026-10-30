@@ -36,8 +36,6 @@ traefik_routes:
     url: http://ix-nextcloud-nextcloud-1:80
     internal: false
     paths:
-      - prefix: /collabora
-        url: http://ix-collabora-collabora-1:9980
       - prefix: /.well-known/carddav
         redirect: /remote.php/dav
       - prefix: /.well-known/caldav
@@ -127,7 +125,8 @@ traefik_routes:
     internal: false
   - name: zitadel
     hosts: [authentification.anneraud.fr]
-    url: http://zitadel-zitadel-1:8080
+    # HTTP/2 end to end: Zitadel's gRPC API (used by its OpenTofu provider) needs it
+    url: h2c://zitadel-zitadel-1:8080
     internal: false
     paths:
       - prefix: /ui/v2/login
