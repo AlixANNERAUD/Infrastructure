@@ -71,3 +71,54 @@
     - name: Check that the stack is running
       ansible.builtin.assert:
         that: "'app' in compose_service_test_running.stdout_lines"
+
+    - name: Look up the external network
+      community.docker.docker_network_info:
+        name: molecule_test_database
+      register: compose_service_test_network
+
+    - name: Check the external network
+      ansible.builtin.assert:
+        that:
+          - compose_service_test_network.exists
+          - compose_service_test_network.network.Internal
+
+    - name: Read when the container started
+      ansible.builtin.command:
+        argv: [docker, compose, ps, --quiet, app]
+        chdir: "{{ compose_service_test_path }}"
+      register: compose_service_test_container
+      changed_when: false
+
+    - name: Remember when the container started
+      community.docker.docker_container_info:
+        name: "{{ compose_service_test_container.stdout }}"
+      register: compose_service_test_before
+
+# Only the file that restarts nothing changes
+- name: Converge again with a changed reloaded file
+  ansible.builtin.import_playbook: converge.yml
+  vars:
+    compose_service_test_reloaded_source: reloaded_second.yml
+
+- name: Verify the stack was not restarted
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Read the reloaded file
+      ansible.builtin.slurp:
+        src: "{{ compose_service_test_path }}/config/reloaded.yml"
+      register: compose_service_test_reloaded
+
+    - name: Look up the container again
+      community.docker.docker_container_info:
+        name: "{{ compose_service_test_before.container.Id }}"
+      register: compose_service_test_after
+
+    - name: Check that the file changed without restarting the container
+      ansible.builtin.assert:
+        that:
+          - "'revision: second' in compose_service_test_reloaded.content | b64decode"
+          - compose_service_test_after.exists
+          - compose_service_test_after.container.State.StartedAt == compose_service_test_before.container.State.StartedAt
+          - compose_service_test_after.container.Id == compose_service_test_before.container.Id

@@ -29,15 +29,28 @@ argument_specs:
       compose_service_templates:
         type: list
         elements: dict
-        description: Jinja templates to render, with source and destination.
+        description: >-
+          Jinja templates to render, with source and destination. An entry with
+          restart set to false does not restart the stack when it changes.
       compose_service_files:
         type: list
         elements: dict
-        description: Extra files to copy, with source and destination.
+        description: >-
+          Extra files to copy, with source and destination. An entry with
+          restart set to false does not restart the stack when it changes,
+          for files the service reloads itself.
       compose_service_mounted_files:
         type: list
         elements: str
         description: Files to create before they are bind-mounted.
+      compose_service_external_networks:
+        type: list
+        elements: dict
+        default: []
+        description: >-
+          Networks declared external in compose.yml, created before the stack
+          starts when they do not exist yet (existing ones are never changed),
+          each with a name and an internal flag (default false).
       compose_service_dns_records:
         type: list
         elements: dict

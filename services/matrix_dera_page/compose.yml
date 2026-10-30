@@ -1,6 +1,14 @@
+# Container logs are unbounded by default and would fill the disk
+x-logging: &logging
+  driver: local
+  options:
+    max-size: "20m"
+    max-file: "3"
+
 services:
   synapse:
     image: docker.io/matrixdotorg/synapse:v1.163.2
+    logging: *logging
     # Since synapse does not retry to connect to the database, restart upon
     # failure
     restart: unless-stopped
@@ -24,6 +32,7 @@ services:
 
   database:
     image: docker.io/postgres:18
+    logging: *logging
     restart: unless-stopped
     # Change that password, of course!
     environment:
@@ -42,6 +51,7 @@ services:
 
   well-known:
     image: nginx:alpine
+    logging: *logging
     restart: unless-stopped
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
@@ -58,6 +68,7 @@ services:
 
   pgbackups:
     image: prodrigestivill/postgres-backup-local
+    logging: *logging
     restart: always
     # user: postgres:postgres # Optional: see below
     volumes:
@@ -83,6 +94,7 @@ services:
   synapse-admin:
     hostname: synapse-admin
     image: ghcr.io/etkecc/synapse-admin:latest
+    logging: *logging
     restart: unless-stopped
     labels:
       - traefik.enable=true
@@ -104,4 +116,6 @@ services:
 networks:
   traefik:
     external: true
+  # Database side only: no route out of the Docker network
   internal:
+    internal: true

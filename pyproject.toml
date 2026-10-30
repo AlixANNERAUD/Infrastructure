@@ -9,6 +9,7 @@ dependencies = []
 dev = [
     "ansible-core>=2.21",
     "ansible-lint>=26.10",
+    "docker>=7.1",
     "molecule>=26.10",
     "yamllint>=1.38",
 ]

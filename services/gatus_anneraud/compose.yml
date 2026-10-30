@@ -1,6 +1,14 @@
+# Container logs are unbounded by default and would fill the disk
+x-logging: &logging
+  driver: local
+  options:
+    max-size: "20m"
+    max-file: "3"
+
 services:
   postgres:
     image: postgres:18
+    logging: *logging
     restart: unless-stopped
     volumes:
       - ./data/db:/var/lib/postgresql
@@ -13,6 +21,7 @@ services:
 
   pgautoupgrade:
     image: pgautoupgrade/pgautoupgrade:18-debian
+    logging: *logging
     profiles:
       - tools
     environment:
@@ -24,6 +33,7 @@ services:
 
   gatus:
     image: twinproduction/gatus:v5.37.0
+    logging: *logging
     restart: unless-stopped
     environment:
       - POSTGRES_USER=${DATABASE_USER}
@@ -49,7 +59,9 @@ services:
       - traefik.http.services.${STACK_NAME}.loadbalancer.server.port=8080
       - traefik.http.services.${STACK_NAME}.loadbalancer.server.scheme=http
 
+# Only the database lives here: no route out of the Docker network
 networks:
   database:
+    internal: true
   traefik:
     external: true

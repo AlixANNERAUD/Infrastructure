@@ -18,5 +18,8 @@
           APP_SECRET: "{{ app_secret }}"
           APP_URL: https://notes.anneraud.fr
           DATABASE_NAME: docmost
+        compose_service_external_networks:
+          - name: databases   # shared with Databasus
+            internal: true
         compose_service_dns_records:
           - record: notes.anneraud.fr

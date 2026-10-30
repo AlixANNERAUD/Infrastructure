@@ -1,6 +1,14 @@
+# Container logs are unbounded by default and would fill the disk
+x-logging: &logging
+  driver: local
+  options:
+    max-size: "20m"
+    max-file: "3"
+
 services:
   synapse:
     image: docker.io/matrixdotorg/synapse:v1.163.2
+    logging: *logging
     # Since synapse does not retry to connect to the database, restart upon
     # failure
     restart: unless-stopped
@@ -18,6 +26,7 @@ services:
 
   database:
     image: docker.io/postgres:18
+    logging: *logging
     restart: unless-stopped
     # Change that password, of course!
     environment:
@@ -36,7 +45,11 @@ services:
       - databases
 
 networks:
+  # Database side only: no route out of the Docker network
   internal:
+    internal: true
+  # Shared with Databasus, which backs the databases up; created by the
+  # compose_service role (compose_service_external_networks)
   databases:
     external: true
   proxy:

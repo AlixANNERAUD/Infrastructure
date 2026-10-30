@@ -30,6 +30,7 @@
         compose_service_files:
           - source: policy.yml
             destination: dynamic/policy.yml
+            restart: false   # Traefik reloads the dynamic folder itself
         compose_service_environment:
           CLOUDFLARE_EMAIL: "{{ cloudflare_email }}"
           CLOUDFLARE_API_KEY: "{{ cloudflare_api_key }}"
