@@ -37,6 +37,8 @@ services:
       - EMAIL_HOST=${EMAIL_HOST}
       - EMAIL_PORT=${EMAIL_PORT}
       - EMAIL_TO=${EMAIL_TO}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - ./config:/config
     networks:
