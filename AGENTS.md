@@ -5,8 +5,8 @@ Ansible playbooks and Docker Compose files that deploy Alix's self-hosted servic
 ## Layout
 
 - `services/<service>/` — one folder per service: `deploy.yml` (playbook), `compose.yml`, and any `*.j2` templates or config it copies.
-- `hosts/<host>/` — host-level playbooks (packages, networking, DNS for the host itself).
-- `services/cloudflare/update_dns_*.yml` — DNS zones not owned by a single service.
+- `hosts/<host>/` — host-level playbooks (packages, networking, `hosts/bruxelles/nextcloud_after_update.yml`); `hosts/bootstrap.yml` and `hosts/replication.yml` apply to several hosts.
+- `dns/<zone>.yml` — one playbook per Cloudflare DNS zone (`anneraud.yml`, `xila.yml`, `minitrainstore.yml`, `guenola_sahut.yml`), applied on their own, not by `site.yml`.
 - `inventory/hosts.yml` — hosts, plus one group per service naming the host it runs on (`tolgee_anneraud: {hosts: {luxembourg:}}`). Group names use underscores (`ha_linky`).
 - `inventory/host_vars/<host>.yml` (or a folder, `inventory/host_vars/bruxelles/`) — per-host settings: connection, `local_dns_host` / `global_dns_host`, `services_root`, `proxy_network`. Put host facts here, not in playbooks.
 - `vault/` — **private submodule** (`Infrastructure_vault`) with Ansible Vault files, one per service: `vault/<service>/vault.yml`, plus `vault/ansible/vault.yml` (sudo password) and `vault/cloudflare/vault.yml`.
@@ -79,7 +79,7 @@ Rules:
 ## Hosts access
 
 - Ansible connects as `ansible` with passwordless sudo; `hosts/bootstrap.yml` sets it up and hardens `sshd` on every host except TrueNAS (`truenas` group, configured in its interface). Never widen `automation_ssh_sources` or `ssh_administrators` in `inventory/group_vars/all.yml` without the owner.
-- Hosts that need to reach each other use their own account and key with a forced command (see `services/replication`), never the `ansible` account.
+- Hosts that need to reach each other use their own account and key with a forced command (see `hosts/replication.yml`), never the `ansible` account.
 
 ## Secrets
 

@@ -101,25 +101,26 @@ The playbook also hardens `sshd` (no passwords, no root login, only `ansible` an
 
 ### Replication
 
-`services/replication/deploy.yml` gives each client in the `replication` group a `replication` account and key, and installs a forced command on Bruxelles that runs one TrueNAS replication task, so the TrueNAS API key never leaves Bruxelles. Once, before deploying it:
+`hosts/replication.yml` gives each client in the `replication` group a `replication` account and key, and installs a forced command on Bruxelles that runs one TrueNAS replication task, so the TrueNAS API key never leaves Bruxelles. Once, before deploying it:
 
-1. Deploy: `uv run ansible-playbook services/replication/deploy.yml`. Until the `replication` user exists in TrueNAS, it explains how to create it.
+1. Deploy: `uv run ansible-playbook hosts/replication.yml`. Until the `replication` user exists in TrueNAS, it explains how to create it.
 2. Paste the `command="…",restrict ssh-ed25519 …` lines it prints into that user's *Authorized Keys*; it prints them only while they are missing.
 
 ## Structure
 
-The repository is organized by **service**, with each service containing all its related files:
-
 ```
+inventory/              # Hosts, groups and per-host settings
+roles/                  # Reusable roles (compose_service, ...)
 services/
-  <service_name>/
+  <service>/            # One folder per deployable stack
     deploy.yml          # Ansible playbook
     compose.yml         # Docker Compose file
-    config.yml          # Service configuration
-    ...
+    ...                 # Templates and configuration it copies
+hosts/                  # Host-level playbooks (bootstrap, replication, hosts/<host>/...)
+dns/                    # One playbook per Cloudflare DNS zone
+site.yml                # Deploys every service (DNS zones are applied with dns/*.yml)
 vault/                  # Private submodule with encrypted secrets
-deployments/            # Deployment-specific files
-documentation/          # Documentation
+.github/                # CI workflows and check scripts
 ```
 
 ## Vigie

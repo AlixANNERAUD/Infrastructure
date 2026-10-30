@@ -14,7 +14,7 @@
       - record: _github-pages-challenge-Xila-Project
         value: "bd5ac14459967978a064b9e7eab765"
   vars_files:
-    - ../../vault/cloudflare/vault.yml
+    - ../vault/cloudflare/vault.yml
   module_defaults:
     community.general.cloudflare_dns:
       zone: xila.dev
