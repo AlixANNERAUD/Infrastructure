@@ -57,11 +57,12 @@ Hosts and the service-to-host mapping are in [inventory/hosts.yml](inventory/hos
 
 ## Deployment
 
-Install the pinned tools (Ansible, ansible-lint, yamllint) and Ansible collections with [uv](https://docs.astral.sh/uv/):
+Install the pinned tools (Ansible, ansible-lint, yamllint) and Ansible collections with [uv](https://docs.astral.sh/uv/), and OpenTofu (pinned in `mise.toml`, used for Zitadel's applications) with [mise](https://mise.jdx.dev/):
 
 ```bash
 uv sync
 uv run ansible-galaxy collection install -r requirements.yml
+mise install
 ```
 
 Deploy a service playbook with Ansible:

@@ -1,0 +1,39 @@
+# Throwaway Zitadel for the Molecule scenario: no TLS, reachable on
+# http://localhost:18080, with a service account whose token is written to
+# ${ZITADEL_BOOTSTRAP_DIRECTORY}/automation.pat on first start.
+name: zitadel-applications-molecule
+
+services:
+  zitadel:
+    image: ghcr.io/zitadel/zitadel:v4.20.0
+    command: start-from-init --masterkeyFromEnv --tlsMode disabled
+    environment:
+      ZITADEL_MASTERKEY: MoleculeThrowawayMasterKey012345
+      ZITADEL_PORT: 8080
+      ZITADEL_EXTERNALDOMAIN: localhost
+      ZITADEL_EXTERNALPORT: 18080
+      ZITADEL_EXTERNALSECURE: false
+      ZITADEL_DATABASE_POSTGRES_DSN: postgresql://zitadel:zitadel@postgres:5432/zitadel?sslmode=disable
+      ZITADEL_FIRSTINSTANCE_ORG_MACHINE_MACHINE_USERNAME: automation
+      ZITADEL_FIRSTINSTANCE_ORG_MACHINE_MACHINE_NAME: Automation
+      ZITADEL_FIRSTINSTANCE_ORG_MACHINE_PAT_EXPIRATIONDATE: "2099-01-01T00:00:00Z"
+      ZITADEL_FIRSTINSTANCE_PATPATH: /zitadel/bootstrap/automation.pat
+    ports:
+      - 127.0.0.1:18080:8080
+    volumes:
+      - ${ZITADEL_BOOTSTRAP_DIRECTORY}:/zitadel/bootstrap
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: zitadel
+      POSTGRES_USER: zitadel
+      POSTGRES_PASSWORD: zitadel
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U zitadel -d zitadel"]
+      interval: 2s
+      timeout: 5s
+      retries: 30

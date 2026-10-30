@@ -1,0 +1,17 @@
+---
+- name: Cleanup
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Stop the throwaway Zitadel and remove its volumes
+      community.docker.docker_compose_v2:
+        project_src: "{{ lookup('ansible.builtin.env', 'MOLECULE_SCENARIO_DIRECTORY') }}"
+        state: absent
+        remove_volumes: true
+      environment:
+        ZITADEL_BOOTSTRAP_DIRECTORY: "{{ zitadel_applications_test_bootstrap_directory }}"
+
+    - name: Remove the test folder
+      ansible.builtin.file:
+        path: "{{ zitadel_applications_test_directory }}"
+        state: absent

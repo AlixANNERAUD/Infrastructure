@@ -1,0 +1,13 @@
+---
+# Personal access token of a Zitadel service account with the ORG_OWNER role
+zitadel_applications_token: "{{ zitadel_automation_token | default('') }}"
+
+# Passphrase of the encrypted OpenTofu state (at least 16 characters)
+zitadel_applications_state_passphrase: "{{ zitadel_state_passphrase | default('') }}"
+
+# OpenTofu configuration describing the projects, roles and applications
+zitadel_applications_project_path: "{{ playbook_dir }}/../../opentofu/zitadel"
+
+# Extra OpenTofu variables, overriding the configuration's defaults and
+# applications.auto.tfvars: {zitadel_domain: localhost, applications: {...}}
+zitadel_applications_variables: {}
