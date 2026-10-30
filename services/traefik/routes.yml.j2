@@ -1,19 +1,30 @@
 #jinja2: lstrip_blocks: True
-{# Wildcard certificate of each host's parent domain, or of the host itself when it is a bare domain #}
-{% macro certificates(hosts) %}
-{% set result = namespace(domains=[]) %}
+{# Each zone's wildcard certificate (parent domain of a host, or the bare domain itself) is requested by the
+   first router that serves it, and only by that one: concurrent orders for the same zone share Let's Encrypt's
+   challenge and delete each other's TXT record, so none succeeds. Every other router uses the stored certificate. #}
+{% set certificate_requests = namespace(zones=[]) %}
+{% macro certificates(hosts, state) %}
+{% set requested = namespace(zones=[]) %}
 {% for host in hosts %}
 {% set labels = host.split('.') %}
-{% set result.domains = result.domains + [host if labels | length == 2 else labels[1:] | join('.')] %}
+{% set zone = host if labels | length == 2 else labels[1:] | join('.') %}
+{% if zone not in state.zones and zone not in requested.zones %}
+{% set requested.zones = requested.zones + [zone] %}
+{% endif %}
 {% endfor %}
+{% set state.zones = state.zones + requested.zones %}
+{% if requested.zones %}
       tls:
         certResolver: letsencrypt
         domains:
-{% for domain in result.domains | unique %}
-          - main: {{ domain | to_json }}
+{% for zone in requested.zones %}
+          - main: {{ zone | to_json }}
             sans:
-              - {{ ('*.' ~ domain) | to_json }}
+              - {{ ('*.' ~ zone) | to_json }}
 {% endfor %}
+{% else %}
+      tls: {}
+{% endif %}
 {% endmacro %}
 {% macro host_rule(hosts) %}{{ hosts | map('regex_replace', '^(.*)$', 'Host(`\\1`)') | join(' || ') }}{% endmacro %}
 # Rendered from traefik_routes and traefik_redirects in the host's variables
@@ -29,7 +40,7 @@ http:
       middlewares:
         - internal-allowlist@file
   {% endif %}
-{{ certificates(route.hosts) }}
+{{ certificates(route.hosts, certificate_requests) }}
   {% for path in route.paths | default([]) %}
     {{ (route.name ~ '-' ~ loop.index) | to_json }}:
       rule: {{ ('(' ~ host_rule(route.hosts) ~ ') && PathPrefix(`' ~ path.prefix ~ '`)') | to_json }}
@@ -49,7 +60,7 @@ http:
         - {{ (route.name ~ '-' ~ loop.index ~ '-redirect') | to_json }}
       {% endif %}
     {% endif %}
-{{ certificates(route.hosts) }}
+      tls: {}
   {% endfor %}
 {% endfor %}
 {% for redirect in traefik_redirects %}
@@ -60,7 +71,7 @@ http:
       service: noop@internal
       middlewares:
         - {{ ('redirect-' ~ redirect.name) | to_json }}
-{{ certificates(redirect.hosts) }}
+{{ certificates(redirect.hosts, certificate_requests) }}
 {% endfor %}
 
   services:
