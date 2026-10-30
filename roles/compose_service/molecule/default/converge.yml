@@ -4,6 +4,11 @@
   gather_facts: false
   vars:
     compose_service_test_greeting: hello from molecule
+  pre_tasks:
+    # An existing network that differs from its declaration below: the role must warn and leave it alone
+    - name: Create a network that the role will find different
+      community.docker.docker_network:
+        name: molecule_test_drift
   roles:
     - role: compose_service
       vars:
@@ -27,6 +32,8 @@
             restart: false
         compose_service_external_networks:
           - name: molecule_test_database
+            internal: true
+          - name: molecule_test_drift
             internal: true
         compose_service_environment:
           PROXY_RULE: Host(`molecule.example`)

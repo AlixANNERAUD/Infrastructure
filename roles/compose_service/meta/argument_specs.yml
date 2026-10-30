@@ -32,6 +32,19 @@ argument_specs:
         description: >-
           Jinja templates to render, with source and destination. An entry with
           restart set to false does not restart the stack when it changes.
+        options:
+          source:
+            type: str
+            required: true
+            description: Template path, relative to the playbook folder.
+          destination:
+            type: str
+            required: true
+            description: Path inside the service folder.
+          restart:
+            type: bool
+            default: true
+            description: Restart the stack when the file changes.
       compose_service_files:
         type: list
         elements: dict
@@ -39,6 +52,19 @@ argument_specs:
           Extra files to copy, with source and destination. An entry with
           restart set to false does not restart the stack when it changes,
           for files the service reloads itself.
+        options:
+          source:
+            type: str
+            required: true
+            description: File path, relative to the playbook folder.
+          destination:
+            type: str
+            required: true
+            description: Path inside the service folder.
+          restart:
+            type: bool
+            default: true
+            description: Restart the stack when the file changes.
       compose_service_mounted_files:
         type: list
         elements: str
@@ -49,8 +75,17 @@ argument_specs:
         default: []
         description: >-
           Networks declared external in compose.yml, created before the stack
-          starts when they do not exist yet (existing ones are never changed),
-          each with a name and an internal flag (default false).
+          starts when they do not exist yet. An existing network is never
+          changed: a different internal flag is only reported in a warning.
+        options:
+          name:
+            type: str
+            required: true
+            description: Network name.
+          internal:
+            type: bool
+            default: false
+            description: Create the network without access outside the Docker network.
       compose_service_dns_records:
         type: list
         elements: dict

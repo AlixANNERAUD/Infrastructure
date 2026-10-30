@@ -115,6 +115,21 @@
         name: "{{ compose_service_test_before.container.Id }}"
       register: compose_service_test_after
 
+    - name: Look up the network that differs from its declaration
+      community.docker.docker_network_info:
+        name: molecule_test_drift
+      register: compose_service_test_drift
+
+    - name: Check that the differing network was reported and left alone
+      ansible.builtin.assert:
+        that:
+          - compose_service_test_drift.exists
+          - not compose_service_test_drift.network.Internal
+          - compose_service_network_drift | length == 1
+          - compose_service_network_drift[0].name == 'molecule_test_drift'
+          - not compose_service_network_drift[0].actual
+          - compose_service_network_drift[0].declared
+
     - name: Check that the file changed without restarting the container
       ansible.builtin.assert:
         that:
