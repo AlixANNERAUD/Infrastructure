@@ -55,4 +55,9 @@ variable "applications" {
     condition     = alltrue([for application in values(var.applications) : contains(["pkce", "client_secret"], application.authentication)])
     error_message = "authentication must be pkce or client_secret."
   }
+
+  validation {
+    condition     = alltrue([for application in values(var.applications) : length(application.redirect_uris) > 0])
+    error_message = "Every application needs at least one redirect URI."
+  }
 }

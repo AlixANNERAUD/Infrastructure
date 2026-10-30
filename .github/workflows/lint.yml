@@ -71,6 +71,9 @@ jobs:
   opentofu:
     name: tofu fmt and validate
     runs-on: ubuntu-latest
+    env:
+      # The registry answers slowly at times; OpenTofu's default timeout is 10 s
+      TF_REGISTRY_CLIENT_TIMEOUT: "120"
     steps:
       - uses: actions/checkout@v7.0.1
 
@@ -87,6 +90,9 @@ jobs:
   molecule-zitadel:
     name: molecule (zitadel_applications)
     runs-on: ubuntu-latest
+    env:
+      # The registry answers slowly at times; OpenTofu's default timeout is 10 s
+      TF_REGISTRY_CLIENT_TIMEOUT: "120"
     steps:
       - uses: actions/checkout@v7.0.1
 

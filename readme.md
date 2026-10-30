@@ -65,6 +65,8 @@ uv run ansible-galaxy collection install -r requirements.yml
 mise install
 ```
 
+Activate mise in your shell (`mise activate`) or prefix commands with `mise exec --`; otherwise `tofu` isn't on `PATH` and the Zitadel role reports OpenTofu as missing.
+
 Deploy a service playbook with Ansible:
 
 ```bash

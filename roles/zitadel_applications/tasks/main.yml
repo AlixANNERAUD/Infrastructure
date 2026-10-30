@@ -73,7 +73,8 @@
           environment: >-
             {{ {'TF_VAR_zitadel_token': zitadel_applications_token,
                 'TF_VAR_state_passphrase': zitadel_applications_state_passphrase,
-                'TF_CLI_ARGS_apply': '-var-file=' ~ zitadel_applications_variables_file.path}
+                'TF_CLI_ARGS_apply': '-var-file=' ~ zitadel_applications_variables_file.path,
+                'TF_REGISTRY_CLIENT_TIMEOUT': '120'}
                | combine({'TF_VAR_state_path': zitadel_applications_variables.state_path}
                          if zitadel_applications_variables.state_path is defined else {}) }}
           register: zitadel_applications_apply
