@@ -1,0 +1,60 @@
+---
+# Temporarily serve dera.page from Luxembourg while the friend's server is down,
+# so /.well-known/matrix/* keeps working. Switch back with:
+#   ansible-playbook bare_domain.yml -e bare_domain_target=friend
+- name: Point dera.page bare domain
+  hosts: luxembourg
+  gather_facts: false
+  vars:
+    bare_domain_target: luxembourg
+    friend_records:
+      - type: A
+        value: 89.80.240.3
+      - type: AAAA
+        value: 2001:861:3e0d:b6a0:caff:bfff:fe01:8313
+  vars_files:
+    - ../../vault/cloudflare/vault.yml
+  tasks:
+    - name: Remove friend's records
+      community.general.cloudflare_dns:
+        zone: dera.page
+        account_email: "{{ cloudflare_email }}"
+        account_api_key: "{{ cloudflare_api_key }}"
+        type: "{{ item.type }}"
+        record: dera.page
+        value: "{{ item.value }}"
+        state: absent
+      loop: "{{ friend_records }}"
+      when: bare_domain_target == "luxembourg"
+
+    - name: Point bare domain to Luxembourg
+      community.general.cloudflare_dns:
+        zone: dera.page
+        account_email: "{{ cloudflare_email }}"
+        account_api_key: "{{ cloudflare_api_key }}"
+        type: CNAME
+        record: dera.page
+        value: "{{ global_dns_host }}"
+      when: bare_domain_target == "luxembourg"
+
+    - name: Remove Luxembourg record
+      community.general.cloudflare_dns:
+        zone: dera.page
+        account_email: "{{ cloudflare_email }}"
+        account_api_key: "{{ cloudflare_api_key }}"
+        type: CNAME
+        record: dera.page
+        value: "{{ global_dns_host }}"
+        state: absent
+      when: bare_domain_target == "friend"
+
+    - name: Restore friend's records
+      community.general.cloudflare_dns:
+        zone: dera.page
+        account_email: "{{ cloudflare_email }}"
+        account_api_key: "{{ cloudflare_api_key }}"
+        type: "{{ item.type }}"
+        record: dera.page
+        value: "{{ item.value }}"
+      loop: "{{ friend_records }}"
+      when: bare_domain_target == "friend"

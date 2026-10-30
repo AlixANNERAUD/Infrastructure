@@ -49,7 +49,7 @@ services:
       - traefik
     labels:
       - traefik.enable=true
-      - traefik.http.routers.wellknown.rule=Host(`matrix.dera.page`) && PathPrefix(`/.well-known/matrix/`)
+      - traefik.http.routers.wellknown.rule=(Host(`dera.page`) || Host(`matrix.dera.page`)) && PathPrefix(`/.well-known/matrix/`)
       - traefik.http.routers.wellknown.entrypoints=web-secure,web-secure-federation
       - traefik.http.routers.wellknown.tls=true
       - traefik.http.routers.wellknown.tls.certresolver=letsencrypt
