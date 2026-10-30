@@ -1,0 +1,19 @@
+---
+kinds:
+  - playbook: "services/*/*.yml"
+  - playbook: "hosts/*/*.yml"
+
+exclude_paths:
+  - .venv/
+  - .ansible/
+  - .github/
+  - vault/
+  - services/website/website/
+  - services/*/compose.yml
+  - services/gatus_*/config.yml
+  - inventory.yml
+  - requirements.yml
+
+# ansible-lint does not follow module_defaults, which sets zone in the Cloudflare playbooks
+warn_list:
+  - args[module]
