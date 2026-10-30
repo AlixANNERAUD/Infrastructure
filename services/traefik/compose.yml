@@ -28,9 +28,10 @@ services:
 
       - "--entryPoints.web-secure.address=:443"
       - "--entryPoints.web-secure.http.tls=true"
+      # Netbird's gRPC streams last as long as a peer is connected, so requests
+      # must not be cut after the default 60s; idle connections still close
+      # after the default 180s
       - "--entryPoints.web-secure.transport.respondingTimeouts.readTimeout=0"
-      - "--entryPoints.web-secure.transport.respondingTimeouts.writeTimeout=0"
-      - "--entryPoints.web-secure.transport.respondingTimeouts.idleTimeout=0"
 
       - "--entryPoints.web-secure-federation.address=:8448"
       - "--entryPoints.web-secure-federation.http.tls=true"
@@ -63,7 +64,7 @@ services:
       - "traefik.http.routers.dashboard.tls.certresolver=letsencrypt"
 
       # Allowlist middleware configuration
-      - "traefik.http.middlewares.internal-allowlist.ipallowlist.sourcerange=192.168.0.0/24,100.64.0.0/24,100.128.0.0/24,fd00::/8,172.16.0.0/12"
+      - "traefik.http.middlewares.internal-allowlist.ipallowlist.sourcerange=192.168.0.0/24,100.64.0.0/24,100.128.0.0/24,fd00::/8"
 
       # Apply the middleware to the dashboard router
       - "traefik.http.routers.dashboard.middlewares=internal-allowlist@docker"
